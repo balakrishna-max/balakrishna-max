@@ -1,0 +1,212 @@
+/*
+ * The analytics-dashboard index.css, made safe for a JSP page.
+ *
+ * The original styled the whole document (html, body, button, img, h1-p, html font-size 13px ...),
+ * which would restyle the header/footer of the JSP. Here every rule applies only inside the dashboard
+ * (.a2z-reports = #a2z-reports-root), and the dashboard itself gets what html/body gave it before.
+ * The element resets use :where(.a2z-reports) so they keep the original's specificity (0,0,1): the
+ * dashboard's own class rules still win over them, exactly as before.
+ *
+ * rem: the original page had html { font-size: 13px }, so 1rem = 13px. The JSP page keeps its own
+ * root size, so at build time every rem in this folder's CSS is turned into px at 13px per rem
+ * (vite.config.js, plugin "a2z-reports-rem"). Sizes are therefore exactly as in the original app.
+ */
+
+/*
+ * Design tokens stay on :root because ChartRenderer.jsx reads them from document.documentElement.
+ * --shadow-sm / --shadow-md are left out: style_new.css defines them for the whole application,
+ * so the dashboard's own values are set on .a2z-reports below instead.
+ */
+:root {
+    --color-background: #fafbfe;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f9fafb;
+    --color-text-primary: #6c757d;
+    --color-text-secondary: #2d3748;
+    --color-text-dark : #000000;
+    --color-text-muted: #98a2b3;
+    --letter-spacing : 0.1px;
+    --color-border: #e1e1e1;
+    --color-border-strong: #d0d5dd;
+    --color-primary: #4765BA;
+    --color-secondary: #6c757d;
+    --color-primary-hover: #3B56A3;
+    --color-primary-soft: #eff6ff;
+    --color-heading : #2d6fb6;
+    --color-subheading : #4765BA;
+    --color-danger: #dc2626;
+    --color-success: #16a34a;
+    --color-warning: #d97706;
+    --color-table-heading : #e5e9ff;
+    --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --radius-sm: 0.39rem;
+    --radius-md: 0.62rem;
+    --radius-lg: 0.84rem;
+    --radius-xl: 1rem;
+    --shadow-lg: 0 7px 30px 0 rgb(100 100 111 / 20%);
+    --shadow-hover: 0 10px 20px rgb(0 0 0 / 12%),
+        0 4px 8px rgb(0 0 0 / 6%);
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+    --content-max-width: 1920px;
+}
+
+/* what html / body gave the dashboard in the original app */
+.a2z-reports {
+    --shadow-sm: 0 1px 3px rgb(16 24 40 / 8%);
+    --shadow-md: 0 4px 6px rgb(0 0 0 / 10%);
+
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* the original filled the browser window; here: the window below the JSP header */
+    height: max(640px, calc(100vh - 140px));
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background: var(--color-background);
+    color: var(--color-text-dark);
+    text-align: left;
+}
+
+:where(.a2z-reports) *,
+:where(.a2z-reports) *::before,
+:where(.a2z-reports) *::after {
+    box-sizing: border-box;
+}
+
+:where(.a2z-reports) h1,
+:where(.a2z-reports) h2,
+:where(.a2z-reports) h3,
+:where(.a2z-reports) h4,
+:where(.a2z-reports) h5,
+:where(.a2z-reports) h6,
+:where(.a2z-reports) p {
+    margin: 0;
+}
+
+:where(.a2z-reports) button,
+:where(.a2z-reports) input,
+:where(.a2z-reports) select,
+:where(.a2z-reports) textarea {
+    font: inherit;
+}
+
+:where(.a2z-reports) button {
+    border: 0;
+    cursor: pointer;
+}
+
+:where(.a2z-reports) button:disabled {
+    cursor: not-allowed;
+}
+
+:where(.a2z-reports) img,
+:where(.a2z-reports) svg,
+:where(.a2z-reports) video,
+:where(.a2z-reports) canvas {
+    display: block;
+    max-width: 100%;
+}
+
+:where(.a2z-reports) a {
+    color: inherit;
+    text-decoration: none;
+}
+
+:where(.a2z-reports) :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.a2z-reports .dashboard-page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+@media (max-width: 900px) {
+    .a2z-reports,
+    .a2z-reports .dashboard-page {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+}
+
+/*
+ * Rules from the application's style_new.css that reach into the dashboard (found by comparing the
+ * computed styles of every element against the stand-alone app). Each line puts back what the
+ * stand-alone app had. Same low specificity as the host rule, so the dashboard's own classes still win.
+ */
+
+/* input[type="file"] { display: block } beat the [hidden] attribute: the CSV picker showed */
+.a2z-reports [hidden] {
+    display: none !important;
+}
+
+/* label { font-weight: 600 } */
+:where(.a2z-reports) label {
+    font-weight: 400;
+}
+
+/* span { font-size: 12px } */
+:where(.a2z-reports) span {
+    font-size: inherit;
+}
+
+/* table th { font-size: 11px !important } -> the dashboard's own header size (DataTable.css) */
+.a2z-reports .data-table-header-cell {
+    font-size: var(--font-size-xs) !important;
+}
+
+/* h1-h6 { line-height: 1.1 / 1.2125em } */
+:where(.a2z-reports) :is(h1, h2, h3, h4, h5, h6) {
+    line-height: inherit;
+}
+
+/* input[type="text"], select { box-shadow: inset ... } */
+:where(.a2z-reports) input[type="text"],
+:where(.a2z-reports) select {
+    box-shadow: none;
+}
+
+/* input[type="radio"] { line-height: normal }: the original's "font: inherit" covers radios too */
+:where(.a2z-reports) input[type="radio"],
+:where(.a2z-reports) input[type="checkbox"] {
+    color: revert;
+    line-height: inherit;
+}

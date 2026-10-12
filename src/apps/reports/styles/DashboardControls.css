@@ -1,0 +1,352 @@
+.dashboard-controls {
+    width: 100%;
+    min-width: 0;
+}
+
+.dashboard-controls-fields {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    gap: clamp(var(--space-4), 1.5vw, var(--space-6));
+}
+.dashboard-controls-year-fields {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.dashboard-controls-year-fields input {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0;
+    background: transparent;
+    color: var(--color-text-dark);
+    border: 0;
+    border-bottom: 1px solid var(--color-border-strong);
+    border-radius: 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.25;
+    text-align: center;
+    outline: none;
+    transition:
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.dashboard-controls-year-fields input:hover {
+    border-bottom-color: var(--color-primary);
+}
+
+.dashboard-controls-year-fields input:focus {
+    border-bottom-color: var(--color-primary);
+}
+
+.dashboard-controls-year-fields input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.dashboard-controls-year-fields input:disabled {
+    color: var(--color-text-muted);
+    border-bottom-color: var(--color-border);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.dashboard-controls-year-disabled .searchable-dropdown-label,
+.dashboard-controls-year-disabled
+    .dashboard-controls-year-separator {
+    color: var(--color-text-muted);
+    opacity: 0.6;
+}
+
+.dashboard-controls-year-disabled
+    .dashboard-controls-year-fields {
+    cursor: not-allowed;
+}
+
+.dashboard-controls-year-separator {
+    flex: 0 0 auto;
+    padding-inline: var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1;
+}
+
+@media (max-width: 1100px) {
+    .dashboard-controls-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-controls-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.dashboard-controls-filter-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-6);
+    margin-top: var(--space-5);
+}
+
+.dashboard-controls-filter {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+    gap: var(--space-4);
+}
+
+.dashboard-controls-filter-label {
+    flex: 0 0 auto;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+}
+
+.dashboard-controls-filter-options {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    min-width: 0;
+}
+
+.dashboard-controls-filter-option-group {
+    position: relative;
+}
+
+.dashboard-controls-filter-option-group-active {
+    color: var(--color-primary);
+}
+
+.dashboard-controls-filter-option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
+.dashboard-controls-filter-option-group-active
+    .dashboard-controls-filter-option {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.dashboard-controls-filter-option input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.dashboard-controls-filter-option-disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.dashboard-controls-filter-option-disabled input {
+    cursor: not-allowed;
+}
+
+.dashboard-controls-filter-option-disabled span {
+    color: var(--color-text-muted);
+}
+
+.dashboard-controls-filter-selected-value {
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-regular);
+}
+
+.dashboard-controls-filter-value {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    left: 0;
+    z-index: 50;
+    min-width: 14rem;
+}
+
+.dashboard-controls-view-toggle {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex: 0 0 auto;
+    width: 8rem;
+    min-height: 2.75rem;
+    padding: var(--space-1);
+    border: 1px solid rgb(255 255 255 / 70%);
+    border-radius: 999px;
+    color: var(--color-text-dark);
+    background: rgb(255 255 255 / 42%);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 80%),
+        inset 0 -1px 0 rgb(0 0 0 / 4%),
+        0 0.25rem 1rem rgb(16 24 40 / 10%);
+    backdrop-filter: blur(1rem) saturate(1.4);
+    -webkit-backdrop-filter: blur(1rem) saturate(1.4);
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.dashboard-controls-view-toggle::before {
+    content: "";
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    z-index: 0;
+    width: calc(50% - 0.25rem);
+    height: calc(100% - 0.5rem);
+    border: 1px solid rgb(255 255 255 / 70%);
+    border-radius: 999px;
+    background: rgb(from var(--color-primary) r g b / 20%);
+    box-shadow:
+        0 0.25rem 0.75rem rgb(16 24 40 / 14%),
+        inset 0 1px 0 rgb(255 255 255 / 35%);
+    transform: translate3d(0, 0, 0);
+    transition:
+        transform 420ms cubic-bezier(
+            0.22,
+            1,
+            0.36,
+            1
+        ),
+        opacity var(--transition-normal),
+        box-shadow var(--transition-normal);
+    will-change: transform, opacity;
+}
+
+.dashboard-controls-view-toggle-table::before {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+.dashboard-controls-view-toggle-chart::before {
+    opacity: 1;
+    transform: translate3d(100%, 0, 0);
+}
+
+.dashboard-controls-view-toggle-split::before {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+    box-shadow: none;
+}
+
+.dashboard-controls-view-button {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 2.25rem;
+    padding: 0;
+    background: transparent;
+    border-radius: 999px;
+    color: var(--color-primary);
+}
+
+.dashboard-controls-view-button:hover {
+    background: transparent;
+}
+
+.dashboard-controls-view-button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.dashboard-controls-view-toggle-split
+    .dashboard-controls-view-button:hover {
+    background: transparent;
+    transform: none;
+}
+
+.dashboard-controls-view-toggle-split
+    .dashboard-controls-view-icon {
+    opacity: 0.7;
+    transform: scale(1);
+}
+
+.dashboard-controls-view-icon {
+    width: 70%;
+    height: 70%;
+    background-color: var(--color-primary);
+    background-image: none;
+    -webkit-mask-image: var(--view-icon);
+    mask-image: var(--view-icon);
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    opacity: 0.65;
+    transform: scale(1.14);
+
+    transition:
+        opacity 250ms ease,
+        transform 300ms cubic-bezier(
+            0.22,
+            1,
+            0.36,
+            1
+        );
+}
+
+.dashboard-controls-view-button-active
+    .dashboard-controls-view-icon {
+    transform: scale(1.08);
+    background-color: var(--color-primary);
+}
+
+.dashboard-controls-view-button-active:hover
+    .dashboard-controls-view-icon {
+    opacity: 1;
+    transform: scale(1.14);
+}
+
+@media (max-width: 900px) {
+    .dashboard-controls-filter-row {
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    .dashboard-controls-view-toggle {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-controls-filter-options {
+        gap: var(--space-2) var(--space-3);
+    }
+
+    .dashboard-controls-filter-value {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(20rem, calc(100vw - var(--space-6)));
+        min-width: 0;
+    }
+
+    .dashboard-controls-view-toggle {
+        align-self: stretch;
+        width: 100%;
+        max-width: 8rem;
+    }
+}
