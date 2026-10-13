@@ -1,77 +1,38 @@
 import { decryptReportData, getClientPublicKey } from "../security/reportCrypto.js";
-import { REPORTS_API_URL } from "../../../../config/commonURLConstants.js";
 
-const BASE_URL = REPORTS_API_URL.replace(/\/+$/, "");
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-async function fetchReport({
-    reportType,
-}) {
-    const endpoint =
-        `${BASE_URL}/api/reports`;
-
-    const clientPublicKey =
-        await getClientPublicKey();
-
-    const requestBody = {
-        clientPublicKey,
-        data: {
-            reportType,
-        },
-    };
-
-    const response = await fetch(
-        endpoint,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(
-                requestBody
-            ),
+async function fetchReport({reportType}) {
+    const endpoint = `${BASE_URL}/api/reports`;
+    const clientPublicKey = await getClientPublicKey();
+    const requestBody = {clientPublicKey, data: {reportType}};
+    const response = await fetch(endpoint,
+        {method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(requestBody),
         }
     );
 
     if (!response.ok) {
-        throw new Error(
-            `Report request failed with status ${response.status}.`
-        );
+        throw new Error(`Report request failed with status ${response.status}.`);
     }
 
-    const result =
-        await response.json();
-
+    const result = await response.json();
     if (!result.success) {
-        throw new Error(
-            "Report request was unsuccessful."
-        );
+        throw new Error("Report request was unsuccessful.");
     }
 
-    if (
-        !result.data ||
-        !result.data.resourceName ||
-        !result.data.generatedAt ||
-        !result.data.payload
-    ) {
-        throw new Error(
-            "Report response payload is invalid."
-        );
+    if (!result.data || !result.data.resourceName || !result.data.generatedAt || !result.data.payload) {
+        throw new Error("Report response payload is invalid.");
     }
 
-    const decryptedData =
-        await decryptReportData({
-            encryptedData:
-                result.data.payload,
-            reportName:
-                result.data.resourceName,
-            generatedAt:
-                result.data.generatedAt,
+    const decryptedData = await decryptReportData({
+            encryptedData: result.data.payload,
+            reportName: result.data.resourceName,
+            generatedAt: result.data.generatedAt
         });
 
-    return {
-        ...result,
-        data: decryptedData,
-    };
+    return {...result, data: decryptedData};
 }
 
 /*
@@ -193,8 +154,5 @@ async function fetchReport({
 
 export {
     fetchReport,
-    /*
-     * Department API integration temporarily disabled.
-     * fetchDeparments,
-     */
+  /* Department API integration temporarily disabled. fetchDeparments */
 };
