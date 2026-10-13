@@ -1,281 +1,59 @@
-import {
-    COLUMN_TYPES,
-    isNumericChartField,
-    getPeriodDateFields,
-    getFilterField,
-    getTenderValueLabel,
-    TENDER_STATUS_LABELS,
-    TENDER_CATEGORY_LABELS,
-} from "./dashboardData";
+import {COLUMN_TYPES, isNumericChartField, isRevenueField, getFilterField, getTenderValueLabel} from "./dashboardData.js";
 
-const STANDARD_X_AXIS_TYPES = [
-    COLUMN_TYPES.NUMBER,
-    COLUMN_TYPES.DATE,
-    COLUMN_TYPES.TEXT,
+const STANDARD_X_AXIS_TYPES = [COLUMN_TYPES.TEXT];
+const NUMBER_Y_AXIS_TYPES = [COLUMN_TYPES.NUMBER];
+const STANDARD_CHART_CAPABILITY = {minYAxisFields: 1, maxYAxisFields: 1, allowedXAxisTypes: STANDARD_X_AXIS_TYPES, allowedYAxisTypes: NUMBER_Y_AXIS_TYPES,};
+
+const CHART_DEFINITIONS = [
+    {value: "area", label: "Area Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "bar", label: "Bar Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "composed", label: "Composed Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "horizontal-bar", label: "Horizontal Bar Chart", capability: {...STANDARD_CHART_CAPABILITY, allowedXAxisTypes: [COLUMN_TYPES.TEXT, COLUMN_TYPES.DATE]}},
+    {value: "line", label: "Line Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "pie", label: "Pie Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "radar", label: "Radar Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "scatter", label: "Scatter Plot", capability: {...STANDARD_CHART_CAPABILITY, allowedXAxisTypes: [COLUMN_TYPES.NUMBER], allowSameAxisField: true}},
+    {value: "stacked-area", label: "Stacked Area Chart", capability: {...STANDARD_CHART_CAPABILITY, maxYAxisFields: Infinity, multiYAxis: true}},
+    {value: "stacked-bar", label: "Stacked Bar Chart", capability: {...STANDARD_CHART_CAPABILITY, maxYAxisFields: Infinity, multiYAxis: true}},
 ];
 
-const NUMBER_Y_AXIS_TYPES = [
-    COLUMN_TYPES.NUMBER,
-];
-
-const STANDARD_CHART_CAPABILITY = {
-    minYAxisFields: 1,
-    maxYAxisFields: 1,
-    allowedXAxisTypes: STANDARD_X_AXIS_TYPES,
-    allowedYAxisTypes: NUMBER_Y_AXIS_TYPES,
-};
-
-const chartTypes = [
-    {
-        value: "area",
-        label: "Area Chart",
-    },
-    {
-        value: "bar",
-        label: "Bar Chart",
-    },
-    {
-        value: "composed",
-        label: "Composed Chart",
-    },
-    {
-        value: "donut",
-        label: "Donut Chart",
-    },
-    {
-        value: "horizontal-bar",
-        label: "Horizontal Bar Chart",
-    },
-    {
-        value: "line",
-        label: "Line Chart",
-    },
-    {
-        value: "pie",
-        label: "Pie Chart",
-    },
-    {
-        value: "radar",
-        label: "Radar Chart",
-    },
-    {
-        value: "radial",
-        label: "Radial Chart",
-    },
-    {
-        value: "scatter",
-        label: "Scatter Plot",
-    },
-    {
-        value: "stacked-area",
-        label: "Stacked Area Chart",
-    },
-    {
-        value: "stacked-bar",
-        label: "Stacked Bar Chart",
-    },
-];
-
-const CHART_CAPABILITIES = {
-    line: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    bar: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    area: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    scatter: {
-        ...STANDARD_CHART_CAPABILITY,
-        allowedXAxisTypes: [
-            COLUMN_TYPES.NUMBER,
-        ],
-    },
-
-    composed: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    pie: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    donut: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    radar: {
-        ...STANDARD_CHART_CAPABILITY,
-        maxYAxisFields: Infinity,
-    },
-
-    radial: {
-        ...STANDARD_CHART_CAPABILITY,
-    },
-
-    "stacked-bar": {
-        ...STANDARD_CHART_CAPABILITY,
-        maxYAxisFields: Infinity,
-    },
-
-    "stacked-area": {
-        ...STANDARD_CHART_CAPABILITY,
-        maxYAxisFields: Infinity,
-    },
-
-    "horizontal-bar": {
-        ...STANDARD_CHART_CAPABILITY,
-        allowedXAxisTypes: [
-            COLUMN_TYPES.TEXT,
-            COLUMN_TYPES.DATE,
-        ],
-    },
-};
+const chartTypes = CHART_DEFINITIONS.map(({value, label}) => ({value, label}));
+const CHART_CAPABILITIES = Object.fromEntries(CHART_DEFINITIONS.map(({value, capability}) => [value, capability]));
 
 const REPORT_CONFIG = {
-    "TD-ECV Summary": {
-        id: "td-ecv-summary",
-        label: "TD-ECV Summary",
-    },
-    "Tenders": {
-        id: "tenders",
-        label: "Tenders",
-    },
-    "Department wise Tenders": {
-        id: "dw-tenders",
-        label: "Department wise Tenders",
-    },
-    "Tender Analysis": {
-        id: "tender-analysis",
-        label: "Tender Analysis",
-    },
-    "Supplier Analysis": {
-        id: "supplier-analysis",
-        label: "Supplier Analysis",
-    },
-    "Bid Analysis": {
-        id: "bid-analysis",
-        label: "Bid Analysis",
-    },
-    "Payment": {
-        id: "payment",
-        label: "Payment",
-    },
+    "td-ecv-summary": {label: "TD-ECV Summary", departmentAxis: true, excludedAxisFields: ["nmappingdeptid"]},
+    tenders: {label: "Tenders", departmentAxis: false, excludedAxisFields: []},
+    "dw-tenders": {label: "Department Wise Tenders", departmentAxis: true, excludedAxisFields: []},
+    "tender-analysis": {label: "Tender Analysis", departmentAxis: false, excludedAxisFields: []},
+    "supplier-analysis": {label: "Supplier Analysis", departmentAxis: false, excludedAxisFields: []},
+    "bid-analysis": {label: "Bid Analysis", departmentAxis: false, excludedAxisFields: []},
+    payment: {label: "Payment", departmentAxis: false, excludedAxisFields: []},
 };
 
 const filterTypes = [
-    {
-        value: "none",
-        label: "None",
-        hasOptions: false,
-    },
-    /*
-    {
-        value: "number-wise",
-        label: "Number wise",
-        hasOptions: false,
-    },
-    {
-        value: "value-wise",
-        label: "Value wise",
-        hasOptions: false,
-    },
-    {
-        value: "percentage-wise",
-        label: "Percentage wise",
-        hasOptions: false,
-    },
-    */
-    {
-        value: "category-wise",
-        label: "Category wise",
-        hasOptions: true,
-    },
-    {
-        value: "status",
-        label: "Status",
-        hasOptions: true,
-    },
+    {value: "none", label: "None", hasOptions: false},
+    {value: "category-wise", label: "Category wise", hasOptions: true},
+    {value: "status", label: "Status", hasOptions: true},
 ];
 
-const statusFilterOptions = [
-    ...Object.entries(TENDER_STATUS_LABELS).map(
-        ([value, label]) => ({
-            value,
-            label,
-        })
-    ),
-    {
-        value: "In Progress",
-        label: "In Progress",
-    },
-    {
-        value: "Awarded",
-        label: "Awarded",
-    },
-    {
-        value: "Rejected",
-        label: "Rejected",
-    },
-    {
-        value: "Cancelled",
-        label: "Cancelled",
-    },
-];
-
-const categoryFilterOptions = [
-    ...Object.entries(TENDER_CATEGORY_LABELS).map(
-        ([value, label]) => ({
-            value,
-            label,
-        })
-    ),
-    {
-        value: "goods",
-        label: "Goods",
-    },
-    {
-        value: "services",
-        label: "Services",
-    },
-    {
-        value: "works",
-        label: "Works",
-    },
-    {
-        value: "products",
-        label: "Products",
-    },
-    {
-        value: "transport",
-        label: "Transport",
-    },
-];
-
-const reportTypes = Object.values(REPORT_CONFIG).map(
-    (report) => ({
-        value: report.id,
-        label: report.label,
-    })
+const reportTypes = Object.entries(REPORT_CONFIG).map(
+    ([value, {label}]) => ({value, label})
 );
 
 function getReportConfig(reportId) {
-    return REPORT_CONFIG[reportId] || null;
+    return REPORT_CONFIG[reportId];
 }
 
 function getChartCapabilities(chartType) {
-    return CHART_CAPABILITIES[chartType] || null;
+    return CHART_CAPABILITIES[chartType];
 }
 
 function isMultiYAxisChart(chartType) {
-    return (
-        chartType === "stacked-bar" ||
-        chartType === "stacked-area"
-    );
+    return CHART_CAPABILITIES[chartType]?.multiYAxis === true;
+}
+
+function isDepartmentAxisReport(reportId) {
+    return getReportConfig(reportId)?.departmentAxis === true;
 }
 
 function getFieldType(columnTypes, field) {
@@ -286,67 +64,111 @@ function getFieldType(columnTypes, field) {
     return columnTypes[field] || null;
 }
 
-function getYAxisFieldType(
-    data,
-    field
-) {
-    if (
-        !data ||
-        !data.columnTypes ||
-        !field
-    ) {
+function getYAxisFieldType(data, field) {
+    if (!data || !data.columnTypes || !field) {
         return null;
     }
 
-    const fieldType =
-        getFieldType(
-            data.columnTypes,
-            field
-        );
+    const fieldType = getFieldType(data.columnTypes, field);
 
-    if (
-        isNumericChartField(
-            data,
-            field
-        )
-    ) {
+    if (isNumericChartField(data, field)) {
         return COLUMN_TYPES.NUMBER;
     }
 
     return fieldType;
 }
 
-function isChartTypeSupported(
-    data,
-    chartType
-) {
-    if (
-        !data ||
-        !Array.isArray(data.fields) ||
-        !data.columnTypes
-    ) {
-        return false;
+function getXAxisFieldType(data, field, chartType) {
+    if (!data || !data.columnTypes || !field) {
+        return null;
     }
 
-    const capabilities =
-        getChartCapabilities(
-            chartType
-        );
+    const declaredType = getFieldType(data.columnTypes, field);
+    const capabilities = getChartCapabilities(chartType);
+    if (declaredType === COLUMN_TYPES.TEXT &&
+        capabilities?.allowedXAxisTypes.includes(COLUMN_TYPES.TEXT)) {
+        return declaredType;
+    }
 
+    return isNumericChartField(data, field) ? COLUMN_TYPES.NUMBER : declaredType;
+}
+
+function isXAxisFieldAllowed(data, chartType, field) {
+    const capabilities = getChartCapabilities(chartType);
+    const fieldType = getXAxisFieldType(data, field, chartType);
+
+    return Boolean(
+        data?.columnTypes &&
+        field &&
+        capabilities?.allowedXAxisTypes.includes(
+            fieldType
+        ) &&
+        !(fieldType === COLUMN_TYPES.TEXT && isRevenueField(field))
+    );
+}
+
+function isYAxisFieldAllowed(data, chartType, field) {
+    const capabilities = getChartCapabilities(chartType);
+
+    return Boolean(
+        data?.columnTypes &&
+        field &&
+        capabilities?.allowedYAxisTypes.includes(
+            getYAxisFieldType(data, field)
+        )
+    );
+}
+
+function getChartAxisFieldOptions(data, chartType, axisName, excludedFields = [], referenceYAxisField = "") {
+    if (!data || !Array.isArray(data.fields)) {
+        return [];
+    }
+
+    const excludedFieldSet = new Set(
+        Array.isArray(excludedFields) ? excludedFields : [excludedFields]
+    );
+    const isFieldAllowed = axisName === "x"
+        ? (field) => isXAxisFieldAllowed(data, chartType, field)
+        : (field) => isYAxisFieldAllowed(data, chartType, field);
+
+    const referenceIsRevenue = referenceYAxisField
+        ? isRevenueField(referenceYAxisField)
+        : null;
+
+    return data.fields.filter((field) => {
+        if (excludedFieldSet.has(field) || !isFieldAllowed(field)) {
+            return false;
+        }
+
+        if (
+            axisName === "y" &&
+            isMultiYAxisChart(chartType) &&
+            referenceIsRevenue !== null
+        ) {
+            return isRevenueField(field) === referenceIsRevenue;
+        }
+
+        return true;
+    });
+}
+
+function isChartTypeSupported(data, chartType, fixedXAxisField = null) {
+    if (!data || !Array.isArray(data.fields) || !data.columnTypes) {
+        return false;
+    }
+    const capabilities = getChartCapabilities(chartType);
     if (!capabilities) {
         return false;
     }
 
-    const xAxisCandidates =
-        data.fields.filter(
-            (field) =>
-                capabilities.allowedXAxisTypes.includes(
-                    getFieldType(
-                        data.columnTypes,
-                        field
-                    )
-                )
-        );
+    const usesFixedXAxisField = fixedXAxisField !== null && chartType !== "scatter";
+    const xAxisCandidates = usesFixedXAxisField
+        ? [fixedXAxisField].filter(
+              (field) =>
+                  data.fields.includes(field) &&
+                  isXAxisFieldAllowed(data, chartType, field)
+          )
+        : getChartAxisFieldOptions(data, chartType, "x");
 
     if (xAxisCandidates.length === 0) {
         return false;
@@ -358,54 +180,34 @@ function isChartTypeSupported(
                 data.fields.filter(
                     (field) =>
                         field !== xAxisField &&
-                        capabilities.allowedYAxisTypes.includes(
-                            getYAxisFieldType(
-                                data,
-                                field
-                            )
-                        )
+                        isYAxisFieldAllowed(data, chartType, field)
                 );
 
-            return (
-                yAxisCandidates.length >=
-                capabilities.minYAxisFields
-            );
+            return (yAxisCandidates.length >= capabilities.minYAxisFields);
         }
     );
 }
 
-function getChartTypeOptions(data) {
+function getChartTypeOptions(data, fixedXAxisField = null) {
     return chartTypes.map(
         (chartType) => ({
             ...chartType,
             disabled:
                 !isChartTypeSupported(
                     data,
-                    chartType.value
+                    chartType.value,
+                    fixedXAxisField
                 ),
         })
     );
 }
 
-function getDefaultVisualizationSelection(
-    data,
-    chartType = "area"
-) {
-    if (
-        !data ||
-        !Array.isArray(data.fields) ||
-        !data.columnTypes
-    ) {
-        return {
-            chartType,
-            xAxisField: "",
-            yAxisField: "",
-            yAxisFields: [],
-        };
+function getDefaultVisualizationSelection(data, chartType = "area", fixedXAxisField = null) {
+    if (!data || !Array.isArray(data.fields) || !data.columnTypes) {
+        return {chartType, xAxisField: "", yAxisField: "", yAxisFields: []};
     }
 
-    const capabilities =
-        getChartCapabilities(chartType);
+    const capabilities = getChartCapabilities(chartType);
 
     if (!capabilities) {
         return {
@@ -417,33 +219,34 @@ function getDefaultVisualizationSelection(
     }
 
     const xAxisField =
-        data.fields.find(
-            (field) =>
-                capabilities.allowedXAxisTypes.includes(
-                    getFieldType(
-                        data.columnTypes,
-                        field
-                    )
-                )
-        ) || "";
+        chartType !== "scatter" && fixedXAxisField !== null
+            ? fixedXAxisField
+            : getChartAxisFieldOptions(data, chartType, "x")[0] ?? "";
 
-    const yAxisCandidates =
-        data.fields.filter(
-            (field) =>
-                field !== xAxisField &&
-                capabilities.allowedYAxisTypes.includes(
-                    getYAxisFieldType(
-                        data,
-                        field
-                    )
-                )
+    if (!isXAxisFieldAllowed(data, chartType, xAxisField)) {
+        return {
+            chartType,
+            xAxisField: "",
+            yAxisField: "",
+            yAxisFields: [],
+        };
+    }
+
+    let yAxisCandidates = getChartAxisFieldOptions(data, chartType, "y", xAxisField);
+
+    if (isMultiYAxisChart(chartType) && yAxisCandidates.length > 0) {
+        yAxisCandidates = getChartAxisFieldOptions(
+            data,
+            chartType,
+            "y",
+            xAxisField,
+            yAxisCandidates[0]
         );
+    }
 
-    const yAxisField =
-        yAxisCandidates[0] || "";
+    const yAxisField = yAxisCandidates[0] || "";
 
-    const isMultiYAxis =
-        isMultiYAxisChart(chartType);
+    const isMultiYAxis = isMultiYAxisChart(chartType);
 
     return {
         chartType,
@@ -455,18 +258,8 @@ function getDefaultVisualizationSelection(
     };
 }
 
-function getChartTypeSelection({
-    data,
-    chartType,
-    xAxisField,
-    yAxisField,
-    yAxisFields = [],
-}) {
-    if (
-        !data ||
-        !Array.isArray(data.fields) ||
-        !data.columnTypes
-    ) {
+function getChartTypeSelection({data, chartType, xAxisField, yAxisField, yAxisFields = [], fixedXAxisField = null}) {
+    if (!data || !Array.isArray(data.fields) || !data.columnTypes) {
         return {
             xAxisField: "",
             yAxisField: "",
@@ -474,10 +267,7 @@ function getChartTypeSelection({
         };
     }
 
-    const capabilities =
-        getChartCapabilities(
-            chartType
-        );
+    const capabilities = getChartCapabilities(chartType);
 
     if (!capabilities) {
         return {
@@ -487,122 +277,65 @@ function getChartTypeSelection({
         };
     }
 
-    const isXAxisAllowed = (field) =>
-        Boolean(field) &&
-        capabilities.allowedXAxisTypes.includes(
-            getFieldType(
-                data.columnTypes,
-                field
-            )
+    const currentYAxisFields = yAxisFields.length > 0 ? yAxisFields : yAxisField ? [yAxisField] : [];
+    let validCurrentYAxisFields = currentYAxisFields.filter(
+        (field) =>
+            data.fields.includes(field) &&
+            isYAxisFieldAllowed(data, chartType, field)
+    );
+    if (isMultiYAxisChart(chartType) && validCurrentYAxisFields.length > 0) {
+        const referenceYAxisField = validCurrentYAxisFields[0];
+        validCurrentYAxisFields = validCurrentYAxisFields.filter(
+            (field) => isRevenueField(field) === isRevenueField(referenceYAxisField)
         );
-
-    const isYAxisAllowed = (field) =>
-        Boolean(field) &&
-        capabilities.allowedYAxisTypes.includes(
-            getYAxisFieldType(
-                data,
-                field
-            )
-        );
-
-    const currentYAxisFields =
-        yAxisFields.length > 0
-            ? yAxisFields
-            : yAxisField
-              ? [yAxisField]
-              : [];
-
-    const validCurrentYAxisFields =
-        currentYAxisFields.filter(
-            (field) =>
-                data.fields.includes(field) &&
-                isYAxisAllowed(field)
-        );
-
-    const canKeepCurrentXAxis =
-        isXAxisAllowed(xAxisField) &&
-        !validCurrentYAxisFields.includes(
-            xAxisField
-        );
-
-    const defaultXAxisField =
-        data.fields.find(
-            (field) =>
-                isXAxisAllowed(field) &&
-                !validCurrentYAxisFields.includes(
-                    field
-                )
-        ) || "";
-
-    const nextXAxisField =
-        canKeepCurrentXAxis
+    }
+    const nextXAxisField = fixedXAxisField !== null && chartType !== "scatter" ? fixedXAxisField : (
+        isXAxisFieldAllowed(data, chartType, xAxisField) &&
+        (capabilities.allowSameAxisField || !validCurrentYAxisFields.includes(xAxisField))
             ? xAxisField
-            : defaultXAxisField;
+            : getChartAxisFieldOptions(data, chartType, "x").find(
+                  (field) => capabilities.allowSameAxisField || !validCurrentYAxisFields.includes(field)
+              ) || ""
+    );
 
-    const validYAxisFields =
-        validCurrentYAxisFields.filter(
-            (field) =>
-                field !== nextXAxisField
-        );
-
-    const defaultYAxisFields =
-        data.fields.filter(
-            (field) =>
-                field !== nextXAxisField &&
-                isYAxisAllowed(field)
-        );
-
-    const isMultiYAxis =
-        isMultiYAxisChart(chartType);
-
-    if (isMultiYAxis) {
-        const nextYAxisFields =
-            validYAxisFields.length > 0
-                ? validYAxisFields
-                : defaultYAxisFields.slice(
-                      0,
-                      1
-                  );
-
+    if (!isXAxisFieldAllowed(data, chartType, nextXAxisField)) {
         return {
-            xAxisField:
-                nextXAxisField,
-
-            yAxisField:
-                nextYAxisFields[0] ||
-                "",
-
-            yAxisFields:
-                nextYAxisFields,
+            xAxisField: "",
+            yAxisField: "",
+            yAxisFields: [],
         };
     }
 
-    const nextYAxisField =
-        validYAxisFields[0] ||
-        defaultYAxisFields[0] ||
-        "";
-
-    return {
-        xAxisField:
+    const isMultiYAxis = isMultiYAxisChart(chartType);
+    const validYAxisFields = validCurrentYAxisFields.filter((field) => field !== nextXAxisField);
+    let defaultYAxisFields = getChartAxisFieldOptions(data, chartType, "y", nextXAxisField);
+    if (isMultiYAxis && defaultYAxisFields.length > 0) {
+        defaultYAxisFields = getChartAxisFieldOptions(
+            data,
+            chartType,
+            "y",
             nextXAxisField,
+            defaultYAxisFields[0]
+        );
+    }
 
-        yAxisField:
-            nextYAxisField,
+    if (isMultiYAxis) {
+        const nextYAxisFields = validYAxisFields.length > 0 ? validYAxisFields : defaultYAxisFields.slice(0, 1);
 
-        yAxisFields: [],
-    };
+        return {
+            xAxisField: nextXAxisField,
+            yAxisField: nextYAxisFields[0] ||  "",
+            yAxisFields: nextYAxisFields,
+        };
+    }
+
+    const nextYAxisField = validYAxisFields[0] || defaultYAxisFields[0] || "";
+
+    return {xAxisField: nextXAxisField, yAxisField: nextYAxisField, yAxisFields: []};
 }
 
 function getChartLabel(chartType) {
-    return (
-        CHART_CAPABILITIES[chartType]
-            ? chartTypes.find(
-                  (chart) =>
-                      chart.value ===
-                      chartType
-              )?.label
-            : chartType
-    ) || chartType;
+    return (CHART_CAPABILITIES[chartType] ? chartTypes.find((chart) => chart.value === chartType )?.label : chartType) || chartType;
 }
 
 function getFieldTypeLabel(fieldType) {
@@ -621,12 +354,7 @@ function getFieldTypeLabel(fieldType) {
     }
 }
 
-function validateAxisFieldType({
-    field,
-    fieldType,
-    axisName,
-    allowedTypes,
-}) {
+function validateAxisFieldType({field, fieldType, axisName, allowedTypes,}) {
     if (!field) {
         return {
             isValid: false,
@@ -668,21 +396,10 @@ function validateAxisFieldType({
     };
 }
 
-function validateChartSelection({
-    data,
-    columnTypes,
-    chartType,
-    xAxisField,
-    yAxisField,
-    yAxisFields = [],
-}) {
-    const capabilities =
-        getChartCapabilities(
-            chartType
-        );
+function validateChartSelection({data, chartType, xAxisField, yAxisField, yAxisFields = [],}) {
+    const capabilities = getChartCapabilities(chartType);
 
-    const chartLabel =
-        getChartLabel(chartType);
+    const chartLabel = getChartLabel(chartType);
 
     if (!data) {
         return {
@@ -716,11 +433,7 @@ function validateChartSelection({
         };
     }
 
-    if (
-        !data.fields.includes(
-            xAxisField
-        )
-    ) {
+    if (!data.fields.includes(xAxisField)) {
         return {
             isValid: false,
             message:
@@ -728,17 +441,9 @@ function validateChartSelection({
         };
     }
 
-    const selectedYAxisFields =
-        yAxisFields.length > 0
-            ? yAxisFields
-            : yAxisField
-              ? [yAxisField]
-              : [];
+    const selectedYAxisFields = yAxisFields.length > 0 ? yAxisFields : yAxisField ? [yAxisField] : [];
 
-    if (
-        selectedYAxisFields.length <
-        capabilities.minYAxisFields
-    ) {
+    if (selectedYAxisFields.length < capabilities.minYAxisFields) {
         return {
             isValid: false,
             message:
@@ -746,10 +451,7 @@ function validateChartSelection({
         };
     }
 
-    if (
-        selectedYAxisFields.length >
-        capabilities.maxYAxisFields
-    ) {
+    if (selectedYAxisFields.length > capabilities.maxYAxisFields) {
         return {
             isValid: false,
             message:
@@ -757,11 +459,7 @@ function validateChartSelection({
         };
     }
 
-    if (
-        selectedYAxisFields.includes(
-            xAxisField
-        )
-    ) {
+    if (selectedYAxisFields.includes(xAxisField) && !capabilities.allowSameAxisField) {
         return {
             isValid: false,
             message:
@@ -769,14 +467,21 @@ function validateChartSelection({
         };
     }
 
-    const xAxisType =
-        getFieldType(
-            columnTypes,
-            xAxisField
-        );
+    if (
+        capabilities.multiYAxis &&
+        selectedYAxisFields.some(
+            (field) => isRevenueField(field) !== isRevenueField(selectedYAxisFields[0])
+        )
+    ) {
+        return {
+            isValid: false,
+            message: "Stacked charts cannot combine money values with non-money values.",
+        };
+    }
 
-    const xAxisValidation =
-        validateAxisFieldType({
+    const xAxisType = getXAxisFieldType(data, xAxisField, chartType);
+
+    const xAxisValidation = validateAxisFieldType({
             field: xAxisField,
             fieldType: xAxisType,
             axisName: "X",
@@ -784,9 +489,7 @@ function validateChartSelection({
                 capabilities.allowedXAxisTypes,
         });
 
-    if (
-        !xAxisValidation.isValid
-    ) {
+    if (!xAxisValidation.isValid) {
         return {
             isValid: false,
             message:
@@ -796,15 +499,18 @@ function validateChartSelection({
         };
     }
 
-    for (
-        const field of selectedYAxisFields
-    ) {
-        const yAxisType =
-            getYAxisFieldType(
-                data,
-                field
-            );
+    if (!isXAxisFieldAllowed(data, chartType, xAxisField)) {
+        return {
+            isValid: false,
+            message:
+                `Cannot plot ${chartLabel} with ` +
+                `"${xAxisField}" on the X-axis. ` +
+                "Choose a field with an allowed API datatype that is not a revenue field.",
+        };
+    }
 
+    for (const field of selectedYAxisFields) {
+        const yAxisType = getYAxisFieldType(data, field);
         const yAxisValidation =
             validateAxisFieldType({
                 field,
@@ -814,9 +520,7 @@ function validateChartSelection({
                     capabilities.allowedYAxisTypes,
             });
 
-        if (
-            !yAxisValidation.isValid
-        ) {
+        if (!yAxisValidation.isValid) {
             return {
                 isValid: false,
                 message:
@@ -834,123 +538,16 @@ function validateChartSelection({
     };
 }
 
-/*
- * Department aggregation capability checks are temporarily disabled.
- *
- * function getAggregationDepartmentField(
- *     data,
- *     departmentField = ""
- * ) {
- *     if (
- *         departmentField &&
- *         Array.isArray(data?.fields) &&
- *         data.fields.includes(
- *             departmentField
- *         )
- *     ) {
- *         return departmentField;
- *     }
- *
- *     return (
- *         data?.fields?.find(
- *             (field) =>
- *                 field === "sDepartment" ||
- *                 field === "sDepartmentName" ||
- *                 field.toLowerCase() ===
- *                     "department"
- *         ) || ""
- *     );
- * }
- *
- * function hasAggregationFields(
- *     data,
- *     filterType
- * ) {
- *     if (
- *         !data ||
- *         !Array.isArray(data.fields)
- *     ) {
- *         return false;
- *     }
- *
- *     const departmentField =
- *         getAggregationDepartmentField(
- *             data
- *         );
- *
- *     const hasTenderIdField =
- *         data.fields.includes(
- *             "nTenderID"
- *         );
- *
- *     if (
- *         !departmentField ||
- *         !hasTenderIdField
- *     ) {
- *         return false;
- *     }
- *
- *     if (
- *         filterType ===
- *             "number-wise"
- *     ) {
- *         return true;
- *     }
- *
- *     const hasEstimatedCostField =
- *         data.fields.includes(
- *             "mEstimatedCost"
- *         );
- *
- *     return (
- *         (
- *             filterType ===
- *                 "value-wise" ||
- *             filterType ===
- *                 "percentage-wise"
- *         ) &&
- *         hasEstimatedCostField
- *     );
- * }
- */
-
-function isFilterTypeSupported(
-    data,
-    filterType
-) {
-    if (
-        filterType === "none"
-    ) {
+function isFilterTypeSupported(data, filterType) {
+    if (filterType === "none") {
         return true;
     }
 
-    if (
-        !data ||
-        !Array.isArray(data.fields) ||
-        !data.columnTypes
-    ) {
+    if (!data || !Array.isArray(data.fields) || !data.columnTypes) {
         return false;
     }
 
-    /*
-     * Department aggregation filter types are temporarily disabled.
-     *
-     * if (
-     *     filterType === "number-wise" ||
-     *     filterType === "value-wise" ||
-     *     filterType === "percentage-wise"
-     * ) {
-     *     return hasAggregationFields(
-     *         data,
-     *         filterType
-     *     );
-     * }
-     */
-
-    if (
-        filterType ===
-            "category-wise"
-    ) {
+    if (filterType === "category-wise") {
         return Boolean(
             getFilterField(
                 data,
@@ -959,69 +556,33 @@ function isFilterTypeSupported(
         );
     }
 
-    if (
-        filterType ===
-            "status"
-    ) {
-        return Boolean(
-            getFilterField(
-                data,
-                "status"
-            )
-        );
-    }
-
-    if (
-        filterType ===
-            "years"
-    ) {
-        return Boolean(
-            getPeriodDateFields(
-                data
-            ).hasDateFields
-        );
+    if (filterType === "status") {
+        return Boolean(getFilterField(data, "status"));
     }
 
     return false;
 }
 
-function getFilterTypeOptions(
-    data
-) {
+function getFilterTypeOptions(data) {
     return filterTypes.map(
         (filter) => ({
             ...filter,
             disabled:
-                !isFilterTypeSupported(
-                    data,
-                    filter.value
-                ),
+                !isFilterTypeSupported(data, filter.value)
         })
     );
 }
 
-function normalizeFilterOptionValue(
-    value
-) {
+function normalizeFilterOptionValue(value) {
     return String(value ?? "")
         .trim()
         .toLowerCase();
 }
 
-function getFilterValueOptions(
-    data,
-    filterType
-) {
-    const filterField =
-        getFilterField(
-            data,
-            filterType
-        );
+function getFilterValueOptions(data, filterType) {
+    const filterField = getFilterField(data, filterType);
 
-    if (
-        !filterField ||
-        !Array.isArray(data?.rows)
-    ) {
+    if (!filterField || !Array.isArray(data?.rows)) {
         return [];
     }
 
@@ -1061,10 +622,10 @@ export {
     CHART_CAPABILITIES,
     REPORT_CONFIG,
     filterTypes,
-    statusFilterOptions,
-    categoryFilterOptions,
     getReportConfig,
+    isDepartmentAxisReport,
     getChartCapabilities,
+    getChartAxisFieldOptions,
     isMultiYAxisChart,
     isChartTypeSupported,
     getChartTypeOptions,

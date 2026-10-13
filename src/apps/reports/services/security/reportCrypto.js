@@ -17,32 +17,17 @@ async function getClientKeyPair() {
         return clientKeyPair;
     }
 
-    const keyPair =
-        await window.crypto.subtle.generateKey(
-            {name: "ECDH",namedCurve: "P-256",},
-            false,
-            ["deriveBits",]
+    const keyPair = await window.crypto.subtle.generateKey(
+            {name: "ECDH", namedCurve: "P-256"}, false, ["deriveBits"]
         );
 
     clientKeyPair = keyPair;
-
     return keyPair;
 }
 
-async function exportClientPublicKey(
-    publicKey
-) {
-    const encodedPublicKey =
-        await window.crypto.subtle.exportKey(
-            "spki",
-            publicKey
-        );
-
-    return bytesToBase64(
-        new Uint8Array(
-            encodedPublicKey
-        )
-    );
+async function exportClientPublicKey(publicKey) {
+    const encodedPublicKey = await window.crypto.subtle.exportKey("spki", publicKey);
+    return bytesToBase64(new Uint8Array(encodedPublicKey));
 }
 
 async function getClientPublicKey() {
@@ -50,33 +35,16 @@ async function getClientPublicKey() {
         return clientPublicKeyBase64;
     }
 
-    const keyPair =
-        await getClientKeyPair();
-
-    clientPublicKeyBase64 =
-        await exportClientPublicKey(
-            keyPair.publicKey
-        );
-
+    const keyPair = await getClientKeyPair();
+    clientPublicKeyBase64 = await exportClientPublicKey(keyPair.publicKey);
     return clientPublicKeyBase64;
 }
 
 function base64ToBytes(base64Value) {
-    const binaryString =
-        window.atob(base64Value);
-
-    const bytes =
-        new Uint8Array(
-            binaryString.length
-        );
-
-    for (
-        let index = 0;
-        index < binaryString.length;
-        index++
-    ) {
-        bytes[index] =
-            binaryString.charCodeAt(index);
+    const binaryString = window.atob(base64Value);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let index = 0; index < binaryString.length; index++) {
+        bytes[index] = binaryString.charCodeAt(index);
     }
 
     return bytes;
@@ -84,23 +52,10 @@ function base64ToBytes(base64Value) {
 
 function bytesToBase64(bytes) {
     let binaryString = "";
-
     const chunkSize = 0x8000;
-
-    for (
-        let index = 0;
-        index < bytes.length;
-        index += chunkSize
-    ) {
-        const chunk =
-            bytes.subarray(
-                index,
-                index + chunkSize
-            );
-
-        binaryString += String.fromCharCode(
-            ...chunk
-        );
+    for (let index = 0; index < bytes.length; index += chunkSize) {
+        const chunk = bytes.subarray(index, index + chunkSize);
+        binaryString += String.fromCharCode(...chunk);
     }
 
     return window.btoa(
@@ -108,115 +63,40 @@ function bytesToBase64(bytes) {
     );
 }
 
-function decodeEnvelope(
-    encryptedData
-) {
-    const envelope =
-        base64ToBytes(
-            encryptedData
-        );
-
-    const minimumLength =
-        SERVER_PUBLIC_KEY_LENGTH_BYTES
-        + SALT_LENGTH_BYTES
-        + IV_LENGTH_BYTES;
-
-    if (
-        envelope.length <
-        minimumLength
-    ) {
+function decodeEnvelope(encryptedData) {
+    const envelope = base64ToBytes(encryptedData);
+    const minimumLength =SERVER_PUBLIC_KEY_LENGTH_BYTES + SALT_LENGTH_BYTES + IV_LENGTH_BYTES;
+    if (envelope.length < minimumLength) {
         throw new Error(
             "Encrypted report data is too short."
         );
     }
 
-    const serverPublicKeyLength =
-        (envelope[0] << 8)
-        | envelope[1];
-
-    let offset =
-        SERVER_PUBLIC_KEY_LENGTH_BYTES;
-
-    const minimumEnvelopeLength =
-        offset
-        + serverPublicKeyLength
-        + SALT_LENGTH_BYTES
-        + IV_LENGTH_BYTES;
-
-    if (
-        serverPublicKeyLength <= 0
-        || envelope.length <
-            minimumEnvelopeLength
-    ) {
-        throw new Error(
-            "Encrypted report data is invalid."
-        );
+    const serverPublicKeyLength =  (envelope[0] << 8) | envelope[1];
+    let offset = SERVER_PUBLIC_KEY_LENGTH_BYTES;
+    const minimumEnvelopeLength =  offset + serverPublicKeyLength + SALT_LENGTH_BYTES + IV_LENGTH_BYTES;
+    if (serverPublicKeyLength <= 0 || envelope.length < minimumEnvelopeLength) {
+        throw new Error("Encrypted report data is invalid.");
     }
-
-    const serverPublicKey =
-        envelope.slice(
-            offset,
-            offset + serverPublicKeyLength
-        );
-
-    offset +=
-        serverPublicKeyLength;
-
-    const salt =
-        envelope.slice(
-            offset,
-            offset + SALT_LENGTH_BYTES
-        );
-
+    const serverPublicKey = envelope.slice(offset, offset + serverPublicKeyLength);
+    offset += serverPublicKeyLength;
+    const salt = envelope.slice(offset, offset + SALT_LENGTH_BYTES);
     offset += SALT_LENGTH_BYTES;
-
-    const iv =
-        envelope.slice(
-            offset,
-            offset + IV_LENGTH_BYTES
-        );
-
+    const iv = envelope.slice(offset, offset + IV_LENGTH_BYTES);
     offset += IV_LENGTH_BYTES;
-
-    const ciphertext =
-        envelope.slice(
-            offset
-        );
+    const ciphertext = envelope.slice(offset);
 
     if (ciphertext.length === 0) {
-        throw new Error(
-            "Encrypted report ciphertext is empty."
-        );
+        throw new Error("Encrypted report ciphertext is empty.");
     }
 
-    return {
-        serverPublicKey,
-        salt,
-        iv,
-        ciphertext,
-    };
+    return {serverPublicKey, salt, iv, ciphertext};
 }
 
-async function deriveAesKey({
-    clientPrivateKey,
-    serverPublicKey,
-    salt,
-}) {
-    const sharedSecret =
-        await window.crypto.subtle.deriveBits(
-            {
-                name: "ECDH",
-                public:
-                    serverPublicKey,
-            },
-            clientPrivateKey,
-            256
-        );
+async function deriveAesKey({clientPrivateKey, serverPublicKey, salt}) {
+    const sharedSecret = await window.crypto.subtle.deriveBits({name: "ECDH", public: serverPublicKey}, clientPrivateKey, 256);
 
-    const hkdfKey =
-        await window.crypto.subtle.importKey(
-            "raw",
-            sharedSecret,
+    const hkdfKey = await window.crypto.subtle.importKey("raw", sharedSecret,
             {
                 name: "HKDF",
             },

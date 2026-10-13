@@ -1,30 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import {
-    isPhoneColumn,
-    getRevenueDisplayConfig,
-    formatRevenueValue,
-    getTenderValueLabel,
-} from "../utils/dashboardData";
+import { isPhoneColumn, formatRevenueValue, getRevenueUnitLabel,
+    isRevenueField, getTenderValueLabel } from "../utils/dashboardData";
 import "../styles/DataTable.css";
 
 const INITIAL_ROW_COUNT = 50;
 const ROW_BATCH_SIZE = 50;
 const LOAD_MORE_THRESHOLD = 300;
 
-function formatNumericValue(
-    value,
-    dataType
-) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
+function formatNumericValue(value, dataType) {
+    if (value === null || value === undefined || value === "") {
         return "—";
     }
 
-    const numericValue =
-        Number(value);
+    const numericValue =  Number(value);
 
     if (
         !Number.isFinite(
@@ -74,20 +62,16 @@ function formatCellValue(
         return String(displayValue);
     }
 
+    const revenueConfig = revenueDisplayConfig?.[fieldName];
+
+    if (isRevenueField(fieldName) && revenueConfig) {
+        return formatRevenueValue(
+            displayValue,
+            revenueConfig
+        );
+    }
+
     if (columnType === "number") {
-        const revenueConfig =
-            revenueDisplayConfig?.[fieldName];
-
-        if (revenueConfig) {
-            return formatRevenueValue(
-                displayValue,
-                revenueConfig,
-                {
-                    includeUnit: false,
-                }
-            );
-        }
-
         return formatNumericValue(
             displayValue,
             dataType
@@ -109,21 +93,9 @@ function getColumnClassName(columnType) {
     return "data-table-column-text";
 }
 
-function getRevenueUnitLabel(suffix) {
-    switch (suffix) {
-        case "Cr":
-            return "Cr.";
-        case "Lakh":
-            return "Lakh";
-        case "Thousand":
-            return "k";
-        default:
-            return "";
-    }
-}
-
 function DataTable({
     data,
+    revenueDisplayConfig,
     columnTypes,
     dataTypes,
     fieldLabels = {},
@@ -144,9 +116,6 @@ function DataTable({
     if (!data || !data.fields || !data.rows) {
         return null;
     }
-    const revenueDisplayConfig =
-        getRevenueDisplayConfig(data);
-
     const displayedFields =
         Array.isArray(visibleFields)
             ? visibleFields.filter(
@@ -201,13 +170,11 @@ function DataTable({
                     <tr>
                         {displayedFields.map((field) => {
                             const columnType = columnTypes?.[field];
+                            const isRevenueColumn = isRevenueField(field) &&
+                                Boolean(revenueDisplayConfig?.[field]);
                             const columnClassName =
-                                getColumnClassName(columnType);
-                            const revenueUnit =
-                                getRevenueUnitLabel(
-                                    revenueDisplayConfig?.[field]
-                                        ?.suffix
-                                );
+                                getColumnClassName(isRevenueColumn ? "number" : columnType);
+                            const revenueUnit = getRevenueUnitLabel(revenueDisplayConfig?.[field]);
 
                             return (
                                 <th
@@ -217,7 +184,7 @@ function DataTable({
                                 >
                                     {fieldLabels[field] || field}
                                     {revenueUnit &&
-                                        ` (in ${revenueUnit})`}
+                                        ` (${revenueUnit})`}
                                 </th>
                             );
                         })}
@@ -248,13 +215,22 @@ function DataTable({
                         >
                             {displayedFields.map((field) => {
                                 const columnType = columnTypes?.[field];
+                                const isRevenueColumn = isRevenueField(field) &&
+                                    Boolean(revenueDisplayConfig?.[field]);
                                 const columnClassName =
-                                    getColumnClassName(columnType);
+                                    getColumnClassName(isRevenueColumn ? "number" : columnType);
 
                                 return (
                                     <td
                                         key={`${rowIndex}-${field}`}
                                         className={`data-table-cell ${columnClassName}`}
+                                        title={isRevenueColumn
+                                            ? formatRevenueValue(
+                                                  row[field],
+                                                  revenueDisplayConfig[field],
+                                                  {exact: true}
+                                              )
+                                            : undefined}
                                     >
                                         {formatCellValue(
                                             row[field],

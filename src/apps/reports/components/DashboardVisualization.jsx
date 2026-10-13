@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
-
+import Papa from "papaparse";
 import { transformChartData } from "../utils/dashboardData";
-import { validateChartSelection } from "../utils/dashboardConfig";
-
+import { getReportConfig, validateChartSelection } from "../utils/dashboardConfig";
 import DashboardControls from "../components/DashboardControls";
 /*
  * Department dropdown temporarily disabled.
@@ -15,51 +14,26 @@ import parseCsvFile from "../services/csv/csvParser";
 import "../styles/DashboardVisualization.css";
 
 function DashboardVisualization({
-    reportType,
+    reportType, data, revenueDisplayConfig, fixedXAxisField = "",
     /*
      * Department selection temporarily disabled.
      * department,
      * departmentOptions,
      */
-    data,
-    fieldLabels = {},
-    controlData,
-    filterOptionsData,
-    filterType,
-    filterValue,
-    hasPeriodDateFields,
-    fromDateField,
-    toDateField,
-    fromDate = "",
-    toDate = "",
-    viewMode,
-    chartType,
-    xAxisField,
-    yAxisField,
-    yAxisFields = [],
-    xAxisOptions,
-    yAxisOptions,
-    hasData,
-    uploadError,
-    onReportTypeChange,
-    onFromDateChange,
-    onToDateChange,
-    onFilterTypeChange,
-    onFilterValueChange,
-    onViewModeChange,
+    fieldLabels = {}, controlData, filterType, filterValue,
+    hasPeriodDateFields, fromDate = "", toDate = "",
+    viewMode,  chartType, xAxisField,
+    yAxisField, yAxisFields = [], xAxisOptions,
+    yAxisOptions, hasData, uploadError,
+    onReportTypeChange, onFromDateChange, onToDateChange,
+    onFilterTypeChange, onViewModeChange,
     /*
      * Department selection temporarily disabled.
      * onDeparmentChange,
      */
-    onChartTypeChange,
-    onXAxisFieldChange,
-    onYAxisFieldChange,
-    onYAxisFieldsChange,
-    onCsvUploadSuccess,
-    onCsvUploadError,
-    title,
-    reportError,
-    isReportLoading,
+    onChartTypeChange, onXAxisFieldChange, onYAxisFieldChange,
+    onYAxisFieldsChange, onCsvUploadSuccess, onCsvUploadError,
+    title, reportError, isReportLoading,
 }) {
     const fileInputRef = useRef(null);
 
@@ -88,8 +62,7 @@ function DashboardVisualization({
             ? "dashboard-visualization-header-drawer-open"
             : "",
     ]
-        .filter(Boolean)
-        .join(" ");
+        .filter(Boolean).join(" ");
 
     const controlsClassName = [
         "dashboard-visualization-controls",
@@ -144,8 +117,6 @@ function DashboardVisualization({
     const validationResult =
         validateChartSelection({
             data,
-            columnTypes:
-                visualizationColumnTypes,
             chartType,
             xAxisField,
             yAxisField,
@@ -164,6 +135,7 @@ function DashboardVisualization({
                   dataTypes:
                       visualizationDataTypes,
                   fieldLabels,
+                  revenueDisplayConfig,
               })
             : null;
 
@@ -177,19 +149,37 @@ function DashboardVisualization({
         Array.isArray(data?.rows) &&
         data.rows.length > 0;
 
-    const tableFields =
-        reportType === "td-ecv-summary"
-            ? [
-                  ...new Set([
-                      ...xAxisOptions.map(
-                          (option) => option.value
-                      ),
-                      ...yAxisOptions.map(
-                          (option) => option.value
-                      ),
-                  ]),
-              ].filter(Boolean)
-            : undefined;
+    const displayedFields = [
+        ...new Set([
+            ...xAxisOptions.map((option) => option.value),
+            ...yAxisOptions.map((option) => option.value),
+            ...(data?.fields ?? []),
+        ]),
+    ].filter((field) => data?.fields?.includes(field));
+    const handleDownloadClick = () => {
+        const now = new Date();
+        const timestamp = [String(now.getDate()).padStart(2, "0"), String(now.getMonth() + 1).padStart(2, "0"), now.getFullYear(),
+            String(now.getHours()).padStart(2, "0"), String(now.getMinutes()).padStart(2, "0"), String(now.getSeconds()).padStart(2, "0"),].join("");
+        const reportLabel = getReportConfig(reportType)?.label;
+        const fileNamePrefix = reportLabel.trim().replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, "-");
+        const csv = Papa.unparse({
+            fields: displayedFields.map((field) => fieldLabels[field] || field),
+            data: data.rows.map((row) => displayedFields.map((field) => row[field] ?? "")),
+        });
+        const downloadUrl = URL.createObjectURL(
+            new Blob([`\uFEFF${csv}`], {
+                type: "text/csv;charset=utf-8;",
+            })
+        );
+        const downloadLink = document.createElement("a");
+
+        downloadLink.href = downloadUrl;
+        downloadLink.download = `${fileNamePrefix}-${timestamp}.csv`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(downloadUrl);
+    };
 
     return (
         <section
@@ -266,12 +256,7 @@ function DashboardVisualization({
                          * detection inside the controls.
                          */
                         data={controlData}
-                         filterOptionsData={
-                             filterOptionsData
-                         }
-
-                         fromDateField={fromDateField}
-                        toDateField={toDateField}
+                        fixedXAxisField={fixedXAxisField}
                         viewMode={viewMode}
                         chartType={chartType}
                         xAxisField={xAxisField}
@@ -280,48 +265,27 @@ function DashboardVisualization({
                         xAxisOptions={xAxisOptions}
                         yAxisOptions={yAxisOptions}
                         hasData={hasData}
-                        onReportTypeChange={
-                            onReportTypeChange
-                        }
-                        onFromDateChange={
-                            onFromDateChange
-                        }
-                        onToDateChange={
-                            onToDateChange
-                        }
-                        onFilterTypeChange={
-                            onFilterTypeChange
-                        }
-                        onFilterValueChange={
-                            onFilterValueChange
-                        }
-                        onViewModeChange={
-                            onViewModeChange
-                        }
-                        onChartTypeChange={
-                            onChartTypeChange
-                        }
-                        onXAxisFieldChange={
-                            onXAxisFieldChange
-                        }
-                        onYAxisFieldChange={
-                            onYAxisFieldChange
-                        }
-                        onYAxisFieldsChange={
-                            onYAxisFieldsChange
-                        }
+                        onReportTypeChange={onReportTypeChange}
+                        onFromDateChange={onFromDateChange}
+                        onToDateChange={onToDateChange}
+                        onFilterTypeChange={onFilterTypeChange}
+                        onViewModeChange={onViewModeChange}
+                        onChartTypeChange={onChartTypeChange}
+                        onXAxisFieldChange={onXAxisFieldChange}
+                        onYAxisFieldChange={onYAxisFieldChange}
+                        onYAxisFieldsChange={onYAxisFieldsChange}
                     />
                 </div>
             </header>
 
             <div className="dashboard-visualization-actions">
-                {/* <button
+                <button
                     type="button"
                     className="dashboard-action-button"
                     onClick={handleBackButtonClick}
                 >
                     Back
-                </button> */}
+                </button>
 
                 <input
                     ref={fileInputRef}
@@ -337,6 +301,19 @@ function DashboardVisualization({
                     onClick={handleUploadButtonClick}
                 >
                     + Add CSV File
+                </button>
+
+                <button
+                    type="button"
+                    className="dashboard-action-button"
+                    onClick={handleDownloadClick}
+                    disabled={
+                        !hasRows ||
+                        isReportLoading ||
+                        displayedFields.length === 0
+                    }
+                >
+                    Download
                 </button>
             </div>
 
@@ -393,18 +370,11 @@ function DashboardVisualization({
                             <div className="dashboard-visualization-data-content">
                                 <DataTable
                                     data={data}
-                                    visibleFields={
-                                        tableFields
-                                    }
-                                    fieldLabels={
-                                        fieldLabels
-                                    }
-                                    columnTypes={
-                                        visualizationColumnTypes
-                                    }
-                                    dataTypes={
-                                        visualizationDataTypes
-                                    }
+                                    revenueDisplayConfig={revenueDisplayConfig}
+                                    visibleFields={displayedFields}
+                                    fieldLabels={fieldLabels}
+                                    columnTypes={visualizationColumnTypes}
+                                    dataTypes={visualizationDataTypes}
                                 />
                             </div>
                         </section>

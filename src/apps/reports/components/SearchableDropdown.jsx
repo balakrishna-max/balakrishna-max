@@ -182,6 +182,7 @@ function SearchableDropdown({
                                                     option
                                                 )
                                             }
+                                            disabled={option.disabled}
                                             aria-selected={isSelected}
                                         >
                                             {multiple && (

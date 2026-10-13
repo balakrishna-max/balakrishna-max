@@ -1,65 +1,30 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import SearchableDropdown from "./SearchableDropdown";
-import {
-    reportTypes,
-    isMultiYAxisChart,
-    getChartTypeOptions,
-    getFilterTypeOptions,
-    getFilterValueOptions,
-} from "../utils/dashboardConfig";
+import { reportTypes, isMultiYAxisChart, getChartTypeOptions, getFilterTypeOptions, getFilterValueOptions } from "../utils/dashboardConfig";
 import tableViewIcon from "../assets/table-view.png";
 import chartViewIcon from "../assets/chart-view.png";
 
 import "../styles/DashboardControls.css";
 
 function DashboardControls({
-    reportType,
-    filterType,
-    chartType,
-    fromDate = "",
-    toDate = "",
-    hasPeriodDateFields,
-    filterValue,
-    viewMode,
-    xAxisField,
-    yAxisField,
-    yAxisFields,
-    xAxisOptions,
-    yAxisOptions,
-    hasData,
-    data = null,
-    filterOptionsData = data,
-    onReportTypeChange,
-    onFilterTypeChange,
-    onFilterValueChange,
-    onFromDateChange,
-    onToDateChange,
-    onViewModeChange,
-    onChartTypeChange,
-    onXAxisFieldChange,
-    onYAxisFieldChange,
-    onYAxisFieldsChange,
-}) {
-    const [openFilterType, setOpenFilterType] =
-        useState(null);
+    reportType, filterType, chartType, fromDate = "", toDate = "", fixedXAxisField = null,
+    hasPeriodDateFields, filterValue, viewMode, xAxisField, yAxisField,
+    yAxisFields, xAxisOptions, yAxisOptions, hasData, data = null,
+    onReportTypeChange, onFilterTypeChange, onFromDateChange, onToDateChange,
+    onViewModeChange, onChartTypeChange, onXAxisFieldChange, onYAxisFieldChange, onYAxisFieldsChange, }) {
 
-    const chartTypeOptions = getChartTypeOptions(data);
+    const [openFilterType, setOpenFilterType] = useState(null);
+    const fromDateInputRef = useRef(null);
+    const toDateInputRef = useRef(null);
+    const pendingDateSelectionRef = useRef(null);
+    const chartTypeOptions = getChartTypeOptions(data, fixedXAxisField);
+    const filterTypeOptions = getFilterTypeOptions(data);
 
-    const filterTypeOptions = getFilterTypeOptions(data).filter(
-        (filter) => filter.value !== "years"
-    );
+    const activeFilterType = openFilterType || filterType;
 
-    const activeFilterType =
-        openFilterType || filterType;
+    const filterValueOptions = getFilterValueOptions(data, activeFilterType);
 
-    const filterValueOptions =
-        getFilterValueOptions(
-            filterOptionsData,
-            activeFilterType
-        );
-
-    const selectedFilterOption =
-        filterValueOptions.find(
+    const selectedFilterOption = filterValueOptions.find(
             (option) => option.value === filterValue
         );
 
@@ -68,12 +33,7 @@ function DashboardControls({
             return;
         }
 
-        if (
-            filter.value === "none" ||
-            filter.value === "number-wise" ||
-            filter.value === "value-wise" ||
-            filter.value === "percentage-wise"
-        ) {
+        if (filter.value === "none") {
             setOpenFilterType(null);
             onFilterTypeChange(filter.value);
             return;
@@ -82,18 +42,52 @@ function DashboardControls({
         setOpenFilterType(filter.value);
     };
 
-    const formatMonthYearInput = (value) => {
-        const digitsOnly = value
+    useLayoutEffect(() => {
+        const pendingSelection = pendingDateSelectionRef.current;
+
+        if (!pendingSelection) {
+            return;
+        }
+
+        pendingSelection.inputRef.current?.setSelectionRange(
+            pendingSelection.position,
+            pendingSelection.position
+        );
+        pendingDateSelectionRef.current = null;
+    });
+
+    const handleMonthYearChange = (event, inputRef, onDateChange) => {
+        const inputValue = event.target.value;
+        const rawCaretPosition = event.target.selectionStart ?? inputValue.length;
+        const prefix = inputValue.slice(0, rawCaretPosition);
+        let digitsBeforeCaret = 0;
+        let separatorPassed = false;
+
+        for (const character of prefix) {
+            if (/\d/.test(character)) {
+                digitsBeforeCaret += 1;
+            } else if (digitsBeforeCaret >= 2) {
+                separatorPassed = true;
+            }
+        }
+
+        const digitsOnly = inputValue
             .replace(/\D/g, "")
             .slice(0, 6);
 
-        if (digitsOnly.length <= 2) {
-            return digitsOnly;
-        }
+        const formattedValue =
+            digitsOnly.length <= 2
+                ? digitsOnly
+                : `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(2)}`;
+        const caretPosition =
+            digitsBeforeCaret +
+            (digitsBeforeCaret > 2 || separatorPassed ? 1 : 0);
 
-        return `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(
-            2
-        )}`;
+        pendingDateSelectionRef.current = {
+            inputRef,
+            position: Math.min(caretPosition, formattedValue.length),
+        };
+        onDateChange(formattedValue);
     };
 
     return (
@@ -124,19 +118,19 @@ function DashboardControls({
 
                     <div className="dashboard-controls-year-fields">
                         <input
+                            ref={fromDateInputRef}
                             type="text"
                             inputMode="numeric"
-                            className="form-control"
                             value={fromDate}
                             placeholder="MM/YYYY"
                             maxLength={7}
                             aria-label="From month and year"
                             disabled={!hasPeriodDateFields}
                             onChange={(event) =>
-                                onFromDateChange(
-                                    formatMonthYearInput(
-                                        event.target.value
-                                    )
+                                handleMonthYearChange(
+                                    event,
+                                    fromDateInputRef,
+                                    onFromDateChange
                                 )
                             }
                         />
@@ -149,19 +143,19 @@ function DashboardControls({
                         </span>
 
                         <input
+                            ref={toDateInputRef}
                             type="text"
                             inputMode="numeric"
-                            className="form-control"
                             value={toDate}
                             placeholder="MM/YYYY"
                             maxLength={7}
                             aria-label="To month and year"
                             disabled={!hasPeriodDateFields}
                             onChange={(event) =>
-                                onToDateChange(
-                                    formatMonthYearInput(
-                                        event.target.value
-                                    )
+                                handleMonthYearChange(
+                                    event,
+                                    toDateInputRef,
+                                    onToDateChange
                                 )
                             }
                         />
@@ -228,16 +222,8 @@ function DashboardControls({
                                 openFilterType ===
                                 filter.value;
 
-                            const selectedFilterDisplay =
-                                isSelected
-                                    ? selectedFilterOption?.label ||
-                                      ""
-                                    : "";
-
-                            const isFilterValueSelected =
-                                Boolean(
-                                    selectedFilterDisplay
-                                );
+                            const selectedFilterDisplay = isSelected ? selectedFilterOption?.label || "" : "";
+                            const isFilterValueSelected = Boolean(selectedFilterDisplay);
 
                             return (
                                 <div
@@ -263,7 +249,7 @@ function DashboardControls({
                                             disabled={
                                                 filter.disabled
                                             }
-                                            onClick={() =>
+                                            onChange={() =>
                                                 handleFilterOpen(
                                                     filter
                                                 )
