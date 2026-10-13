@@ -1,60 +1,55 @@
 import { useEffect, useRef, useState } from "react";
+import { filterNormalizedData, getPeriodDateFields, getRevenueDisplayConfig, normalizeCsvData,
+    normalizeReportData, getHumanReadableFieldLabel } from "../utils/dashboardData";
 
-import {
-    filterNormalizedData,
-    getPeriodDateFields,
-    normalizeCsvData,
-    normalizeReportData,
-    getHumanReadableFieldLabel,
-} from "../utils/dashboardData";
-
-import {
-    getChartTypeSelection,
-    getDefaultVisualizationSelection,
-    getReportConfig,
-    isMultiYAxisChart,
-} from "../utils/dashboardConfig";
+import { getChartAxisFieldOptions, getChartTypeOptions, getChartTypeSelection, getDefaultVisualizationSelection, getReportConfig, isDepartmentAxisReport, isMultiYAxisChart } from "../utils/dashboardConfig";
 
 import DashboardVisualization from "../components/DashboardVisualization";
-import {
-    /*
-     * Department loading is temporarily disabled.
-     * fetchDeparments,
-     */
-    fetchReport,
-} from "../services/api/dashboardApi";
+import { /* Department loading is temporarily disabled. fetchDeparments, */ fetchReport } from "../services/api/dashboardApi";
 
 function getDefaultPeriod() {
     const today = new Date();
-
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
-
-    const financialYearStartYear =
-        currentMonth >= 4
-            ? currentYear
-            : currentYear - 1;
+    const financialYearStartYear = currentMonth >= 4 ? currentYear : currentYear - 1;
 
     return {
         fromDate: `04/${financialYearStartYear}`,
-        toDate: `${String(currentMonth).padStart(
-            2,
-            "0"
-        )}/${currentYear}`,
+        toDate: `${String(currentMonth).padStart(2,"0")}/${currentYear}`,
+    };
+}
+function getDepartmentNameField(fields = []) {
+    const departmentNameAliases = new Set([
+        "deptname", "sdeptname", "ndeptname", "departmentname", "sdepartmentname", "department", "sdepartment",
+    ]);
+
+    return (
+        fields.find((field) =>
+            departmentNameAliases.has(String(field).toLowerCase().replace(/[^a-z0-9]/g, ""))) || ""
+    );
+}
+
+function getDepartmentAxisData(data, reportType) {
+    if (!data || !isDepartmentAxisReport(reportType)) {
+        return data;
+    }
+
+    const excludedFields = getReportConfig(reportType).excludedAxisFields;
+
+    return {
+        ...data, fields: data.fields.filter(
+            (field) => !excludedFields.includes(
+                    field.toLowerCase()
+                )
+        ),
     };
 }
 
 function Dashboard() {
     const [reportType, setReportType] = useState("");
     const defaultPeriod = getDefaultPeriod();
-
-    const [fromDate, setFromDate] = useState(
-        defaultPeriod.fromDate
-    );
-
-    const [toDate, setToDate] = useState(
-        defaultPeriod.toDate
-    );
+    const [fromDate, setFromDate] = useState( defaultPeriod.fromDate);
+    const [toDate, setToDate] = useState(defaultPeriod.toDate);
 
     /*
      * Department selection is temporarily disabled.
@@ -72,26 +67,18 @@ function Dashboard() {
 
     const [filterType, setFilterType] = useState("none");
     const [filterValue, setFilterValue] = useState("");
-
     const [viewMode, setViewMode] = useState("split");
     const [csvData, setCsvData] = useState(null);
-
     const [chartType, setChartType] = useState("");
     const [xAxisField, setXAxisField] = useState("");
     const [yAxisField, setYAxisField] = useState("");
     const [yAxisFields, setYAxisFields] = useState([]);
-
     const [uploadError, setUploadError] = useState(null);
     const [reportData, setReportData] = useState(null);
     const [reportError, setReportError] = useState(null);
-    const [isReportLoading, setIsReportLoading] =
-        useState(false);
-
-    const hasInitializedVisualizationRef = useRef(false);
+    const [isReportLoading, setIsReportLoading] = useState(false);
     const chartTypeRef = useRef("");
     const lastMultiYAxisFieldsRef = useRef([]);
-
-    chartTypeRef.current = chartType;
 
     /*
      * Full normalized dataset.
@@ -104,30 +91,16 @@ function Dashboard() {
      *
      * It must remain unfiltered.
      */
-    const normalizedVisualizationData =
-        reportData
-            ? normalizeReportData(reportData)
-            : csvData
-              ? normalizeCsvData(
-                    csvData.fields,
-                    csvData.rows
-                )
-              : null;
-
-    const isTdEcvSummaryReport =
-        reportType === "td-ecv-summary" &&
-        reportData !== null;
-
-    const fieldLabels =
-        reportData !== null &&
-        normalizedVisualizationData
-            ? Object.fromEntries(
+    const normalizedVisualizationData = reportData ? normalizeReportData(reportData) : csvData ? normalizeCsvData(csvData.fields, csvData.rows) : null;
+    const revenueDisplayConfig = normalizedVisualizationData
+        ? getRevenueDisplayConfig(normalizedVisualizationData)
+        : {};
+    const usesDepartmentAxis = isDepartmentAxisReport(reportType) && reportData !== null;
+    const departmentNameField = usesDepartmentAxis ? getDepartmentNameField(normalizedVisualizationData?.fields): "";
+    const fieldLabels = reportData !== null && normalizedVisualizationData  ? Object.fromEntries(
                   normalizedVisualizationData.fields.map(
                       (field) => [
-                          field,
-                          getHumanReadableFieldLabel(
-                              field
-                          ),
+                          field, getHumanReadableFieldLabel(field),
                       ]
                   )
               )
@@ -146,143 +119,60 @@ function Dashboard() {
      *     ) || "";
      */
 
-    const periodDateFields =
-        getPeriodDateFields(
-            normalizedVisualizationData
-        );
+    const periodDateFields = getPeriodDateFields(normalizedVisualizationData);
 
     /*
      * Filtered dataset used by the actual
      * table/chart visualization.
      */
-    const visualizationData =
-        filterNormalizedData(
-            normalizedVisualizationData,
+    const visualizationData = filterNormalizedData(normalizedVisualizationData,
             {
                 /*
                  * Department filtering is temporarily disabled.
                  * departmentField,
                  * department,
                  */
-                fromDateField:
-                    periodDateFields.periodDateField,
-                fromDate,
-                toDate,
-                filterType,
-                filterValue,
+                fromDateField: periodDateFields.periodDateField,
+                fromDate, toDate, filterType, filterValue,
             }
         );
 
-    const filterOptionsData =
-        filterNormalizedData(
-            normalizedVisualizationData,
-            {
-                fromDateField:
-                    periodDateFields.periodDateField,
-                fromDate,
-                toDate,
-            }
-        );
+    const handleFromDateChange = (newFromDate) => {setFromDate(newFromDate);};
+    const handleToDateChange = (newToDate) => {setToDate(newToDate);};
+    const axisSelectionData = normalizedVisualizationData
+        ? usesDepartmentAxis
+            ? getDepartmentAxisData(normalizedVisualizationData, reportType)
+            : normalizedVisualizationData
+        : null;
+    const fixedXAxisField = usesDepartmentAxis ? departmentNameField : null;
+    const selectedYAxisFields = yAxisFields.length > 0
+        ? yAxisFields
+        : yAxisField
+          ? [yAxisField]
+          : [];
+    const xAxisOptions = getChartAxisFieldOptions(
+        axisSelectionData,
+        chartType,
+        "x"
+    )
+        .filter((field) => chartType === "scatter" || fixedXAxisField === null || field === fixedXAxisField)
+        .map((field) => ({value: field, label: fieldLabels[field] || field}));
+    const yAxisOptions = getChartAxisFieldOptions(
+        axisSelectionData,
+        chartType,
+        "y",
+        [],
+        selectedYAxisFields[0] || ""
+    ).map((field) => ({value: field, label: fieldLabels[field] || field}));
 
-    const handleFromDateChange = (
-        newFromDate
-    ) => {
-        setFromDate(newFromDate);
-    };
-
-    const handleToDateChange = (
-        newToDate
-    ) => {
-        setToDate(newToDate);
-    };
-
-    const axisOptions =
-        visualizationData
-            ? visualizationData.fields.map(
-                  (field) => ({
-                      value: field,
-                      label:
-                          fieldLabels[field] ||
-                          field,
-                  })
-              )
-            : [];
-
-    const xAxisOptions =
-        axisOptions.filter(
-            (option) => {
-                if (
-                    isTdEcvSummaryReport &&
-                    option.value.toLowerCase() !==
-                        "deptname"
-                ) {
-                    return false;
-                }
-
-                return option.value !== yAxisField;
-            }
-        );
-
-    const yAxisOptions =
-        axisOptions.filter(
-            (option) => {
-                if (
-                    isTdEcvSummaryReport &&
-                    [
-                        "nmappingdeptid",
-                        "deptname",
-                    ].includes(
-                        option.value.toLowerCase()
-                    )
-                ) {
-                    return false;
-                }
-
-                return option.value !== xAxisField;
-            }
-        );
-
-    const axisSelectionData =
-        isTdEcvSummaryReport &&
-        visualizationData
-            ? {
-                  ...visualizationData,
-                  fields:
-                      visualizationData.fields.filter(
-                          (field) =>
-                              field.toLowerCase() ===
-                                  "deptname" ||
-                              ![
-                                  "nmappingdeptid",
-                                  "deptname",
-                              ].includes(
-                                  field.toLowerCase()
-                              )
-                      ),
-              }
-            : visualizationData;
-
-    const handleReportTypeChange = (
-        newReportType
-    ) => {
-        const defaultPeriod =
-            getDefaultPeriod();
-
+    const handleReportTypeChange = (newReportType) => {
+        const defaultPeriod =  getDefaultPeriod();
         setReportType(newReportType);
-
-        setFromDate(
-            defaultPeriod.fromDate
-        );
-
-        setToDate(
-            defaultPeriod.toDate
-        );
-
+        setFromDate(defaultPeriod.fromDate);
+        setToDate(defaultPeriod.toDate);
         // setDeparment("all");
-
         setFilterType("none");
         setFilterValue("");
-
         setCsvData(null);
         setUploadError(null);
         setReportData(null);
@@ -290,31 +180,18 @@ function Dashboard() {
         setIsReportLoading(false);
     };
 
-    const handleFilterTypeChange = (
-        newFilterType,
-        newFilterValue = ""
-    ) => {
+    const handleFilterTypeChange = (newFilterType, newFilterValue = "") => {
         setFilterType(newFilterType);
 
         /*
          * The current filter type is "none".
          * Do not use the old "all" value here.
          */
-        setFilterValue(
-            newFilterType === "none"
-                ? ""
-                : newFilterValue
-        );
+        setFilterValue(newFilterType === "none" ? "" : newFilterValue);
     };
 
-    const handleViewModeChange = (
-        nextViewMode
-    ) => {
-        setViewMode((currentViewMode) =>
-            currentViewMode === nextViewMode
-                ? "split"
-                : nextViewMode
-        );
+    const handleViewModeChange = (nextViewMode) => {
+        setViewMode((currentViewMode) => currentViewMode === nextViewMode ? "split" : nextViewMode);
     };
 
     /*
@@ -370,114 +247,43 @@ function Dashboard() {
             setIsReportLoading(false);
             return;
         }
-
         let isCancelled = false;
-
         async function loadReport() {
             setIsReportLoading(true);
             setReportError(null);
             setReportData(null);
 
             try {
-                const result =
-                    await fetchReport({
-                        reportType,
-                    });
+                const result = await fetchReport({reportType});
 
                 if (!isCancelled) {
-                    const normalizedData =
-                        normalizeReportData(
-                            result.data
-                        );
-
-                    const defaultSelection =
-                        getDefaultVisualizationSelection(
-                            normalizedData,
-                            chartTypeRef.current ||
-                                "area"
-                        );
-
-                    const deptnameField =
-                        reportType ===
-                        "td-ecv-summary"
-                            ? normalizedData?.fields.find(
-                                  (field) =>
-                                      field.toLowerCase() ===
-                                      "deptname"
-                              ) || ""
-                            : "";
-
-                    const allowedYAxisFields =
-                        (reportType ===
-                        "td-ecv-summary"
-                            ? normalizedData?.fields?.filter(
-                                  (field) =>
-                                      ![
-                                          "nmappingdeptid",
-                                          "deptname",
-                                      ].includes(
-                                          field.toLowerCase()
-                                      )
-                              )
-                            : []) || [];
-
-                    const defaultAllowedYAxisFields =
-                        allowedYAxisFields.filter(
-                            (field) =>
-                                normalizedData.columnTypes[
-                                    field
-                                ] === "number"
-                        );
-
-                    setReportData(
-                        result.data
+                    const normalizedData = normalizeReportData(result.data);
+                    const usesDepartmentAxis = isDepartmentAxisReport(reportType);
+                    const departmentNameField = usesDepartmentAxis ? getDepartmentNameField(normalizedData?.fields) : "";
+                    const reportAxisData = getDepartmentAxisData(normalizedData, reportType);
+                    const fixedXAxisField = usesDepartmentAxis ? departmentNameField : null;
+                    const chartTypeOptions = getChartTypeOptions(reportAxisData, fixedXAxisField);
+                    const currentChartType = chartTypeRef.current || "area";
+                    const selectedChartType = chartTypeOptions.some(
+                        (option) => option.value === currentChartType && !option.disabled
+                    )
+                        ? currentChartType
+                        : chartTypeOptions.find((option) => !option.disabled)?.value || currentChartType;
+                    const defaultSelection = getDefaultVisualizationSelection(
+                        reportAxisData,
+                        selectedChartType,
+                        fixedXAxisField
                     );
 
-                    if (
-                        !hasInitializedVisualizationRef.current
-                    ) {
-                        setChartType(
-                            defaultSelection.chartType
-                        );
-
-                        hasInitializedVisualizationRef.current =
-                            true;
-                    }
-
-                    setXAxisField(
-                        reportType ===
-                            "td-ecv-summary"
-                            ? deptnameField
-                            : defaultSelection.xAxisField
-                    );
-
-                    const defaultYAxisField =
-                        reportType ===
-                        "td-ecv-summary"
-                            ? defaultAllowedYAxisFields[0] ||
-                              ""
-                            : defaultSelection.yAxisField;
-
-                    setYAxisField(
-                        defaultYAxisField
-                    );
-
-                    setYAxisFields(
-                        reportType ===
-                            "td-ecv-summary"
-                            ? isMultiYAxisChart(
-                                  defaultSelection.chartType
-                              )
-                                ? defaultAllowedYAxisFields
-                                : []
-                            : defaultSelection.yAxisFields
-                    );
+                    setReportData(result.data);
+                    chartTypeRef.current = selectedChartType;
+                    setChartType(selectedChartType);
+                    setXAxisField(defaultSelection.xAxisField);
+                    setYAxisField(defaultSelection.yAxisField);
+                    setYAxisFields(defaultSelection.yAxisFields);
                 }
             } catch (error) {
-                console.error(
-                    `Failed to load report "${reportType}":`,
-                    error
-                );
+                console.error(`Failed to load report "${reportType}":`, error);
 
                 if (!isCancelled) {
                     setReportData(null);
@@ -499,106 +305,44 @@ function Dashboard() {
         };
     }, [reportType]);
 
-    const handleCsvUploadSuccess = (
-        parsedData
-    ) => {
-        const normalizedData =
-            normalizeCsvData(
-                parsedData.fields,
-                parsedData.rows
-            );
-
-        const defaultSelection =
-            getDefaultVisualizationSelection(
-                normalizedData
-            );
-
+    const handleCsvUploadSuccess = (parsedData) => {
+        const normalizedData = normalizeCsvData(parsedData.fields, parsedData.rows);
+        const defaultSelection = getDefaultVisualizationSelection(normalizedData);
+        chartTypeRef.current = defaultSelection.chartType;
         setCsvData(parsedData);
         setReportData(null);
         setReportError(null);
-
-        setChartType(
-            defaultSelection.chartType
-        );
-
-        setXAxisField(
-            defaultSelection.xAxisField
-        );
-
-        setYAxisField(
-            defaultSelection.yAxisField
-        );
-
-        setYAxisFields(
-            defaultSelection.yAxisFields
-        );
-
+        setChartType(defaultSelection.chartType);
+        setXAxisField(defaultSelection.xAxisField);
+        setYAxisField(defaultSelection.yAxisField);
+        setYAxisFields(defaultSelection.yAxisFields);
         setUploadError(null);
     };
 
-    const handleChartTypeChange = (
-        newChartType
-    ) => {
-        const currentIsMulti =
-            isMultiYAxisChart(chartType);
-
-        const nextIsMulti =
-            isMultiYAxisChart(newChartType);
-
-        if (
-            currentIsMulti &&
-            yAxisFields.length > 0
-        ) {
-            lastMultiYAxisFieldsRef.current =
-                yAxisFields;
+    const handleChartTypeChange = (newChartType) => {
+        const currentIsMulti = isMultiYAxisChart(chartType);
+        const nextIsMulti = isMultiYAxisChart(newChartType);
+        if (currentIsMulti && yAxisFields.length > 0) {
+            lastMultiYAxisFieldsRef.current = yAxisFields;
         }
-
-        const yAxisFieldsForSelection =
-            nextIsMulti &&
-            !currentIsMulti &&
-            lastMultiYAxisFieldsRef.current
-                .length > 0
-                ? lastMultiYAxisFieldsRef.current
-                : yAxisFields;
-
-        const nextSelection =
-            getChartTypeSelection({
-                data: axisSelectionData,
-                chartType: newChartType,
-                xAxisField,
-                yAxisField,
-                yAxisFields:
-                    yAxisFieldsForSelection,
+        const yAxisFieldsForSelection = nextIsMulti && !currentIsMulti && lastMultiYAxisFieldsRef.current.length > 0 ? lastMultiYAxisFieldsRef.current : yAxisFields;
+        const nextSelection = getChartTypeSelection({
+                data: axisSelectionData, chartType: newChartType,
+                xAxisField, yAxisField, yAxisFields: yAxisFieldsForSelection,
+                fixedXAxisField,
             });
 
-        if (isTdEcvSummaryReport) {
-            nextSelection.xAxisField =
-                visualizationData?.fields.find(
-                    (field) =>
-                        field.toLowerCase() ===
-                        "deptname"
-                ) || "";
-        }
-
+        chartTypeRef.current = newChartType;
         setChartType(newChartType);
-        setXAxisField(
-            nextSelection.xAxisField
-        );
-        setYAxisField(
-            nextSelection.yAxisField
-        );
-        setYAxisFields(
-            nextSelection.yAxisFields
-        );
+        setXAxisField(nextSelection.xAxisField);
+        setYAxisField(nextSelection.yAxisField);
+        setYAxisFields(nextSelection.yAxisFields);
     };
 
-    const activeReportConfig =
-        getReportConfig(reportType);
-
-    const reportTitle =
-        activeReportConfig?.label ||
-        "Report Visualization";
-
+    const activeReportConfig = getReportConfig(reportType);
+    const reportTitle = activeReportConfig
+        ? `MIS Reports - ${activeReportConfig.label}`
+        : "MIS Reports";
     return (
         <main className="dashboard-page">
             <DashboardVisualization
@@ -614,13 +358,10 @@ function Dashboard() {
                  */
                 title={reportTitle}
                 data={visualizationData}
+                revenueDisplayConfig={revenueDisplayConfig}
                 fieldLabels={fieldLabels}
-                controlData={
-                    normalizedVisualizationData
-                }
-                filterOptionsData={
-                    filterOptionsData
-                }
+                controlData={axisSelectionData}
+                fixedXAxisField={fixedXAxisField}
                 chartType={chartType}
                 xAxisField={xAxisField}
                 yAxisField={yAxisField}
@@ -628,57 +369,26 @@ function Dashboard() {
                 xAxisOptions={xAxisOptions}
                 yAxisOptions={yAxisOptions}
                 viewMode={viewMode}
-                hasData={
-                    visualizationData !== null
-                }
+                hasData={visualizationData !== null}
                 uploadError={uploadError}
-                onReportTypeChange={
-                    handleReportTypeChange
-                }
-                onFromDateChange={
-                    handleFromDateChange
-                }
-                onToDateChange={
-                    handleToDateChange
-                }
-                onFilterTypeChange={
-                    handleFilterTypeChange
-                }
-                onFilterValueChange={
-                    setFilterValue
-                }
-                onViewModeChange={
-                    handleViewModeChange
-                }
+                onReportTypeChange={handleReportTypeChange}
+                onFromDateChange={handleFromDateChange}
+                onToDateChange={handleToDateChange}
+                onFilterTypeChange={handleFilterTypeChange}
+                onViewModeChange={handleViewModeChange}
                 /*
                  * Department selection is temporarily disabled.
                  * onDeparmentChange={setDeparment}
                  */
-                onChartTypeChange={
-                    handleChartTypeChange
-                }
-                onXAxisFieldChange={
-                    setXAxisField
-                }
-                onYAxisFieldChange={
-                    setYAxisField
-                }
-                onYAxisFieldsChange={
-                    setYAxisFields
-                }
-                onCsvUploadSuccess={
-                    handleCsvUploadSuccess
-                }
-                onCsvUploadError={
-                    setUploadError
-                }
+                onChartTypeChange={handleChartTypeChange}
+                onXAxisFieldChange={setXAxisField}
+                onYAxisFieldChange={setYAxisField}
+                onYAxisFieldsChange={setYAxisFields}
+                onCsvUploadSuccess={handleCsvUploadSuccess}
+                onCsvUploadError={setUploadError}
                 reportError={reportError}
-                isReportLoading={
-                    isReportLoading
-                }
-                hasPeriodDateFields={
-                    periodDateFields.hasDateFields
-                }
+                isReportLoading={isReportLoading}
+                hasPeriodDateFields={periodDateFields.hasDateFields}
             />
         </main>
     );

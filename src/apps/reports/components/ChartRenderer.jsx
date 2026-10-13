@@ -1,72 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 
 import * as echarts from "echarts/core";
-import {
-    BarChart,
-    LineChart,
-    PieChart,
-    RadarChart,
-    ScatterChart,
-} from "echarts/charts";
-import {
-    GridComponent,
-    PolarComponent,
-    RadarComponent,
-    TitleComponent,
-    TooltipComponent,
-} from "echarts/components";
+import { BarChart, LineChart, PieChart, RadarChart, ScatterChart } from "echarts/charts";
+import { GridComponent, RadarComponent, TitleComponent, TooltipComponent } from "echarts/components";
 import { LabelLayout } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+import {formatRevenueValue, getRevenueUnitLabel} from "../utils/dashboardData";
 
-echarts.use([
-    BarChart,
-    LineChart,
-    PieChart,
-    RadarChart,
-    ScatterChart,
-    GridComponent,
-    PolarComponent,
-    RadarComponent,
-    TitleComponent,
-    TooltipComponent,
-    LabelLayout,
-    CanvasRenderer,
-]);
+echarts.use([BarChart, LineChart, PieChart,
+    RadarChart, ScatterChart, GridComponent,
+    RadarComponent, TitleComponent,
+    TooltipComponent, LabelLayout, CanvasRenderer,]);
 
-const CHART_COLORS = [
-    "#3B82F6",
-    "#F97316",
-    "#14B87A",
-    "#E83E8C",
-    "#FACC15",
-    "#8B5CF6",
-    "#22D3EE",
-    "#EF4444",
-    "#84CC16",
-    "#92400E",
-    "#A855F7",
-    "#2DD4BF",
-    "#FB923C",
-    "#38BDF8",
-    "#D946EF",
-    "#059669",
-    "#334155",
-    "#FBBF24",
-    "#818CF8",
-    "#047857",
-    "#F43F5E",
-    "#0EA5E9",
-    "#65A30D",
-    "#6D28D9",
-    "#67E8F9",
-    "#C2410C",
-    "#F472B6",
-    "#6366F1",
-    "#EAB308",
-    "#9D174D",
-    "#6EE7B7",
-    "#B91C1C",
-];
+const CHART_COLORS = [ "#3B82F6", "#F97316", "#14B87A",  "#E83E8C",
+    "#FACC15",  "#8B5CF6", "#22D3EE", "#EF4444",
+    "#84CC16", "#92400E", "#A855F7", "#2DD4BF",
+    "#FB923C",  "#38BDF8", "#D946EF",  "#059669",
+    "#334155", "#FBBF24",  "#818CF8", "#047857",
+    "#F43F5E", "#0EA5E9", "#65A30D", "#6D28D9",
+    "#67E8F9", "#C2410C", "#F472B6", "#6366F1",
+    "#EAB308", "#9D174D", "#6EE7B7", "#B91C1C" ];
 
 const BAR_RADIUS = [6, 6, 0, 0];
 const HORIZONTAL_BAR_RADIUS = [0, 6, 6, 0];
@@ -76,62 +29,16 @@ const LARGE_DATA_THRESHOLD = 2000;
 const SYMBOL_DATA_THRESHOLD = 300;
 const PROGRESSIVE_DATA_THRESHOLD = 5000;
 const PROGRESSIVE_THRESHOLD = 3000;
-
-const DECIMAL_NUMBER_FORMATTER =
-    new Intl.NumberFormat(
-        "en-IN",
-        {
-            useGrouping: true,
-            maximumFractionDigits: 20,
-        }
-    );
-
-const PLAIN_NUMBER_FORMATTER =
-    new Intl.NumberFormat(
-        "en-US",
-        {
-            useGrouping: false,
-            maximumFractionDigits: 20,
-        }
-    );
-
-const EXACT_INDIAN_NUMBER_FORMATTER =
-    new Intl.NumberFormat(
-        "en-IN",
-        {
-            useGrouping: true,
-            maximumFractionDigits: 20,
-        }
-    );
-
-const SCALED_REVENUE_FORMATTER =
-    new Intl.NumberFormat(
-        "en-IN",
-        {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        }
-    );
-
-const HTML_ESCAPES = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-};
+const DECIMAL_NUMBER_FORMATTER = new Intl.NumberFormat("en-IN", {useGrouping: true, maximumFractionDigits: 20});
+const PLAIN_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {useGrouping: false, maximumFractionDigits: 20});
+const HTML_ESCAPES = {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"};
 
 function escapeHtml(value) {
-    return String(value ?? "").replace(
-        /[&<>"']/g,
-        (character) => HTML_ESCAPES[character]
-    );
+    return String(value ?? "").replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
 }
 
 function getChartColor(index) {
-    return CHART_COLORS[
-        index % CHART_COLORS.length
-    ];
+    return CHART_COLORS[index % CHART_COLORS.length];
 }
 
 function getCssVariable(name) {
@@ -143,398 +50,176 @@ function getCssVariable(name) {
 }
 
 function getRootFontSize() {
-    return (
-        Number.parseFloat(
-            getComputedStyle(
-                document.documentElement
-            ).fontSize
-        ) || 13
-    );
+    return (Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 13);
 }
 
 function getFontSize(name) {
-    const value =
-        getCssVariable(name);
-
+    const value = getCssVariable(name);
     if (value.endsWith("rem")) {
-        return (
-            Number.parseFloat(value) *
-            getRootFontSize()
-        );
+        return (Number.parseFloat(value) *  getRootFontSize());
     }
-
     if (value.endsWith("px")) {
         return Number.parseFloat(value);
     }
-
-    return (
-        Number.parseFloat(value) || 12
-    );
+    return (Number.parseFloat(value) || 12 );
 }
 
 function getChartTheme() {
     return {
-        primary:
-            getCssVariable(
-                "--color-primary"
-            ),
-
-        primaryHover:
-            getCssVariable(
-                "--color-primary-hover"
-            ),
-
-        grid:
-            getCssVariable(
-                "--color-border"
-            ),
-
-        axis:
-            getCssVariable(
-                "--color-text-secondary"
-            ),
-
-        text:
-            getCssVariable(
-                "--color-text-dark"
-            ),
-
-        surface:
-            getCssVariable(
-                "--color-surface"
-            ),
-
-        fontFamily:
-            getCssVariable(
-                "--font-family-base"
-            ),
-
-        fontSize:
-            getFontSize(
-                "--font-size-xs"
-            ),
-
-        tooltipFontSize:
-            getFontSize(
-                "--font-size-sm"
-            ),
-
-        shadow:
-            getCssVariable(
-                "--shadow-md"
-            ),
-
-        radius:
-            getCssVariable(
-                "--radius-md"
-            ),
+        primary: getCssVariable("--color-primary"),
+        primaryHover: getCssVariable("--color-primary-hover"),
+        grid: getCssVariable("--color-border"),
+        axis: getCssVariable("--color-text-secondary"),
+        text: getCssVariable("--color-text-dark"),
+        surface: getCssVariable("--color-surface"),
+        fontFamily: getCssVariable("--font-family-base"),
+        fontSize: getFontSize("--font-size-xs"),
+        tooltipFontSize: getFontSize("--font-size-sm"),
+        shadow: getCssVariable("--shadow-md"),
+        radius: getCssVariable("--radius-md")
     };
 }
 
-function formatNumericValue(
-    value,
-    dataType
-) {
-    const numericValue =
-        Number(value);
-
-    if (
-        !Number.isFinite(
-            numericValue
-        )
-    ) {
-        return String(
-            value ?? "—"
-        );
+function formatNumericValue(value, dataType) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+        return String(value ?? "—" );
     }
-
-    const normalizedDataType =
-        String(
-            dataType ?? ""
-        ).toUpperCase();
-
-    if (
-        normalizedDataType ===
-        "DECIMAL"
-    ) {
-        return DECIMAL_NUMBER_FORMATTER.format(
-            numericValue
-        );
+    const normalizedDataType = String(dataType ?? "").toUpperCase();
+    if (normalizedDataType === "DECIMAL") {
+        return DECIMAL_NUMBER_FORMATTER.format(numericValue);
     }
-
     return PLAIN_NUMBER_FORMATTER.format(
         numericValue
     );
 }
 
-function getChartRevenueDisplayConfig(
-    chartData
-) {
-    const axes =
-        Array.isArray(
-            chartData?.yAxes
-        ) &&
-        chartData.yAxes.length > 0
-            ? chartData.yAxes
-            : chartData?.yAxis
-              ? [chartData.yAxis]
-              : [];
+function getChartRevenueDisplayConfig(chartData) {
+    const axes = Array.isArray(chartData?.yAxes) &&
+        chartData.yAxes.length > 0 ? chartData.yAxes : chartData?.yAxis ? [chartData.yAxis] : [];
+    const revenueConfigs = axes.map((axis) => axis.revenueDisplayConfig);
+    const configuredRevenueAxes = revenueConfigs.filter(Boolean);
 
-    if (axes.length === 0) {
+    if (configuredRevenueAxes.length === 0) {
+        return chartData?.xAxis?.revenueDisplayConfig || null;
+    }
+
+    if (configuredRevenueAxes.length !== axes.length) {
+        throw new Error("A chart cannot combine money and non-money Y-axis fields.");
+    }
+
+    const sharedConfig = configuredRevenueAxes[0];
+    const hasSharedUnit = configuredRevenueAxes.every(
+        (config) =>
+            config.divisor === sharedConfig.divisor &&
+            config.suffix === sharedConfig.suffix
+    );
+
+    if (!hasSharedUnit) {
+        throw new Error("Money fields in a chart must use the report-wide display unit.");
+    }
+
+    return sharedConfig;
+}
+
+function formatRevenueAxisValue(value, revenueDisplayConfig, dataType) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+        return String(value ?? "—");
+    }
+    if (!revenueDisplayConfig) {
+        return formatNumericValue(numericValue,  dataType);
+    }
+    return formatRevenueValue(numericValue, revenueDisplayConfig);
+}
+
+function formatRevenueTooltipValue(value, revenueDisplayConfig, dataType) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+        return String(value ?? "—");
+    }
+    if (!revenueDisplayConfig) {
+        return formatNumericValue(numericValue, dataType);
+    }
+    return formatRevenueValue(numericValue, revenueDisplayConfig, {exact: true});
+}
+
+function getRevenueUnitTitle(chartData, theme) {
+    const revenueDisplayConfig = getChartRevenueDisplayConfig(chartData);
+
+    if (!revenueDisplayConfig) {
         return null;
     }
-
-    const revenueConfigs =
-        axes.map(
-            (axis) =>
-                axis.revenueDisplayConfig
-        );
-
-    if (
-        revenueConfigs.some(
-            (config) =>
-                !config
-        )
-    ) {
-        return null;
-    }
-
-    const firstConfig =
-        revenueConfigs[0];
-
-    const hasSameUnit =
-        revenueConfigs.every(
-            (config) =>
-                config.divisor ===
-                    firstConfig.divisor &&
-                config.suffix ===
-                    firstConfig.suffix
-        );
-
-    return hasSameUnit
-        ? firstConfig
-        : null;
-}
-
-function getRevenueUnitLabel(
-    revenueDisplayConfig
-) {
-    if (
-        !revenueDisplayConfig
-    ) {
-        return "";
-    }
-
-    switch (
-        revenueDisplayConfig.suffix
-    ) {
-        case "Cr":
-            return "In Crores";
-
-        case "L":
-            return "In Lakhs";
-
-        case "k":
-            return "In Thousands";
-
-        default:
-            return "In Rupees";
-    }
-}
-
-function formatRevenueAxisValue(
-    value,
-    revenueDisplayConfig,
-    dataType
-) {
-    const numericValue =
-        Number(value);
-
-    if (
-        !Number.isFinite(
-            numericValue
-        )
-    ) {
-        return String(
-            value ?? "—"
-        );
-    }
-
-    if (
-        !revenueDisplayConfig
-    ) {
-        return formatNumericValue(
-            numericValue,
-            dataType
-        );
-    }
-
-    const scaledValue =
-        numericValue /
-        revenueDisplayConfig.divisor;
-
-    return `₹${SCALED_REVENUE_FORMATTER.format(
-        scaledValue
-    )}`;
-}
-
-function formatRevenueTooltipValue(
-    value,
-    revenueDisplayConfig,
-    dataType
-) {
-    const numericValue =
-        Number(value);
-
-    if (
-        !Number.isFinite(
-            numericValue
-        )
-    ) {
-        return String(
-            value ?? "—"
-        );
-    }
-
-    if (
-        !revenueDisplayConfig
-    ) {
-        return formatNumericValue(
-            numericValue,
-            dataType
-        );
-    }
-
-    return `₹${EXACT_INDIAN_NUMBER_FORMATTER.format(
-        numericValue
-    )}`;
-}
-
-function getRevenueUnitTitle(
-    chartData,
-    theme
-) {
-    const revenueDisplayConfig =
-        getChartRevenueDisplayConfig(
-            chartData
-        );
-
-    if (
-        !revenueDisplayConfig
-    ) {
-        return null;
-    }
+    const revenueUnit = getRevenueUnitLabel(revenueDisplayConfig);
 
     return {
-        text: getRevenueUnitLabel(
-            revenueDisplayConfig
-        ),
+        text: `In ${revenueUnit}`,
         right: 8,
         top: 4,
-        textStyle: {
-            color: theme.axis,
-            fontFamily:
-                theme.fontFamily,
-            fontSize:
-                theme.fontSize,
-            fontWeight: 500,
-        },
+        textStyle: { color: theme.axis,
+            fontFamily: theme.fontFamily,
+            fontSize: theme.fontSize,
+            fontWeight: 500 },
     };
 }
 
-function getSeriesDisplayConfig(
-    chartData,
-    seriesName
-) {
-    const normalizedSeriesName =
-        String(
-            seriesName ?? ""
-        );
-
-    const matchingAxis =
-        chartData.yAxes?.find(
-            (axis) =>
-                axis.field ===
-                    normalizedSeriesName ||
-                axis.label ===
-                    normalizedSeriesName
-        );
+function getSeriesDisplayConfig(chartData, seriesName) {
+    const normalizedSeriesName = String(seriesName ?? "" );
+    const matchingAxis = chartData.yAxes?.find((axis) => axis.field === normalizedSeriesName || axis.label === normalizedSeriesName);
+    const fallbackAxis = chartData.yAxes?.length > 0 ? null : chartData.yAxis;
 
     return {
         dataType:
             matchingAxis?.dataType ||
-            chartData.yAxis
-                ?.dataType ||
+            fallbackAxis?.dataType ||
             "NUMBER",
 
         revenueDisplayConfig:
             matchingAxis
                 ?.revenueDisplayConfig ||
-            chartData.yAxis
-                ?.revenueDisplayConfig ||
+            fallbackAxis?.revenueDisplayConfig ||
             null,
     };
 }
 
-function getTooltipFormatter(
-    chartData,
-    theme
-) {
-    return (params) => {
-        const items =
-            Array.isArray(params)
-                ? params
-                : [params];
+function getTooltipFormatter(chartData, theme) {
+    return (params) => {const items = Array.isArray(params) ? params : [params];
 
-        if (
-            items.length === 0
-        ) {
+        if (items.length === 0) {
             return "";
         }
-
-        const axisLabel =
-            items[0]
-                ?.axisValueLabel ??
-            items[0]?.name ??
-            "";
-
-        const rows = items
-            .filter(
-                (item) =>
-                    item?.value !==
-                    undefined
+        const axisLabel = items[0] ?.axisValueLabel ?? items[0]?.name ??  "";
+        const rows = items.filter(
+                (item) => item?.value !==  undefined
             )
             .map((item) => {
-                const rawValue =
-                    Array.isArray(
-                        item.value
-                    )
-                        ? item.value[
-                              item.value.length -
-                                  1
-                          ]
-                        : item.value;
+                const rawValues = Array.isArray(item.value)
+                    ? item.value
+                    : null;
+                const rawValue = rawValues
+                    ? rawValues[rawValues.length - 1]
+                    : item.value;
 
-                const displayConfig =
-                    getSeriesDisplayConfig(
-                        chartData,
-                        item.seriesName
-                    );
-
-                const formattedValue =
-                    formatRevenueTooltipValue(
-                        rawValue,
-                        displayConfig.revenueDisplayConfig,
-                        displayConfig.dataType
-                    );
-
+                const displayConfig = getSeriesDisplayConfig(chartData, item.seriesName);
+                const formattedValue = formatRevenueTooltipValue(rawValue, displayConfig.revenueDisplayConfig, displayConfig.dataType);
+                const formattedXValue = chartData.xAxis?.revenueDisplayConfig && rawValues
+                    ? formatRevenueTooltipValue(
+                          rawValues[0],
+                          chartData.xAxis.revenueDisplayConfig,
+                          chartData.xAxis.dataType
+                      )
+                    : "";
                 const seriesLabel = escapeHtml(
                     item.seriesName ??
                         chartData.yAxis?.label ??
                         "Value"
                 );
+                const xAxisLabel = escapeHtml(chartData.xAxis?.label || "X");
+                const xValueMarkup = formattedXValue
+                    ? `<br /><span style="font-weight:600">${xAxisLabel}</span>: ${escapeHtml(formattedXValue)}`
+                    : "";
 
-                return `${item.marker ?? ""}<span style="font-weight:600">${seriesLabel}</span>: ${escapeHtml(formattedValue)}`;
+                return `${item.marker ?? ""}<span style="font-weight:600">${seriesLabel}</span>: ${escapeHtml(formattedValue)}${xValueMarkup}`;
             });
 
         return `
@@ -550,39 +235,14 @@ function getTooltipFormatter(
     };
 }
 
-function getCartesianBaseOption(
-    chartData,
-    theme,
-    chartType
-) {
-    const isHorizontal =
-        chartType ===
-        "horizontal-bar";
+function getCartesianBaseOption(chartData, theme, chartType) {
+    const isHorizontal = chartType ===  "horizontal-bar";
+    const useCategoryX = chartType !== "scatter" && chartType !== "horizontal-bar";
+    const xValues = chartData.data.map((item) =>String(item.x ?? ""));
+    const xAxisRevenueDisplayConfig = chartData.xAxis?.revenueDisplayConfig || null;
+    const yAxisRevenueDisplayConfig = chartData.yAxis?.revenueDisplayConfig || null;
 
-    const useCategoryX =
-        chartType !==
-            "scatter" &&
-        chartType !==
-            "horizontal-bar";
-
-    const xValues =
-        chartData.data.map(
-            (item) =>
-                String(
-                    item.x ?? ""
-                )
-        );
-
-    const revenueDisplayConfig =
-        getChartRevenueDisplayConfig(
-            chartData
-        );
-
-    const revenueUnitTitle =
-        getRevenueUnitTitle(
-            chartData,
-            theme
-        );
+    const revenueUnitTitle =  getRevenueUnitTitle(chartData, theme);
 
     return {
         animation:
@@ -707,7 +367,7 @@ function getCartesianBaseOption(
                               (value) =>
                                   formatRevenueAxisValue(
                                       value,
-                                      revenueDisplayConfig,
+                                      yAxisRevenueDisplayConfig,
                                       chartData
                                           .yAxis
                                           ?.dataType
@@ -809,8 +469,9 @@ function getCartesianBaseOption(
 
                             formatter:
                                 (value) =>
-                                    formatNumericValue(
+                                    formatRevenueAxisValue(
                                         value,
+                                        xAxisRevenueDisplayConfig,
                                         chartData
                                             .xAxis
                                             ?.dataType
@@ -909,7 +570,7 @@ function getCartesianBaseOption(
                               (value) =>
                                   formatRevenueAxisValue(
                                       value,
-                                      revenueDisplayConfig,
+                                      yAxisRevenueDisplayConfig,
                                       chartData
                                           .yAxis
                                           ?.dataType
@@ -1043,39 +704,18 @@ function getCartesianSeries(
         ];
     }
 
-    if (
-        chartType === "area"
-    ) {
+    if (chartType === "area") {
         return [
             {
                 type: "line",
-
-                name:
-                    yAxisLabel,
-
-                data:
-                    values,
-
+                name: yAxisLabel,
+                data: values,
                 smooth: true,
-
-                showSymbol:
-                    dataLength <=
-                    SYMBOL_DATA_THRESHOLD,
-
+                showSymbol: dataLength <= SYMBOL_DATA_THRESHOLD,
                 symbolSize: 6,
-
-                lineStyle: {
-                    width: 2,
-                },
-
-                itemStyle: {
-                    color:
-                        theme.primary,
-                },
-
-                areaStyle: {
-                    opacity: 0.16,
-                },
+                lineStyle: {width: 2},
+                itemStyle: {color: theme.primary},
+                areaStyle: {opacity: 0.16},
 
                 emphasis: {
                     itemStyle: {
@@ -1102,47 +742,17 @@ function getCartesianSeries(
         ];
     }
 
-    if (
-        chartType ===
-        "scatter"
-    ) {
+    if (chartType ===  "scatter") {
         return [
             {
                 type: "scatter",
-
-                name:
-                    yAxisLabel,
-
-                data:
-                    chartData.data.map(
-                        (item) => [
-                            Number(
-                                item.x
-                            ),
-                            Number(
-                                item.y
-                            ),
-                        ]
-                    ),
-
+                name: yAxisLabel,
+                data: chartData.data.map((item) => [Number(item.x), Number(item.y)]),
                 symbol: "circle",
-
-                symbolSize:
-                    dataLength >
-                    LARGE_DATA_THRESHOLD
-                        ? 5
-                        : 8,
-
-                large:
-                    largeMode,
-
-                largeThreshold:
-                    LARGE_DATA_THRESHOLD,
-
-                itemStyle: {
-                    color:
-                        theme.primary,
-                },
+                symbolSize: dataLength > LARGE_DATA_THRESHOLD ? 5 : 8,
+                large: largeMode,
+                largeThreshold: LARGE_DATA_THRESHOLD,
+                itemStyle: {color: theme.primary},
 
                 emphasis: {
                     itemStyle: {
@@ -1154,92 +764,43 @@ function getCartesianSeries(
                     },
                 },
 
-                progressive:
-                    dataLength >
-                    PROGRESSIVE_DATA_THRESHOLD
-                        ? 3000
-                        : 0,
-
-                progressiveThreshold:
-                    PROGRESSIVE_THRESHOLD,
+                progressive: dataLength > PROGRESSIVE_DATA_THRESHOLD ? 3000 : 0,
+                progressiveThreshold: PROGRESSIVE_THRESHOLD,
             },
         ];
     }
 
-    if (
-        chartType ===
-        "composed"
-    ) {
+    if (chartType === "composed") {
         return [
             {
                 type: "bar",
-
-                name:
-                    yAxisLabel,
-
-                data:
-                    values,
-
+                name: yAxisLabel,
+                data: values,
                 barMaxWidth: 42,
-
-                large:
-                    largeMode,
-
-                largeThreshold:
-                    LARGE_DATA_THRESHOLD,
-
-                itemStyle: {
-                    color:
-                        theme.primary,
-                    borderRadius:
-                        BAR_RADIUS,
-                },
+                large: largeMode,
+                largeThreshold: LARGE_DATA_THRESHOLD,
+                itemStyle: {color: theme.primary, borderRadius: BAR_RADIUS}
             },
 
             {
                 type: "line",
-
-                name:
-                    yAxisLabel,
-
-                data:
-                    values,
-
+                name: yAxisLabel,
+                data: values,
                 smooth: true,
-
-                showSymbol:
-                    dataLength <=
-                    SYMBOL_DATA_THRESHOLD,
-
+                showSymbol: dataLength <= SYMBOL_DATA_THRESHOLD,
                 symbolSize: 6,
-
-                lineStyle: {
-                    color:
-                        CHART_COLORS[1],
-                    width: 2,
-                },
-
-                itemStyle: {
-                    color:
-                        CHART_COLORS[1],
-                },
+                lineStyle: {color: CHART_COLORS[1], width: 2},
+                itemStyle: {color: CHART_COLORS[1]}
             },
         ];
     }
 
-    if (
-        chartType ===
-        "stacked-bar"
-    ) {
+    if (chartType === "stacked-bar") {
         return chartData.yAxes.map(
             (axis, index) => ({
                 type: "bar",
-
-                name:
-                    axis.label,
-
-                data:
-                    chartData.data.map(
+                name: axis.label,
+                data: chartData.data.map(
                         (item) =>
                             Number(
                                 item[
@@ -1248,36 +809,17 @@ function getCartesianSeries(
                             )
                     ),
 
-                stack:
-                    "stacked",
-
-                large:
-                    largeMode,
-
-                largeThreshold:
-                    LARGE_DATA_THRESHOLD,
-
+                stack: "stacked",
+                large: largeMode,
+                largeThreshold: LARGE_DATA_THRESHOLD,
                 barMaxWidth: 42,
-
                 itemStyle: {
                     color:
                         getChartColor(
                             index
                         ),
 
-                    borderRadius:
-                        index ===
-                        chartData
-                            .yAxes
-                            .length -
-                            1
-                            ? BAR_RADIUS
-                            : [
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                              ],
+                    borderRadius: index === chartData .yAxes .length - 1 ? BAR_RADIUS : [0, 0, 0, 0],
                 },
             })
         );
@@ -1535,7 +1077,6 @@ function getPieData(
 
 function getPieOption(
     chartData,
-    chartType,
     theme
 ) {
     const revenueDisplayConfig =
@@ -1625,7 +1166,7 @@ function getPieOption(
         series: [
             {
                 type: "pie",
-                radius: chartType === "donut" ? ["45%", "62%"] : ["0%", "62%"],
+                radius: ["0%", "62%"],
                 center: ["50%","50%"],
                 startAngle: 90,
                 clockwise: true,
@@ -1882,211 +1423,6 @@ function getRadarOption(
     };
 }
 
-function getRadialOption(
-    chartData,
-    theme
-) {
-    const revenueDisplayConfig =
-        getChartRevenueDisplayConfig(
-            chartData
-        );
-
-    const revenueUnitTitle =
-        getRevenueUnitTitle(
-            chartData,
-            theme
-        );
-
-    return {
-        animation:
-            chartData.data.length <
-            ANIMATION_DATA_THRESHOLD,
-
-        animationThreshold:
-            ANIMATION_DATA_THRESHOLD,
-
-        title:
-            revenueUnitTitle
-                ? revenueUnitTitle
-                : undefined,
-
-        tooltip: {
-            trigger: "item",
-
-            backgroundColor:
-                theme.surface,
-
-            borderColor:
-                theme.grid,
-
-            borderWidth: 1,
-
-            textStyle: {
-                color:
-                    theme.text,
-                fontFamily:
-                    theme.fontFamily,
-                fontSize:
-                    theme.tooltipFontSize,
-            },
-
-            formatter: (params) => {
-                const item =
-                    Array.isArray(
-                        params
-                    )
-                        ? params[0]
-                        : params;
-
-                const exactValue =
-                    formatRevenueTooltipValue(
-                        item?.value,
-                        revenueDisplayConfig,
-                        chartData
-                            .yAxis
-                            ?.dataType
-                    );
-
-                return `
-                    <div style="font-family:${theme.fontFamily};font-size:${theme.tooltipFontSize}px;color:${theme.text}">
-                        <div style="margin-bottom:4px;color:${theme.primary};font-weight:600;">${String(
-                            chartData
-                                .yAxis
-                                ?.label ??
-                                "Value"
-                        )}</div>
-                        <div>Value: ${escapeHtml(exactValue)}</div>
-                    </div>
-                `;
-            },
-        },
-
-        polar: {
-            radius: [
-                "20%",
-                "80%",
-            ],
-        },
-
-        angleAxis: {
-            type: "category",
-
-            data:
-                chartData.data.map(
-                    (item) =>
-                        String(
-                            item.x ??
-                                ""
-                        )
-                ),
-
-            startAngle: 90,
-
-            axisLine: {
-                lineStyle: {
-                    color:
-                        theme.grid,
-                },
-            },
-
-            axisLabel: {
-                show: false,
-            },
-
-            axisTick: {
-                show: false,
-            },
-        },
-
-        radiusAxis: {
-            type: "value",
-
-            axisLine: {
-                show: false,
-            },
-
-            axisTick: {
-                show: false,
-            },
-
-            axisLabel: {
-                show: false,
-            },
-
-            splitLine: {
-                lineStyle: {
-                    color:
-                        theme.grid,
-                },
-            },
-        },
-
-        series: [
-            {
-                type: "bar",
-
-                coordinateSystem:
-                    "polar",
-
-                data:
-                    chartData.data.map(
-                        (item) =>
-                            Number(
-                                item.y
-                            )
-                    ),
-
-                roundCap:
-                    true,
-
-                barMaxWidth: 36,
-
-                itemStyle: {
-                    color:
-                        theme.primary,
-                },
-
-                emphasis: {
-                    itemStyle: {
-                        color:
-                            theme.primaryHover,
-                    },
-                },
-
-                label: {
-                    show:
-                        chartData
-                            .data
-                            .length <= 20,
-
-                    position:
-                        "inside",
-
-                    color:
-                        theme.text,
-
-                    fontFamily:
-                        theme.fontFamily,
-
-                    fontSize:
-                        theme.fontSize,
-
-                    formatter: (
-                        params
-                    ) =>
-                        formatRevenueAxisValue(
-                            params.value,
-                            revenueDisplayConfig,
-                            chartData
-                                .yAxis
-                                ?.dataType
-                        ),
-                },
-            },
-        ],
-    };
-}
-
 function PieLegend({
     data,
     dataType,
@@ -2216,9 +1552,7 @@ function ChartRenderer({
         setIsChartReady,
     ] = useState(false);
 
-    const isPieChart =
-        chartType === "pie" ||
-        chartType === "donut";
+    const isPieChart = chartType === "pie";
 
     useEffect(() => {
         const chartElement =
@@ -2328,7 +1662,6 @@ function ChartRenderer({
             option =
                 getPieOption(
                     chartData,
-                    chartType,
                     theme
                 );
         } else if (
@@ -2336,14 +1669,6 @@ function ChartRenderer({
         ) {
             option =
                 getRadarOption(
-                    chartData,
-                    theme
-                );
-        } else if (
-            chartType === "radial"
-        ) {
-            option =
-                getRadialOption(
                     chartData,
                     theme
                 );
