@@ -14,7 +14,8 @@ import parseCsvFile from "../services/csv/csvParser";
 import "../styles/DashboardVisualization.css";
 
 function DashboardVisualization({
-    reportType, data, revenueDisplayConfig, fixedXAxisField = "",
+    reportType, data, revenueDisplayConfig, chartRevenueDisplayConfig = revenueDisplayConfig,
+    fixedXAxisField = "",
     /*
      * Department selection temporarily disabled.
      * department,
@@ -33,7 +34,10 @@ function DashboardVisualization({
      */
     onChartTypeChange, onXAxisFieldChange, onYAxisFieldChange,
     onYAxisFieldsChange, onCsvUploadSuccess, onCsvUploadError,
-    title, reportError, isReportLoading,
+    title, reportError, isReportLoading, chartSourceData = data,
+    showControls = true, showHeader = true,
+    showActions = true, visualizationClassName = "", onBack,
+    richChart = false,
 }) {
     const fileInputRef = useRef(null);
 
@@ -105,18 +109,23 @@ function DashboardVisualization({
     };
 
     const handleBackButtonClick = () => {
+        if (onBack) {
+            onBack();
+            return;
+        }
+
         window.history.back();
     };
 
     const visualizationColumnTypes =
-        data?.columnTypes || {};
+        chartSourceData?.columnTypes || {};
 
     const visualizationDataTypes =
-        data?.dataTypes || {};
+        chartSourceData?.dataTypes || {};
 
     const validationResult =
         validateChartSelection({
-            data,
+            data: chartSourceData,
             chartType,
             xAxisField,
             yAxisField,
@@ -126,16 +135,16 @@ function DashboardVisualization({
     const chartData =
         validationResult.isValid
             ? transformChartData({
-                  rows: data.rows,
+                  rows: chartSourceData.rows,
                   columnTypes:
-                      visualizationColumnTypes,
+                      chartSourceData.columnTypes || {},
                   xAxisField,
                   yAxisField,
                   yAxisFields,
                   dataTypes:
-                      visualizationDataTypes,
+                      chartSourceData.dataTypes || {},
                   fieldLabels,
-                  revenueDisplayConfig,
+                  revenueDisplayConfig: chartRevenueDisplayConfig,
               })
             : null;
 
@@ -160,7 +169,7 @@ function DashboardVisualization({
         const now = new Date();
         const timestamp = [String(now.getDate()).padStart(2, "0"), String(now.getMonth() + 1).padStart(2, "0"), now.getFullYear(),
             String(now.getHours()).padStart(2, "0"), String(now.getMinutes()).padStart(2, "0"), String(now.getSeconds()).padStart(2, "0"),].join("");
-        const reportLabel = getReportConfig(reportType)?.label;
+        const reportLabel = getReportConfig(reportType)?.label || title || "report";
         const fileNamePrefix = reportLabel.trim().replace(/[<>:"/\\|?*]/g, "").replace(/\s+/g, "-");
         const csv = Papa.unparse({
             fields: displayedFields.map((field) => fieldLabels[field] || field),
@@ -183,10 +192,10 @@ function DashboardVisualization({
 
     return (
         <section
-            className="dashboard-visualization"
+            className={`dashboard-visualization ${visualizationClassName}`.trim()}
             aria-label="Data visualization"
         >
-            <header className={headerClassName}>
+            {showHeader && <header className={headerClassName}>
                 <div className="dashboard-visualization-title-row">
                     <h2 className="dashboard-visualization-title">
                         {title}
@@ -199,7 +208,7 @@ function DashboardVisualization({
                     */}
                 </div>
 
-                <div className="dashboard-visualization-toolbar-row">
+                {showControls && <div className="dashboard-visualization-toolbar-row">
                     <button
                         type="button"
                         className="dashboard-controls-drawer-toggle"
@@ -217,9 +226,9 @@ function DashboardVisualization({
 
                         <span>Controls</span>
                     </button>
-                </div>
+                </div>}
 
-                <div
+                {showControls && <div
                     id="dashboard-controls-drawer"
                     className={controlsClassName}
                 >
@@ -246,9 +255,7 @@ function DashboardVisualization({
                         filterValue={filterValue}
                         fromDate={fromDate}
                         toDate={toDate}
-                        hasPeriodDateFields={
-                            hasPeriodDateFields
-                        }
+                        hasPeriodDateFields={hasPeriodDateFields}
 
                         /*
                          * Full unfiltered normalized
@@ -275,10 +282,10 @@ function DashboardVisualization({
                         onYAxisFieldChange={onYAxisFieldChange}
                         onYAxisFieldsChange={onYAxisFieldsChange}
                     />
-                </div>
-            </header>
+                </div>}
+            </header>}
 
-            <div className="dashboard-visualization-actions">
+            {showActions && <div className="dashboard-visualization-actions">
                 <button
                     type="button"
                     className="dashboard-action-button"
@@ -315,7 +322,7 @@ function DashboardVisualization({
                 >
                     Download
                 </button>
-            </div>
+            </div>}
 
             {isReportLoading && (
                 <div className="dashboard-visualization-message">
@@ -416,6 +423,7 @@ function DashboardVisualization({
                                         <ChartRenderer
                                             chartData={chartData}
                                             chartType={chartType}
+                                            richChart={richChart}
                                         />
                                     </div>
                                 )}

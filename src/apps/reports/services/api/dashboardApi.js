@@ -1,9 +1,10 @@
 import { decryptReportData, getClientPublicKey } from "../security/reportCrypto.js";
+import { REPORTS_API_URL } from "../../../../config/commonURLConstants.js";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = REPORTS_API_URL;
 
-async function fetchReport({reportType}) {
-    const endpoint = `${BASE_URL}/api/reports`;
+async function fetchReportFromEndpoint({reportType, endpointPath}) {
+    const endpoint = `${BASE_URL}${endpointPath}`;
     const clientPublicKey = await getClientPublicKey();
     const requestBody = {clientPublicKey, data: {reportType}};
     const response = await fetch(endpoint,
@@ -14,7 +15,9 @@ async function fetchReport({reportType}) {
     );
 
     if (!response.ok) {
-        throw new Error(`Report request failed with status ${response.status}.`);
+        throw new Error(
+            `Report request to "${endpointPath}" failed with status ${response.status}.`
+        );
     }
 
     const result = await response.json();
@@ -33,6 +36,20 @@ async function fetchReport({reportType}) {
         });
 
     return {...result, data: decryptedData};
+}
+
+async function fetchReport({reportType}) {
+    return fetchReportFromEndpoint({
+        reportType,
+        endpointPath: "/api/reports",
+    });
+}
+
+async function fetchMisReport({reportType}) {
+    return fetchReportFromEndpoint({
+        reportType,
+        endpointPath: "/api/reports",
+    });
 }
 
 /*
@@ -154,5 +171,6 @@ async function fetchReport({reportType}) {
 
 export {
     fetchReport,
+    fetchMisReport,
   /* Department API integration temporarily disabled. fetchDeparments */
 };

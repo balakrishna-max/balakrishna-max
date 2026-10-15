@@ -143,14 +143,36 @@ function SettingsDialog({ settings, onClose }) {
 
 function Shell({ settings }) {
   const [tab, setTab] = useState(() => {
+    if (window.location.pathname.startsWith('/mis-reports') ||
+        window.location.pathname.startsWith('/dashboard')) return 'reports';
     const fromHash = window.location.hash.replace('#', '');
     return TABS.some((t) => t.key === fromHash) ? fromHash : TABS[0].key;
   });
   const [showSettings, setShowSettings] = useState(false);
 
+  useEffect(() => {
+    const syncTabWithLocation = () => {
+      if (window.location.pathname.startsWith('/mis-reports') ||
+          window.location.pathname.startsWith('/dashboard')) {
+        setTab('reports');
+        return;
+      }
+
+      const fromHash = window.location.hash.replace('#', '');
+      setTab(TABS.some((t) => t.key === fromHash) ? fromHash : TABS[0].key);
+    };
+
+    window.addEventListener('popstate', syncTabWithLocation);
+    return () => window.removeEventListener('popstate', syncTabWithLocation);
+  }, []);
+
   const select = (key) => {
     setTab(key);
-    window.history.replaceState(null, '', `#${key}`);
+    const nextUrl = key === 'reports' ? '/mis-reports' : '/#formBuilder';
+    if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
+      window.history.pushState(null, '', nextUrl);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
   };
 
   const openCollab = () => {
