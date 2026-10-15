@@ -1,41 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { isPhoneColumn, formatRevenueValue, getRevenueUnitLabel,
-    isRevenueField, getTenderValueLabel } from "../utils/dashboardData";
+    isRevenueField, getTenderValueLabel, formatNumericValue } from "../utils/dashboardData";
 import "../styles/DataTable.css";
 
 const INITIAL_ROW_COUNT = 50;
 const ROW_BATCH_SIZE = 50;
 const LOAD_MORE_THRESHOLD = 300;
-
-function formatNumericValue(value, dataType) {
-    if (value === null || value === undefined || value === "") {
-        return "—";
-    }
-
-    const numericValue =  Number(value);
-
-    if (
-        !Number.isFinite(
-            numericValue
-        )
-    ) {
-        return String(value);
-    }
-
-    if (
-        dataType !== "DECIMAL"
-    ) {
-        return String(value);
-    }
-
-    return new Intl.NumberFormat(
-        "en-IN",
-        {
-            useGrouping: true,
-            maximumFractionDigits: 20,
-        }
-    ).format(numericValue);
-}
 
 function formatCellValue(
     value,
@@ -74,7 +44,8 @@ function formatCellValue(
     if (columnType === "number") {
         return formatNumericValue(
             displayValue,
-            dataType
+            dataType,
+            {preserveNonDecimalValue: true}
         );
     }
 

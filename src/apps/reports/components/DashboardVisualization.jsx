@@ -1,12 +1,8 @@
 import { useRef, useState } from "react";
 import Papa from "papaparse";
 import { transformChartData } from "../utils/dashboardData";
-import { getReportConfig, validateChartSelection } from "../utils/dashboardConfig";
+import { getReportConfig, getReportChartTitles, getReportControls, validateChartSelection } from "../utils/dashboardConfig";
 import DashboardControls from "../components/DashboardControls";
-/*
- * Department dropdown temporarily disabled.
- * import SearchableDropdown from "../components/SearchableDropdown";
- */
 import DataTable from "../components/DataTable";
 import ChartRenderer from "../components/ChartRenderer";
 import parseCsvFile from "../services/csv/csvParser";
@@ -16,11 +12,6 @@ import "../styles/DashboardVisualization.css";
 function DashboardVisualization({
     reportType, data, revenueDisplayConfig, chartRevenueDisplayConfig = revenueDisplayConfig,
     fixedXAxisField = "",
-    /*
-     * Department selection temporarily disabled.
-     * department,
-     * departmentOptions,
-     */
     fieldLabels = {}, controlData, filterType, filterValue,
     hasPeriodDateFields, fromDate = "", toDate = "",
     viewMode,  chartType, xAxisField,
@@ -28,16 +19,12 @@ function DashboardVisualization({
     yAxisOptions, hasData, uploadError,
     onReportTypeChange, onFromDateChange, onToDateChange,
     onFilterTypeChange, onViewModeChange,
-    /*
-     * Department selection temporarily disabled.
-     * onDeparmentChange,
-     */
     onChartTypeChange, onXAxisFieldChange, onYAxisFieldChange,
     onYAxisFieldsChange, onCsvUploadSuccess, onCsvUploadError,
     title, reportError, isReportLoading, chartSourceData = data,
     showControls = true, showHeader = true,
     showActions = true, visualizationClassName = "", onBack,
-    richChart = false,
+    richChart = false, visibleFields,
 }) {
     const fileInputRef = useRef(null);
 
@@ -45,20 +32,8 @@ function DashboardVisualization({
         isControlsDrawerOpen,
         setIsControlsDrawerOpen,
     ] = useState(false);
-
-    /*
-     * Department dropdown temporarily disabled.
-     *
-     * const departmentField = (
-     *     <SearchableDropdown
-     *         label="Deparment"
-     *         value={department}
-     *         options={departmentOptions}
-     *         placeholder="Select department"
-     *         onChange={onDeparmentChange}
-     *     />
-     * );
-     */
+    const controlOptions = getReportControls(reportType);
+    const chartTitles = getReportChartTitles(reportType);
 
     const headerClassName = [
         "dashboard-visualization-header",
@@ -130,6 +105,7 @@ function DashboardVisualization({
             xAxisField,
             yAxisField,
             yAxisFields,
+            reportId: reportType,
         });
 
     const chartData =
@@ -158,7 +134,9 @@ function DashboardVisualization({
         Array.isArray(data?.rows) &&
         data.rows.length > 0;
 
-    const displayedFields = [
+    const displayedFields = Array.isArray(visibleFields)
+        ? data?.fields?.filter((field) => visibleFields.includes(field)) || []
+        : [
         ...new Set([
             ...xAxisOptions.map((option) => option.value),
             ...yAxisOptions.map((option) => option.value),
@@ -200,12 +178,6 @@ function DashboardVisualization({
                     <h2 className="dashboard-visualization-title">
                         {title}
                     </h2>
-
-                    {/*
-                    <div className="dashboard-visualization-department dashboard-visualization-department-desktop">
-                        {departmentField}
-                    </div>
-                    */}
                 </div>
 
                 {showControls && <div className="dashboard-visualization-toolbar-row">
@@ -302,15 +274,15 @@ function DashboardVisualization({
                     hidden
                 />
 
-                <button
+                {controlOptions.csvImport && <button
                     type="button"
                     className="dashboard-action-button"
                     onClick={handleUploadButtonClick}
                 >
                     + Add CSV File
-                </button>
+                </button>}
 
-                <button
+                {controlOptions.csvExport && <button
                     type="button"
                     className="dashboard-action-button"
                     onClick={handleDownloadClick}
@@ -321,7 +293,7 @@ function DashboardVisualization({
                     }
                 >
                     Download
-                </button>
+                </button>}
             </div>}
 
             {isReportLoading && (
@@ -424,6 +396,7 @@ function DashboardVisualization({
                                             chartData={chartData}
                                             chartType={chartType}
                                             richChart={richChart}
+                                            chartTitles={chartTitles}
                                         />
                                     </div>
                                 )}
