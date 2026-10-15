@@ -265,6 +265,30 @@
     margin-top: calc(var(--space-2) * -1);
 }
 
+.reports-drilldown-context {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: #52627b;
+    font-size: var(--font-size-sm);
+}
+
+.reports-drilldown-back {
+    padding: 0.55rem 0.85rem;
+    color: var(--color-primary);
+    background: rgb(255 255 255 / 55%);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    cursor: pointer;
+    font: inherit;
+    font-weight: var(--font-weight-semibold);
+}
+
+.reports-drilldown-back:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
 .reports-chart-toggle-group {
     display: flex;
     align-items: center;

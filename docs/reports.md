@@ -7,6 +7,10 @@ Code: `src/apps/reports/`. Mounted into `#a2z-reports-root` on `reports/newMisRe
 The Reports tab is a single page at `pages/Dashboard.jsx`. It shows the report cards at
 `/mis-reports/` and renders the selected report component at `/mis-reports/<report-id>/`.
 The FY-wise Tenders detail view is implemented in `components/reports/FYWiseTenders.jsx`.
+Selecting a financial-year bar drills down in the same chart panel to the top ten departments
+for that exact financial-year value, ordered by the currently selected tender-count or revenue
+metric. The drilldown includes all tender categories, matching a FY-and-department row count/sum;
+the pie view remains a tender-category summary and does not represent a financial-year selection.
 The Overall Reports card renders `components/reports/OverallReports.jsx`, which contains the
 configurable dashboard controls and behavior. The old `/dashboard/` URL redirects to that card.
 Report metadata lives in `utils/dashboardConfig.js`. Each API-backed card declares its API request

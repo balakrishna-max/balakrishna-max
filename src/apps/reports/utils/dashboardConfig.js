@@ -90,6 +90,9 @@ const REPORT_CONFIG = {
             revenueTotal: "Total Revenue",
             tenderCount: "Tender Count",
             revenueSuffix: "Revenue",
+            department: "Department Name",
+            departmentRevenue: "Tenders Revenue",
+            departmentCount: "No. of Tenders",
         },
         fyWiseControls: {
             defaultChartStyle: "bar",
@@ -105,6 +108,7 @@ const REPORT_CONFIG = {
             chartTypes: {
                 pie: "pie",
                 financialYear: "grouped-bar",
+                department: "bar",
             },
             dataTypes: {
                 text: "STRING",
@@ -113,6 +117,7 @@ const REPORT_CONFIG = {
             },
         },
         maxFinancialYears: 8,
+        maxDepartments: 10,
         tenderCategoryValues: [102, 101, 104],
         card: true,
         dashboard: true,

@@ -469,10 +469,8 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                       },
 
                       axisLabel: {
-                          color:
-                              theme.axis,
-                          fontFamily:
-                              theme.fontFamily,
+                          color: theme.axis,
+                          fontFamily: theme.fontFamily,
                           fontSize:
                               theme.fontSize,
                           hideOverlap:
@@ -1600,6 +1598,7 @@ function ChartRenderer({
     chartType,
     richChart = false,
     chartTitles,
+    onDataPointClick,
 }) {
     const chartRef =
         useRef(null);
@@ -1789,6 +1788,19 @@ function ChartRenderer({
         isPieChart,
         isChartReady,
     ]);
+
+    useEffect(() => {
+        const chart = chartInstanceRef.current;
+
+        if (!chart || !onDataPointClick) {
+            return undefined;
+        }
+
+        const handleDataPointClick = (event) => onDataPointClick(event);
+        chart.on("click", handleDataPointClick);
+
+        return () => chart.off("click", handleDataPointClick);
+    }, [isChartReady, onDataPointClick]);
 
     if (
         !chartData ||

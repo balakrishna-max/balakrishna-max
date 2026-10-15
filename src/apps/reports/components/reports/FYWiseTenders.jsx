@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import DashboardVisualization from "../DashboardVisualization.jsx";
 import { getChartAxisOptions, getDefaultVisualizationSelection,
     getReportConfig, getSupportedChartType, REPORT_IDS } from "../../utils/dashboardConfig.js";
-import { COLUMN_TYPES, getFieldLabels, getFieldByNormalizedName,
-    parseRevenueValue, getRevenueDisplayConfig, getTenderValueLabel } from "../../utils/dashboardData.js";
+import { COLUMN_TYPES, getFieldLabels, getFieldByNormalizedName, getDepartmentNameField,
+    parseRevenueValue, getRevenueDisplayConfig,
+    getTenderValueLabel } from "../../utils/dashboardData.js";
 
 const TENDER_REPORT_CONFIG = getReportConfig(REPORT_IDS.TENDERS);
 const TENDER_CATEGORIES = TENDER_REPORT_CONFIG.tenderCategoryValues.map((apiValue) => ({
@@ -25,6 +26,10 @@ function getFinancialYearStart(value) {
 }
 
 function buildTenderFinancialYearData(data, metric, revenueField) {
+    if (!data || !Array.isArray(data.fields) || !Array.isArray(data.rows)) {
+        return null;
+    }
+
     const categoryField = getFieldByNormalizedName(data.fields, TENDER_REPORT_CONFIG.fields.category);
     const financialYearField = getFieldByNormalizedName(data.fields, TENDER_REPORT_CONFIG.fields.financialYear);
     const series = TENDER_CATEGORIES.map(({ label, apiValue }) => ({
@@ -39,7 +44,7 @@ function buildTenderFinancialYearData(data, metric, revenueField) {
         return null;
     }
 
-    const totalsByYear = new Map();
+    const totalsByFinancialYear = new Map();
 
     data.rows.forEach((row) => {
         const category = Number(String(row[categoryField] ?? "").trim());
@@ -55,8 +60,8 @@ function buildTenderFinancialYearData(data, metric, revenueField) {
             return;
         }
 
-        if (!totalsByYear.has(yearStart)) {
-            totalsByYear.set(yearStart, {
+        if (!totalsByFinancialYear.has(financialYear)) {
+            totalsByFinancialYear.set(financialYear, {
                 [TENDER_CHART_FIELDS.financialYear]: financialYear,
                 ...Object.fromEntries(series.map(({ field }) => [field, 0])),
             });
@@ -70,7 +75,7 @@ function buildTenderFinancialYearData(data, metric, revenueField) {
             : 1;
 
         if (Number.isFinite(amount)) {
-            totalsByYear.get(yearStart)[seriesField] += amount;
+            totalsByFinancialYear.get(financialYear)[seriesField] += amount;
         }
     });
 
@@ -84,8 +89,11 @@ function buildTenderFinancialYearData(data, metric, revenueField) {
 
     return {
         fields,
-        rows: Array.from(totalsByYear.entries())
-            .sort(([firstYear], [secondYear]) => firstYear - secondYear)
+        rows: Array.from(totalsByFinancialYear.entries())
+            .sort(([firstYear], [secondYear]) =>
+                getFinancialYearStart(firstYear) - getFinancialYearStart(secondYear) ||
+                firstYear.localeCompare(secondYear)
+            )
             .slice(-TENDER_REPORT_CONFIG.maxFinancialYears)
             .map(([, row]) => row),
         columnTypes: {
@@ -104,6 +112,10 @@ function buildTenderFinancialYearData(data, metric, revenueField) {
 }
 
 function buildTenderPieData(data, metric, revenueField) {
+    if (!data || !Array.isArray(data.fields) || !Array.isArray(data.rows)) {
+        return null;
+    }
+
     const categoryField = getFieldByNormalizedName(data.fields, TENDER_REPORT_CONFIG.fields.category);
     if (!categoryField || (metric === TENDER_CONTROLS.metrics.revenue.value && !revenueField)) {
         return null;
@@ -153,47 +165,148 @@ function buildTenderPieData(data, metric, revenueField) {
     };
 }
 
-function createEmptyChartData(chartStyle) {
+function buildDepartmentFinancialYearData(data, financialYear, metric, revenueField) {
+    if (!data || !Array.isArray(data.fields) || !Array.isArray(data.rows)) {
+        return null;
+    }
+
+    const departmentField = getDepartmentNameField(data.fields);
+    const financialYearField = getFieldByNormalizedName(data.fields, TENDER_REPORT_CONFIG.fields.financialYear);
+
+    if (
+        !departmentField ||
+        !financialYearField ||
+        (metric === TENDER_CONTROLS.metrics.revenue.value && !revenueField)
+    ) {
+        return null;
+    }
+
+    const departmentTotals = new Map();
+
+    data.rows.forEach((row) => {
+        const rowFinancialYear = String(row[financialYearField] ?? "").trim();
+        const department = String(row[departmentField] ?? "").trim();
+
+        if (
+            rowFinancialYear !== financialYear ||
+            !department
+        ) {
+            return;
+        }
+
+        const amount = metric === TENDER_CONTROLS.metrics.revenue.value
+            ? parseRevenueValue(row[revenueField])
+            : 1;
+
+        if (!Number.isFinite(amount)) {
+            return;
+        }
+
+        departmentTotals.set(
+            department,
+            (departmentTotals.get(department) || 0) + amount
+        );
+    });
+
+    const departmentLabel = TENDER_CHART_FIELDS.department;
+    const valueField = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CHART_FIELDS.departmentRevenue
+        : TENDER_CHART_FIELDS.departmentCount;
+    const valueDataType = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CONTROLS.dataTypes.revenue
+        : TENDER_CONTROLS.dataTypes.count;
+
+    return {
+        fields: [departmentLabel, valueField],
+        rows: Array.from(departmentTotals, ([department, total]) => ({
+            [departmentLabel]: department,
+            [valueField]: total,
+        }))
+            .sort((first, second) =>
+                second[valueField] - first[valueField] ||
+                first[departmentLabel].localeCompare(second[departmentLabel])
+            )
+            .slice(0, TENDER_REPORT_CONFIG.maxDepartments),
+        columnTypes: {
+            [departmentLabel]: COLUMN_TYPES.TEXT,
+            [valueField]: COLUMN_TYPES.NUMBER,
+        },
+        dataTypes: {
+            [departmentLabel]: TENDER_CONTROLS.dataTypes.text,
+            [valueField]: valueDataType,
+        },
+    };
+}
+
+function createEmptyChartData(chartStyle, metric) {
+    const valueField = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CHART_FIELDS.revenueTotal
+        : TENDER_CHART_FIELDS.tenderCount;
+    const valueDataType = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CONTROLS.dataTypes.revenue
+        : TENDER_CONTROLS.dataTypes.count;
+
     if (chartStyle === TENDER_CONTROLS.chartStyles.pie.value) {
         return {
-            fields: [TENDER_CHART_FIELDS.category, TENDER_CHART_FIELDS.revenueTotal],
+            fields: [TENDER_CHART_FIELDS.category, valueField],
             rows: [],
             columnTypes: {
                 [TENDER_CHART_FIELDS.category]: COLUMN_TYPES.TEXT,
-                [TENDER_CHART_FIELDS.revenueTotal]: COLUMN_TYPES.NUMBER,
+                [valueField]: COLUMN_TYPES.NUMBER,
             },
             dataTypes: {
                 [TENDER_CHART_FIELDS.category]: TENDER_CONTROLS.dataTypes.text,
-                [TENDER_CHART_FIELDS.revenueTotal]: TENDER_CONTROLS.dataTypes.revenue,
+                [valueField]: valueDataType,
             },
         };
     }
 
+    const series = TENDER_CATEGORIES.map(({ label, apiValue }) => ({
+        field: metric === TENDER_CONTROLS.metrics.revenue.value
+            ? `${label} ${TENDER_CHART_FIELDS.revenueSuffix}`
+            : label,
+        apiValue,
+    }));
+
     return {
         fields: [
             TENDER_CHART_FIELDS.financialYear,
-            ...TENDER_CATEGORIES.map(
-                ({ label }) => `${label} ${TENDER_CHART_FIELDS.revenueSuffix}`
-            ),
+            ...series.map(({ field }) => field),
         ],
         rows: [],
         columnTypes: {
             [TENDER_CHART_FIELDS.financialYear]: COLUMN_TYPES.TEXT,
             ...Object.fromEntries(
-                TENDER_CATEGORIES.map(({ label }) => [
-                    `${label} ${TENDER_CHART_FIELDS.revenueSuffix}`,
-                    COLUMN_TYPES.NUMBER,
-                ])
+                series.map(({ field }) => [field, COLUMN_TYPES.NUMBER])
             ),
         },
         dataTypes: {
             [TENDER_CHART_FIELDS.financialYear]: TENDER_CONTROLS.dataTypes.text,
             ...Object.fromEntries(
-                TENDER_CATEGORIES.map(({ label }) => [
-                    `${label} ${TENDER_CHART_FIELDS.revenueSuffix}`,
-                    TENDER_CONTROLS.dataTypes.revenue,
-                ])
+                series.map(({ field }) => [field, valueDataType])
             ),
+        },
+    };
+}
+
+function createEmptyDepartmentChartData(metric) {
+    const valueField = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CHART_FIELDS.departmentRevenue
+        : TENDER_CHART_FIELDS.departmentCount;
+    const valueDataType = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CONTROLS.dataTypes.revenue
+        : TENDER_CONTROLS.dataTypes.count;
+
+    return {
+        fields: [TENDER_CHART_FIELDS.department, valueField],
+        rows: [],
+        columnTypes: {
+            [TENDER_CHART_FIELDS.department]: COLUMN_TYPES.TEXT,
+            [valueField]: COLUMN_TYPES.NUMBER,
+        },
+        dataTypes: {
+            [TENDER_CHART_FIELDS.department]: TENDER_CONTROLS.dataTypes.text,
+            [valueField]: valueDataType,
         },
     };
 }
@@ -207,6 +320,29 @@ function FYWiseTenders({
 }) {
     const [chartMetric, setChartMetric] = useState(TENDER_CONTROLS.defaultMetric);
     const [chartStyle, setChartStyle] = useState(TENDER_CONTROLS.defaultChartStyle);
+    const [selectedFinancialYear, setSelectedFinancialYear] = useState(null);
+    const revenueField = reportData
+        ? getFieldByNormalizedName(reportData.fields, TENDER_REPORT_CONFIG.fields.revenue)
+        : "";
+    const financialYearData = buildTenderFinancialYearData(
+        reportData,
+        chartMetric,
+        revenueField
+    );
+    const handleChartDataPointClick = useCallback((event) => {
+        if (selectedFinancialYear || chartStyle !== TENDER_CONTROLS.chartStyles.bar.value) {
+            return;
+        }
+
+        const clickedFinancialYear = String(event?.name ?? "").trim();
+        const isFinancialYear = financialYearData?.rows.some(
+            (row) => row[TENDER_CHART_FIELDS.financialYear] === clickedFinancialYear
+        );
+
+        if (isFinancialYear) {
+            setSelectedFinancialYear(clickedFinancialYear);
+        }
+    }, [chartStyle, financialYearData, selectedFinancialYear]);
 
     if (!reportData) {
         return (
@@ -226,25 +362,27 @@ function FYWiseTenders({
         );
     }
 
-    const revenueField = getFieldByNormalizedName(reportData.fields, TENDER_REPORT_CONFIG.fields.revenue);
-    const financialYearData = buildTenderFinancialYearData(
-        reportData,
-        chartMetric,
-        revenueField
-    );
     const pieData = buildTenderPieData(reportData, chartMetric, revenueField);
     const activeChartData = chartStyle === TENDER_CONTROLS.chartStyles.pie.value
         ? pieData
         : financialYearData;
-    const hasRevenueData = chartMetric !== TENDER_CONTROLS.metrics.revenue.value || Boolean(activeChartData);
-    const chartSourceData = activeChartData || (
-        hasRevenueData
-            ? reportData
-            : createEmptyChartData(chartStyle)
-    );
-    const defaultChartType = chartStyle === TENDER_CONTROLS.chartStyles.pie.value
-        ? TENDER_CONTROLS.chartTypes.pie
-        : TENDER_CONTROLS.chartTypes.financialYear;
+    const departmentField = getDepartmentNameField(reportData.fields);
+    const departmentData = selectedFinancialYear
+        ? buildDepartmentFinancialYearData(
+              reportData,
+              selectedFinancialYear,
+              chartMetric,
+              revenueField
+          )
+        : null;
+    const chartSourceData = selectedFinancialYear
+        ? departmentData || createEmptyDepartmentChartData(chartMetric)
+        : activeChartData || createEmptyChartData(chartStyle, chartMetric);
+    const defaultChartType = selectedFinancialYear
+        ? TENDER_CONTROLS.chartTypes.department
+        : chartStyle === TENDER_CONTROLS.chartStyles.pie.value
+          ? TENDER_CONTROLS.chartTypes.pie
+          : TENDER_CONTROLS.chartTypes.financialYear;
     const chartType = getSupportedChartType(
         chartSourceData,
         defaultChartType,
@@ -253,13 +391,19 @@ function FYWiseTenders({
     );
     const selection = getDefaultVisualizationSelection(chartSourceData, chartType, null, REPORT_IDS.TENDERS);
     const fieldLabels = getFieldLabels(reportData.fields);
+    fieldLabels[TENDER_CHART_FIELDS.department] = TENDER_CHART_FIELDS.department;
+    const pieMetricField = chartMetric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CHART_FIELDS.revenueTotal
+        : TENDER_CHART_FIELDS.tenderCount;
 
-    if (chartStyle === TENDER_CONTROLS.chartStyles.pie.value) {
-        fieldLabels[TENDER_CHART_FIELDS.category] = TENDER_CHART_FIELDS.category;
+    if (selectedFinancialYear) {
         const metricField = chartMetric === TENDER_CONTROLS.metrics.revenue.value
-            ? TENDER_CHART_FIELDS.revenueTotal
-            : TENDER_CHART_FIELDS.tenderCount;
+            ? TENDER_CHART_FIELDS.departmentRevenue
+            : TENDER_CHART_FIELDS.departmentCount;
         fieldLabels[metricField] = metricField;
+    } else if (chartStyle === TENDER_CONTROLS.chartStyles.pie.value) {
+        fieldLabels[TENDER_CHART_FIELDS.category] = TENDER_CHART_FIELDS.category;
+        fieldLabels[pieMetricField] = pieMetricField;
     } else if (financialYearData && chartMetric === TENDER_CONTROLS.metrics.revenue.value) {
         TENDER_CATEGORIES.forEach(({ label }) => {
             const revenueField = `${label} ${TENDER_CHART_FIELDS.revenueSuffix}`;
@@ -289,6 +433,21 @@ function FYWiseTenders({
         }
     );
     const title = TENDER_REPORT_CONFIG.cardLabel;
+    const chartDataNotice = selectedFinancialYear
+        ? !departmentField
+            ? "Department names are not available in this report."
+            : chartMetric === TENDER_CONTROLS.metrics.revenue.value && !revenueField
+              ? "Revenue data is not available in this report."
+              : departmentData?.rows.length === 0
+                ? `No department data is available for ${selectedFinancialYear}.`
+                : !departmentData
+                  ? "Department data is unavailable for the selected financial year."
+                  : null
+        : chartMetric === TENDER_CONTROLS.metrics.revenue.value && !revenueField
+          ? "Revenue data is not available in this report."
+          : !activeChartData
+            ? "Tender category or financial year data is unavailable for this chart."
+            : null;
 
     return (
         <main className="reports-detail-page">
@@ -304,29 +463,44 @@ function FYWiseTenders({
                 ))}
             </section>
             <div className="reports-chart-toggle-row">
-                <div
-                    className="reports-chart-toggle-group"
-                    role="group"
-                    aria-label="Chart type"
-                >
-                    <div className="reports-chart-toggle reports-chart-type-toggle">
-                        <span
-                            className={`reports-chart-toggle-indicator reports-chart-toggle-indicator-${chartStyle}`}
-                            aria-hidden="true"
-                        />
-                        {Object.values(TENDER_CONTROLS.chartStyles).map(({value, label}) => (
-                            <button
-                                className="reports-chart-toggle-option"
-                                type="button"
-                                key={value}
-                                aria-pressed={chartStyle === value}
-                                onClick={() => setChartStyle(value)}
-                            >
-                                {label}
-                            </button>
-                        ))}
+                {selectedFinancialYear ? (
+                    <div className="reports-drilldown-context">
+                        <span>
+                            Financial Year: <strong>{selectedFinancialYear}</strong>
+                        </span>
+                        <button
+                            className="reports-drilldown-back"
+                            type="button"
+                            onClick={() => setSelectedFinancialYear(null)}
+                        >
+                            Back to financial years
+                        </button>
                     </div>
-                </div>
+                ) : (
+                    <div
+                        className="reports-chart-toggle-group"
+                        role="group"
+                        aria-label="Chart type"
+                    >
+                        <div className="reports-chart-toggle reports-chart-type-toggle">
+                            <span
+                                className={`reports-chart-toggle-indicator reports-chart-toggle-indicator-${chartStyle}`}
+                                aria-hidden="true"
+                            />
+                            {Object.values(TENDER_CONTROLS.chartStyles).map(({value, label}) => (
+                                <button
+                                    className="reports-chart-toggle-option"
+                                    type="button"
+                                    key={value}
+                                    aria-pressed={chartStyle === value}
+                                    onClick={() => setChartStyle(value)}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 <div
                     className="reports-chart-toggle"
                     role="group"
@@ -349,9 +523,14 @@ function FYWiseTenders({
                     ))}
                 </div>
             </div>
-            {!hasRevenueData && (
+            {!selectedFinancialYear && chartStyle === TENDER_CONTROLS.chartStyles.bar.value && (
+                <p className="reports-chart-data-notice">
+                    Select a financial-year bar to view its top {TENDER_REPORT_CONFIG.maxDepartments} departments.
+                </p>
+            )}
+            {chartDataNotice && (
                 <p className="reports-chart-data-notice" role="status">
-                    Revenue data is not available in this report.
+                    {chartDataNotice}
                 </p>
             )}
             <DashboardVisualization
@@ -382,6 +561,11 @@ function FYWiseTenders({
                 showActions={false}
                 visualizationClassName="reports-visualization"
                 onBack={() => onNavigate("/mis-reports/")}
+                onChartDataPointClick={
+                    !selectedFinancialYear && chartStyle === TENDER_CONTROLS.chartStyles.bar.value
+                        ? handleChartDataPointClick
+                        : undefined
+                }
             />
         </main>
     );
