@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import DashboardVisualization from "../components/DashboardVisualization.jsx";
-import FYWiseTenders from "../components/FYWiseTenders.jsx";
+import FYWiseTenders from "../components/reports/FYWiseTenders.jsx";
 import {
     getChartAxisFieldOptions,
     getChartTypeOptions,

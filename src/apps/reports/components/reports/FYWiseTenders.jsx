@@ -1,15 +1,15 @@
 import { useState } from "react";
-import DashboardVisualization from "./DashboardVisualization.jsx";
+import DashboardVisualization from "../DashboardVisualization.jsx";
 import {
     getChartAxisFieldOptions,
     getChartTypeOptions,
     getDefaultVisualizationSelection,
-} from "../utils/dashboardConfig.js";
+} from "../../utils/dashboardConfig.js";
 import {
     COLUMN_TYPES,
     getHumanReadableFieldLabel,
     getRevenueDisplayConfig,
-} from "../utils/dashboardData.js";
+} from "../../utils/dashboardData.js";
 
 const MAX_FINANCIAL_YEARS = 8;
 const TENDER_CATEGORIES = [
