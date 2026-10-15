@@ -117,10 +117,12 @@ export const ELEMENTS = {
 
 export const PALETTE = [
   { title: 'Common', keys: ['heading', 'fullName', 'email', 'address', 'phone', 'datePicker'] },
-  { title: 'Basic elements', keys: ['shortText', 'longText', 'paragraph', 'dropdown', 'dynamicDropdown', 'singleChoice', 'multipleChoice', 'number', 'image', 'fileUpload', 'signature', 'time', 'spinner'] },
+  { title: 'Basic elements', keys: ['shortText', 'longText', 'paragraph', 'dropdown',  'singleChoice', 'multipleChoice', 'number', 'image', 'fileUpload', 'spinner'] },
   { title: 'Survey elements', keys: ['inputTable', 'starRating', 'scaleRating'] },
   { title: 'Page elements', keys: ['divider'] },
 ];
+
+// { title: 'Basic elements', keys: ['shortText', 'longText', 'paragraph', 'dropdown', 'dynamicDropdown', 'singleChoice', 'multipleChoice', 'number', 'image', 'fileUpload', 'signature', 'time', 'spinner'] },
 
 
 export function describeItem(item) {

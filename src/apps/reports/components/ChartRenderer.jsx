@@ -219,6 +219,9 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
     const isHorizontal = chartType === "horizontal-bar";
     const useCategoryX = chartType !== "scatter" && chartType !== "horizontal-bar";
     const xValues = chartData.data.map((item) =>String(item.x ?? ""));
+    const showAllCategoryLabels = richChart &&
+        chartType === "grouped-bar" &&
+        (xValues.length > 8 || xValues.some((value) => value.length > 12));
     const xAxisRevenueDisplayConfig = chartData.xAxis?.revenueDisplayConfig || null;
     const yAxisRevenueDisplayConfig = chartData.yAxis?.revenueDisplayConfig || null;
 
@@ -242,9 +245,9 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
             top: richChart && chartType === "grouped-bar"
                 ? 64
                 : revenueUnitTitle ? 48 : 32,
-            right: 24,
-            bottom: chartType === "grouped-bar" ? 64 : 56,
-            left: chartType === "grouped-bar" ? 82 : 56,
+            right: 16,
+            bottom: showAllCategoryLabels ? 108 : chartType === "grouped-bar" ? 52 : 48,
+            left: chartType === "grouped-bar" ? 64 : 48,
             containLabel: true,
         },
 
@@ -299,7 +302,7 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                       name: chartData .yAxis ?.label ?? "",
 
                       nameLocation: "middle",
-                      nameGap: 42,
+                      nameGap: 30,
 
                       nameTextStyle: {
                           color: theme.axis,
@@ -346,7 +349,7 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                             chartType === "grouped-bar" ||
                             chartType ===  "stacked-bar",
                         nameLocation: "middle",
-                        nameGap: 34,
+                        nameGap: showAllCategoryLabels ? 44 : 26,
                         nameTextStyle: {
                             color: theme.axis,
                             fontFamily: theme.fontFamily,
@@ -369,9 +372,17 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                             color: theme.axis,
                             fontFamily: theme.fontFamily,
                             fontSize: theme.fontSize,
-                            hideOverlap: true,
-                            rotate: chartType === "grouped-bar" ? 18 : 0,
-                            margin: chartType === "grouped-bar" ? 14 : 8,
+                            hideOverlap: !showAllCategoryLabels,
+                            interval: showAllCategoryLabels ? 0 : "auto",
+                            rotate: showAllCategoryLabels
+                                ? 35
+                                : chartType === "grouped-bar" ? 18 : 0,
+                            margin: showAllCategoryLabels
+                                ? 12
+                                : chartType === "grouped-bar" ? 10 : 6,
+                            width: showAllCategoryLabels ? 132 : undefined,
+                            overflow: showAllCategoryLabels ? "break" : undefined,
+                            align: showAllCategoryLabels ? "right" : undefined,
                             fontWeight: richChart ? 500 : undefined,
                         },
                     }
@@ -383,38 +394,30 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                             "",
 
                         nameLocation: "middle",
-                        nameGap: 34,
+                        nameGap: 26,
 
                         nameTextStyle: {
-                            color:
-                                theme.axis,
-                            fontFamily:
-                                theme.fontFamily,
-                            fontSize:
-                                theme.fontSize,
+                            color: theme.axis,
+                            fontFamily: theme.fontFamily,
+                            fontSize: theme.fontSize,
                         },
 
                         axisLine: {
                             lineStyle: {
-                                color:
-                                    theme.grid,
+                                color: theme.grid,
                             },
                         },
 
                         axisTick: {
                             lineStyle: {
-                                color:
-                                    theme.grid,
+                                color: theme.grid,
                             },
                         },
 
                         axisLabel: {
-                            color:
-                                theme.axis,
-                            fontFamily:
-                                theme.fontFamily,
-                            fontSize:
-                                theme.fontSize,
+                            color: theme.axis,
+                            fontFamily: theme.fontFamily,
+                            fontSize: theme.fontSize,
 
                             formatter:
                                 (value) =>
@@ -440,31 +443,26 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                           "",
 
                       nameLocation: "middle",
-                      nameGap: 42,
+                      nameGap: 30,
 
                       data:
                           xValues,
 
                       nameTextStyle: {
-                          color:
-                              theme.axis,
-                          fontFamily:
-                              theme.fontFamily,
-                          fontSize:
-                              theme.fontSize,
+                          color: theme.axis,
+                          fontFamily: theme.fontFamily,
+                          fontSize: theme.fontSize,
                       },
 
                       axisLine: {
                           lineStyle: {
-                              color:
-                                  theme.grid,
+                              color: theme.grid,
                           },
                       },
 
                       axisTick: {
                           lineStyle: {
-                              color:
-                                  theme.grid,
+                              color: theme.grid,
                           },
                       },
 
@@ -491,38 +489,30 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                                 "",
 
                       nameLocation: "middle",
-                      nameGap: 42,
+                      nameGap: 30,
 
                       nameTextStyle: {
-                          color:
-                              theme.axis,
-                          fontFamily:
-                              theme.fontFamily,
-                          fontSize:
-                              theme.fontSize,
+                          color: theme.axis,
+                          fontFamily: theme.fontFamily,
+                          fontSize: theme.fontSize,
                       },
 
                       axisLine: {
                           lineStyle: {
-                              color:
-                                  theme.grid,
+                              color: theme.grid,
                           },
                       },
 
                       axisTick: {
                           lineStyle: {
-                              color:
-                                  theme.grid,
+                              color: theme.grid,
                           },
                       },
 
                       axisLabel: {
-                          color:
-                              theme.axis,
-                          fontFamily:
-                              theme.fontFamily,
-                          fontSize:
-                              theme.fontSize,
+                          color: theme.axis,
+                          fontFamily: theme.fontFamily,
+                          fontSize: theme.fontSize,
                           formatter:
                               (value) =>
                                   formatRevenueAxisValue(
@@ -1174,12 +1164,9 @@ function getPieOption(
                 `box-shadow:${getCssVariable("--glass-shadow") || theme.shadow};backdrop-filter:${getCssVariable("--glass-blur")};-webkit-backdrop-filter:${getCssVariable("--glass-blur")};border-radius:${theme.radius};padding:8px;`,
 
             textStyle: {
-                color:
-                    theme.text,
-                fontFamily:
-                    theme.fontFamily,
-                fontSize:
-                    theme.tooltipFontSize,
+                color: theme.text,
+                fontFamily: theme.fontFamily,
+                fontSize: theme.tooltipFontSize,
             },
 
             formatter: (params) => {
@@ -1187,13 +1174,9 @@ function getPieOption(
                     formatRevenueTooltipValue(
                         params.value,
                         revenueDisplayConfig,
-                        chartData
-                            .yAxis
-                            ?.dataType
+                        chartData.yAxis ?.dataType
                     );
-                const valueLabel =
-                    chartData.yAxis?.label ||
-                    "Value";
+                const valueLabel = chartData.yAxis?.label || "Value";
 
                 return `
                     <div style="font-family:${theme.fontFamily};font-size:${theme.tooltipFontSize}px;color:${theme.text}">
@@ -1281,21 +1264,10 @@ function getRadarOption(
             0
         );
 
-    const indicatorMax =
-        maxValue > 0
-            ? maxValue * 1.1
-            : 1;
+    const indicatorMax = maxValue > 0 ? maxValue * 1.1 : 1;
+    const revenueDisplayConfig = getChartRevenueDisplayConfig(chartData);
 
-    const revenueDisplayConfig =
-        getChartRevenueDisplayConfig(
-            chartData
-        );
-
-    const revenueUnitTitle =
-        getRevenueUnitTitle(
-            chartData,
-            theme
-        );
+    const revenueUnitTitle = getRevenueUnitTitle(chartData, theme);
 
     return {
         animation:
@@ -1305,27 +1277,19 @@ function getRadarOption(
         animationThreshold:
             ANIMATION_DATA_THRESHOLD,
 
-        title:
-            revenueUnitTitle
-                ? revenueUnitTitle
-                : undefined,
+        title: revenueUnitTitle ? revenueUnitTitle : undefined,
 
         tooltip: {
             trigger: "item",
 
-            backgroundColor:
-                getCssVariable("--glass-surface") || theme.surface,
+            backgroundColor: getCssVariable("--glass-surface") || theme.surface,
 
-            extraCssText:
-                `box-shadow:${getCssVariable("--glass-shadow") || theme.shadow};backdrop-filter:${getCssVariable("--glass-blur")};-webkit-backdrop-filter:${getCssVariable("--glass-blur")};border-radius:${theme.radius};padding:8px;`,
+            extraCssText: `box-shadow:${getCssVariable("--glass-shadow") || theme.shadow};backdrop-filter:${getCssVariable("--glass-blur")};-webkit-backdrop-filter:${getCssVariable("--glass-blur")};border-radius:${theme.radius};padding:8px;`,
 
             textStyle: {
-                color:
-                    theme.text,
-                fontFamily:
-                    theme.fontFamily,
-                fontSize:
-                    theme.tooltipFontSize,
+                color: theme.text,
+                fontFamily: theme.fontFamily,
+                fontSize: theme.tooltipFontSize,
             },
 
             formatter: (params) => {
