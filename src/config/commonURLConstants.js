@@ -5,7 +5,9 @@ const commonURLConstants = {
 
   // REPORTS_API_URL: 'https://connector.a2zprocure.com/iconnector',
 
-  REPORTS_API_URL: 'http://192.168.1.235:9595',
+  REPORTS_API_URL: 'http://192.168.1.117:8080',
+
+  // REPORTS_API_URL: 'http://192.168.1.235:9595',
 
   WEBSERVICE_URL: '',
 

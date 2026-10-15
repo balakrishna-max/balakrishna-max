@@ -6,8 +6,7 @@
     height: 100%;
     min-width: 0;
     min-height: 0;
-    padding: 1.05rem;
-    background: var(--color-surface);
+    background: transparent;
     border-radius: var(--radius-lg);
     overflow: hidden;
     font-family: var(--font-family-base);
@@ -135,7 +134,7 @@
     width: 100%;
     min-width: 0;
     min-height: 0;
-    padding: var(--space-3) var(--space-5) var(--space-5);
+    /* padding: var(--space-3) var(--space-5) var(--space-5); */
     grid-template-columns:
         minmax(0, 40fr)
         minmax(0, 60fr);
