@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import SearchableDropdown from "./SearchableDropdown";
-import { reportTypes, isMultiYAxisChart, getChartTypeOptions, getFilterTypeOptions, getFilterValueOptions } from "../utils/dashboardConfig";
+import { reportTypes, isMultiYAxisChart, getChartTypeOptions, getFilterTypeOptions, getFilterValueOptions, getReportControls } from "../utils/dashboardConfig";
 import tableViewIcon from "../assets/table-view.png";
 import chartViewIcon from "../assets/chart-view.png";
 
@@ -17,12 +17,13 @@ function DashboardControls({
     const fromDateInputRef = useRef(null);
     const toDateInputRef = useRef(null);
     const pendingDateSelectionRef = useRef(null);
-    const chartTypeOptions = getChartTypeOptions(data, fixedXAxisField);
-    const filterTypeOptions = getFilterTypeOptions(data);
+    const controlOptions = getReportControls(reportType);
+    const chartTypeOptions = getChartTypeOptions(data, fixedXAxisField, reportType);
+    const filterTypeOptions = getFilterTypeOptions(data, reportType);
 
     const activeFilterType = openFilterType || filterType;
 
-    const filterValueOptions = getFilterValueOptions(data, activeFilterType);
+    const filterValueOptions = getFilterValueOptions(data, activeFilterType, reportType);
 
     const selectedFilterOption = filterValueOptions.find(
             (option) => option.value === filterValue
@@ -96,15 +97,15 @@ function DashboardControls({
             aria-label="Dashboard visualization controls"
         >
             <div className="dashboard-controls-fields">
-                <SearchableDropdown
+                {controlOptions.reportType && <SearchableDropdown
                     label="Report Type"
                     value={reportType}
                     options={reportTypes}
                     placeholder="Select report"
                     onChange={onReportTypeChange}
-                />
+                />}
 
-                <div
+                {controlOptions.period && <div
                     className={`searchable-dropdown dashboard-controls-year ${
                         hasPeriodDateFields
                             ? ""
@@ -160,27 +161,27 @@ function DashboardControls({
                             }
                         />
                     </div>
-                </div>
+                </div>}
 
-                <SearchableDropdown
+                {controlOptions.chartType && <SearchableDropdown
                     label="Chart Type"
                     value={chartType}
                     options={chartTypeOptions}
                     placeholder="Select chart"
                     onChange={onChartTypeChange}
                     disabled={!hasData}
-                />
+                />}
 
-                <SearchableDropdown
+                {controlOptions.xAxis && <SearchableDropdown
                     label="X Axis"
                     value={xAxisField}
                     options={xAxisOptions}
                     placeholder="Select field"
                     onChange={onXAxisFieldChange}
                     disabled={!hasData}
-                />
+                />}
 
-                {isMultiYAxisChart(chartType) ? (
+                {controlOptions.yAxis && (isMultiYAxisChart(chartType) ? (
                     <SearchableDropdown
                         label="Y Axis"
                         value={yAxisFields}
@@ -199,11 +200,11 @@ function DashboardControls({
                         onChange={onYAxisFieldChange}
                         disabled={!hasData}
                     />
-                )}
+                ))}
             </div>
 
-            <div className="dashboard-controls-filter-row">
-                <div className="dashboard-controls-filter">
+            {(controlOptions.filters || controlOptions.viewMode) && <div className="dashboard-controls-filter-row">
+                {controlOptions.filters && <div className="dashboard-controls-filter">
                     <span className="dashboard-controls-filter-label">
                         Filter by :
                     </span>
@@ -271,11 +272,7 @@ function DashboardControls({
                                         )}
                                     </label>
 
-                                    {isOpen &&
-                                        (filter.value ===
-                                            "category-wise" ||
-                                            filter.value ===
-                                                "status") && (
+                                    {isOpen && filter.hasOptions && (
                                             <div className="dashboard-controls-filter-value">
                                                 <SearchableDropdown
                                                     label=""
@@ -309,9 +306,9 @@ function DashboardControls({
                             );
                         })}
                     </div>
-                </div>
+                </div>}
 
-                <div
+                {controlOptions.viewMode && <div
                     className={`dashboard-controls-view-toggle dashboard-controls-view-toggle-${viewMode}`}
                     role="group"
                     aria-label="Visualization view"
@@ -365,8 +362,8 @@ function DashboardControls({
                             aria-hidden="true"
                         />
                     </button>
-                </div>
-            </div>
+                </div>}
+            </div>}
         </div>
     );
 }

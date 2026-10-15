@@ -1,4 +1,12 @@
 const COLUMN_TYPES = { NUMBER: "number", DATE: "date", TEXT: "text" };
+const DECIMAL_NUMBER_FORMATTER = new Intl.NumberFormat("en-IN", {
+    useGrouping: true,
+    maximumFractionDigits: 20,
+});
+const PLAIN_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
+    useGrouping: false,
+    maximumFractionDigits: 20,
+});
 
 const API_DATA_TYPE_MAP = { STRING: COLUMN_TYPES.TEXT, INTEGER: COLUMN_TYPES.NUMBER, LONG: COLUMN_TYPES.NUMBER, 
     DECIMAL: COLUMN_TYPES.NUMBER, BOOLEAN: COLUMN_TYPES.TEXT, DATE: COLUMN_TYPES.DATE, DATETIME: COLUMN_TYPES.DATE };
@@ -131,13 +139,46 @@ const FILTER_FIELD_ALIASES = {
     ],
 };
 
-const TENDER_STATUS_LABELS = {101: "Under creation", 102: "Under creation", 103: "Sent for Publishing", 104: "Deleted",
-    105: "Published", 106: "Recalled", 107: "Rejected", 108: "Cancelled", 109: "TBS",
-    110: "Closed", 111: "LOA Issue", 112: "LOA Pending", 113: "LOA Approval", 114: "LOA Waiting Approval"};
+const TENDER_STATUS_LABELS = {
+    101: "Under Creation",
+    102: "Under Editing",
+    103: "Sent for Publishing",
+    104: "Deleted Before Publishing",
+    105: "Published",
+    106: "Recalled",
+    107: "Rejected",
+    108: "Cancelled",
+    109: "Hard Copies TBS",
+    110: "Closed",
+    111: "LOA Issue",
+    112: "LOA Pending",
+    113: "LOA Approval",
+    114: "Waiting LOA Approval",
+};
 
-const TENDER_CATEGORY_LABELS = {101: "Works",
-    102: "Products", 103: "Custom", 104: "Services",
-    105: "Swiss Challenge PPP", 106: "Catalog Request"};
+const TENDER_TYPE_LABELS = {
+    101: "Open",
+    102: "Limited",
+    103: "Nomination",
+    104: "Proprietary",
+};
+
+const TENDER_EVALTYPE_LABELS = {
+    101: "Percentage",
+    102: "Item Wise",
+    103: "Both",
+    104: "Multiple",
+    105: "Price Bid EPC"
+};
+
+const TENDER_CATEGORY_LABELS = {
+    101: "Works",
+    102: "Products",
+    103: "Custom",
+    104: "Services",
+    105: "SwissChallengeApp",
+    106: "Catalog Request",
+};
 
 function getTenderValueLabel(fieldName, value) {
     const filterType = getFilterTypeForField(fieldName);
@@ -459,6 +500,25 @@ function parseNumericValue(value) {
 
 function parseRevenueValue(value) {
     return parseNumericValue(value);
+}
+
+function formatNumericValue(value, dataType, {preserveNonDecimalValue = false, emptyAsDash = true} = {}) {
+    if (emptyAsDash && (value === null || value === undefined || value === "")) {
+        return "—";
+    }
+
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+        return String(value ?? "—");
+    }
+
+    if (dataType === "DECIMAL") {
+        return DECIMAL_NUMBER_FORMATTER.format(numericValue);
+    }
+
+    return preserveNonDecimalValue
+        ? String(value)
+        : PLAIN_NUMBER_FORMATTER.format(numericValue);
 }
 
 function transformDataValue(value, columnType) {
@@ -941,10 +1001,102 @@ function getHumanReadableFieldLabel(field) {
     return words.map((word) => knownTerms[word.toLowerCase()] || word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 }
 
+function normalizeLookupFieldName(field) {
+    return String(field).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getFieldByNormalizedName(fields = [], targetName) {
+    const target = normalizeLookupFieldName(targetName);
+    return fields.find((field) => normalizeLookupFieldName(field) === target) || "";
+}
+
+function getFieldLabels(fields) {
+    return Object.fromEntries(
+        fields.map((field) => [field, getHumanReadableFieldLabel(field)])
+    );
+}
+
+function getDepartmentNameField(fields = []) {
+    const aliases = new Set([
+        "deptname", "sdeptname", "ndeptname", "departmentname",
+        "sdepartmentname", "department", "sdepartment",
+    ]);
+
+    return fields.find((field) => aliases.has(normalizeLookupFieldName(field))) || "";
+}
+
+function getReportMetrics(data, fieldLabels = {}) {
+    if (!data) {
+        return [];
+    }
+
+    const numericFields = data.fields.filter((field) => data.columnTypes[field] === COLUMN_TYPES.NUMBER);
+    const textFields = data.fields.filter((field) => data.columnTypes[field] === COLUMN_TYPES.TEXT);
+    const metrics = [{label: "Total Records", value: data.rows.length, priority: 0}];
+
+    numericFields.forEach((field) => {
+        const total = data.rows.reduce((sum, row) => {
+            const value = parseNumericValue(row[field]);
+            return value === null ? sum : sum + value;
+        }, 0);
+
+        metrics.push({
+            label: `Total ${fieldLabels[field] || field}`,
+            value: total,
+            priority: isRevenueField(field) ? 1 : 2,
+            isNumeric: true,
+        });
+    });
+
+    textFields.forEach((field) => {
+        const uniqueCount = new Set(
+            data.rows
+                .map((row) => String(row[field] ?? "").trim())
+                .filter(Boolean)
+        ).size;
+
+        metrics.push({
+            label: `Unique ${fieldLabels[field] || field}`,
+            value: uniqueCount,
+            priority: 3,
+        });
+    });
+
+    metrics.push(
+        {label: "Report Fields", value: data.fields.length, priority: 4},
+        {label: "Numeric Fields", value: numericFields.length, priority: 5},
+        {label: "Text Fields", value: textFields.length, priority: 6},
+        {
+            label: "Populated Values",
+            value: data.fields.reduce(
+                (count, field) =>
+                    count + data.rows.filter(
+                        (row) => !isEmptyValue(row[field])
+                    ).length,
+                0
+            ),
+            priority: 7,
+        }
+    );
+
+    return metrics
+        .sort((first, second) => first.priority - second.priority)
+        .slice(0, 5)
+        .map(({label, value, isNumeric}) => ({
+            label,
+            value: new Intl.NumberFormat("en-IN", {
+                maximumFractionDigits: isNumeric ? 2 : 0,
+            }).format(value),
+        }));
+}
+
 export {COLUMN_TYPES, API_DATA_TYPE_MAP, TENDER_STATUS_LABELS,
     TENDER_CATEGORY_LABELS, isPhoneColumn, isNumericLikeField,
     getNumericLikeFields, isNumericChartField, isRevenueField,
     getRevenueFields, getRevenueDisplayConfig, getRevenueUnitLabel, formatRevenueValue,
     parseRevenueValue, getTenderValueLabel, transformChartData,
+    formatNumericValue,
     getFilterField, normalizeCsvData, normalizeReportData,
-    filterNormalizedData, getPeriodDateFields, getHumanReadableFieldLabel};
+    filterNormalizedData, getPeriodDateFields, getHumanReadableFieldLabel,
+    getFieldLabels, getFieldByNormalizedName, getDepartmentNameField,
+    getReportMetrics};

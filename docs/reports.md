@@ -4,27 +4,38 @@ Part of **a2z-react-apps** (see the main README for how it is built and loaded).
 Code: `src/apps/reports/`. Mounted into `#a2z-reports-root` on `reports/newMisReports.jsp`
 (admin dashboard tile "Reports" -> `misReports.html`).
 
+The Reports tab is a single page at `pages/Dashboard.jsx`. It shows the report cards at
+`/mis-reports/` and renders the selected report component at `/mis-reports/<report-id>/`.
+The FY-wise Tenders detail view is implemented in `components/reports/FYWiseTenders.jsx`.
+The Overall Reports card renders `components/reports/OverallReports.jsx`, which contains the
+configurable dashboard controls and behavior. The old `/dashboard/` URL redirects to that card.
+Report metadata lives in `utils/dashboardConfig.js`. Each API-backed card declares its API request
+ID and component explicitly; a `null` component marks a card whose individual view is not implemented
+yet. Opening such a card shows a configuration message rather than silently rendering the generic
+detail view.
+
 ## What was copied, what was changed
 
-The **analytics-dashboard-fe-report-only** project, copied as it is:
+The **analytics-dashboard-fe-report-only** project is the starting point. The reports app now
+uses these responsibilities:
 
     src/apps/reports/
-      pages/Dashboard.jsx                     unchanged
-      components/*.jsx                        unchanged (ChartRenderer, DashboardControls, DashboardVisualization,
-                                              DataTable, SearchableDropdown)
-      utils/dashboardConfig.js, dashboardData.js   unchanged
+      pages/Dashboard.jsx                     the sole page: report cards, URL navigation, report loading/cache
+      components/reports/OverallReports.jsx   configurable dashboard behavior and controls
+      components/reports/*.jsx                report-specific views; ReportView shares generic detail rendering
+      components/*.jsx                        shared controls, chart rendering and tables
+      utils/dashboardConfig.js                report/card catalog, explicit API IDs/components, chart colors/capabilities and control options
+      utils/dashboardData.js                  normalization, filtering, labels, metrics and shared data helpers
       services/security/reportCrypto.js       unchanged
       services/csv/csvParser.js               unchanged
       styles/*.css                            unchanged
       assets/                                 unchanged
-      services/api/dashboardApi.js            ONE change: the API address is REPORTS_API_URL from
-                                              src/config/commonURLConstants.js (was VITE_API_BASE_URL in .env)
-      index.jsx                               new: replaces main.jsx / embed.jsx (mount / unmount; also sets
-                                              window.ReportDashboard like embed.jsx did)
+      services/api/dashboardApi.js            single /api/reports request implementation; uses REPORTS_API_URL
+      index.jsx                               mounts the single pages/Dashboard.jsx page and exposes mount / unmount
       reports-embed.css                       new: replaces index.css (see below)
 
-When you change the dashboard in its own project, copy the changed files over the ones here.
-Keep `dashboardApi.js`'s `REPORTS_API_URL` import and do not copy `index.css`, `main.jsx`, `embed.jsx` or `.env`.
+Keep `dashboardApi.js`'s `REPORTS_API_URL` import and do not copy `index.css`, `main.jsx`, `embed.jsx` or `.env`
+when syncing changes from the standalone project.
 
 Libraries: ECharts 6 and PapaParse 5 (added to package.json). React stays on the project's React 18:
 the dashboard uses no React 19-only API, so all three components share one React.
@@ -64,6 +75,8 @@ Below 900px wide the dashboard grows with its content, as in the original.
 The iconnector service (`com.iconnector.reports`), no changes there:
 `POST {REPORTS_API_URL}/api/reports` with `{ clientPublicKey, data: { reportType } }`, encrypted reply
 (ECDH P-256 / HKDF-SHA256 / AES-256-GCM, gzip), decrypted by `reportCrypto.js`.
+Both report screens use the single `fetchReport` implementation in
+`src/apps/reports/services/api/dashboardApi.js` for this endpoint.
 
 `reportCrypto.js` uses WebCrypto, which browsers only allow on HTTPS pages or `localhost`. On a page opened as
 `http://<ip or host>` (not localhost) the reports cannot be decrypted. Serve QA / production over HTTPS.

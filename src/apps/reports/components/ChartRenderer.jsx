@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
 import * as echarts from "echarts/core";
 import { BarChart, LineChart, PieChart, RadarChart, ScatterChart } from "echarts/charts";
 import { GridComponent, RadarComponent, TitleComponent, TooltipComponent } from "echarts/components";
@@ -7,23 +6,16 @@ import { LabelLayout } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import {
     formatRevenueValue,
+    formatNumericValue,
     getRevenueUnitLabel,
     isRevenueField,
 } from "../utils/dashboardData";
+import { CHART_COLORS } from "../utils/dashboardConfig.js";
 
 echarts.use([BarChart, LineChart, PieChart,
     RadarChart, ScatterChart, GridComponent,
     RadarComponent, TitleComponent,
     TooltipComponent, LabelLayout, CanvasRenderer,]);
-
-const CHART_COLORS = [ "#3B82F6", "#F97316", "#14B87A",  "#E83E8C",
-    "#FACC15",  "#8B5CF6", "#22D3EE", "#EF4444",
-    "#84CC16", "#92400E", "#A855F7", "#2DD4BF",
-    "#FB923C",  "#38BDF8", "#D946EF",  "#059669",
-    "#334155", "#FBBF24",  "#818CF8", "#047857",
-    "#F43F5E", "#0EA5E9", "#65A30D", "#6D28D9",
-    "#67E8F9", "#C2410C", "#F472B6", "#6366F1",
-    "#EAB308", "#9D174D", "#6EE7B7", "#B91C1C" ];
 
 const BAR_RADIUS = [6, 6, 0, 0];
 const HORIZONTAL_BAR_RADIUS = [0, 6, 6, 0];
@@ -33,8 +25,6 @@ const LARGE_DATA_THRESHOLD = 2000;
 const SYMBOL_DATA_THRESHOLD = 300;
 const PROGRESSIVE_DATA_THRESHOLD = 5000;
 const PROGRESSIVE_THRESHOLD = 3000;
-const DECIMAL_NUMBER_FORMATTER = new Intl.NumberFormat("en-IN", {useGrouping: true, maximumFractionDigits: 20});
-const PLAIN_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {useGrouping: false, maximumFractionDigits: 20});
 const HTML_ESCAPES = {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"};
 
 function escapeHtml(value) {
@@ -84,20 +74,6 @@ function getChartTheme() {
     };
 }
 
-function formatNumericValue(value, dataType) {
-    const numericValue = Number(value);
-    if (!Number.isFinite(numericValue)) {
-        return String(value ?? "—" );
-    }
-    const normalizedDataType = String(dataType ?? "").toUpperCase();
-    if (normalizedDataType === "DECIMAL") {
-        return DECIMAL_NUMBER_FORMATTER.format(numericValue);
-    }
-    return PLAIN_NUMBER_FORMATTER.format(
-        numericValue
-    );
-}
-
 function getChartRevenueDisplayConfig(chartData) {
     const axes = Array.isArray(chartData?.yAxes) &&
         chartData.yAxes.length > 0 ? chartData.yAxes : chartData?.yAxis ? [chartData.yAxis] : [];
@@ -132,7 +108,7 @@ function formatRevenueAxisValue(value, revenueDisplayConfig, dataType) {
         return String(value ?? "—");
     }
     if (!revenueDisplayConfig) {
-        return formatNumericValue(numericValue,  dataType);
+        return formatNumericValue(numericValue, dataType, {emptyAsDash: false});
     }
     return formatRevenueValue(numericValue, revenueDisplayConfig);
 }
@@ -143,7 +119,7 @@ function formatRevenueTooltipValue(value, revenueDisplayConfig, dataType) {
         return String(value ?? "—");
     }
     if (!revenueDisplayConfig) {
-        return formatNumericValue(numericValue, dataType);
+        return formatNumericValue(numericValue, dataType, {emptyAsDash: false});
     }
     return formatRevenueValue(numericValue, revenueDisplayConfig, {exact: true});
 }
@@ -239,7 +215,7 @@ function getTooltipFormatter(chartData, theme) {
     };
 }
 
-function getCartesianBaseOption(chartData, theme, chartType, richChart) {
+function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTitles) {
     const isHorizontal = chartType === "horizontal-bar";
     const useCategoryX = chartType !== "scatter" && chartType !== "horizontal-bar";
     const xValues = chartData.data.map((item) =>String(item.x ?? ""));
@@ -302,16 +278,12 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart) {
             },
 
             backgroundColor: getCssVariable("--glass-surface") || theme.surface,
-
             borderColor: getCssVariable("--glass-border") || theme.grid,
-
             borderWidth: 1,
-
-            extraCssText: `box-shadow:${getCssVariable("--glass-shadow") || theme.shadow};backdrop-filter:${getCssVariable("--glass-blur")};-webkit-backdrop-filter:${getCssVariable("--glass-blur")};border-radius:${theme.radius};padding:8px;`,
-
+            extraCssText: `box-shadow:${getCssVariable("--glass-shadow") || theme.shadow}; backdrop-filter:${getCssVariable("--glass-blur")};
+                            -webkit-backdrop-filter:${getCssVariable("--glass-blur")};border-radius:${theme.radius};padding:8px;`,
             textStyle: {
-                color: theme.text,
-                fontFamily: theme.fontFamily,
+                color: theme.text, fontFamily: theme.fontFamily,
                 fontSize: theme.tooltipFontSize,
             },
 
@@ -337,25 +309,20 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart) {
 
                       axisLine: {
                           lineStyle: {
-                              color:
-                                  theme.grid,
+                              color: theme.grid,
                           },
                       },
 
                       axisTick: {
                           lineStyle: {
-                              color:
-                                  theme.grid,
+                              color: theme.grid,
                           },
                       },
 
                       axisLabel: {
-                          color:
-                              theme.axis,
-                          fontFamily:
-                              theme.fontFamily,
-                          fontSize:
-                              theme.fontSize,
+                          color: theme.axis,
+                          fontFamily: theme.fontFamily,
+                          fontSize: theme.fontSize,
                           hideOverlap:
                               true,
 
@@ -373,59 +340,36 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart) {
                 : useCategoryX
                   ? {
                         type: "category",
-
-                        name:
-                            chartData
-                                .xAxis
-                                ?.label ??
-                            "",
-
-                        data:
-                            xValues,
-
-                        boundaryGap:
-                            chartType ===
-                                "bar" ||
-                            chartType ===
-                                "grouped-bar" ||
-                            chartType ===
-                                "stacked-bar",
-
+                        name: chartData.xAxis ?.label ?? "",
+                        data: xValues,
+                        boundaryGap: chartType === "bar" ||
+                            chartType === "grouped-bar" ||
+                            chartType ===  "stacked-bar",
                         nameLocation: "middle",
                         nameGap: 34,
-
                         nameTextStyle: {
-                            color:
-                                theme.axis,
-                            fontFamily:
-                                theme.fontFamily,
-                            fontSize:
-                                theme.fontSize,
+                            color: theme.axis,
+                            fontFamily: theme.fontFamily,
+                            fontSize: theme.fontSize,
                         },
 
                         axisLine: {
                             lineStyle: {
-                                color:
-                                    theme.grid,
+                                color: theme.grid,
                             },
                         },
 
                         axisTick: {
                             lineStyle: {
-                                color:
-                                    theme.grid,
+                                color: theme.grid,
                             },
                         },
 
                         axisLabel: {
-                            color:
-                                theme.axis,
-                            fontFamily:
-                                theme.fontFamily,
-                            fontSize:
-                                theme.fontSize,
-                            hideOverlap:
-                                true,
+                            color: theme.axis,
+                            fontFamily: theme.fontFamily,
+                            fontSize: theme.fontSize,
+                            hideOverlap: true,
                             rotate: chartType === "grouped-bar" ? 18 : 0,
                             margin: chartType === "grouped-bar" ? 14 : 8,
                             fontWeight: richChart ? 500 : undefined,
@@ -433,9 +377,7 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart) {
                     }
                   : {
                         type: "value",
-
-                        name:
-                            chartData
+                        name: chartData
                                 .xAxis
                                 ?.label ??
                             "",
@@ -543,8 +485,8 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart) {
                       name:
                           chartType === "grouped-bar"
                               ? isRevenueField(chartData.yAxes?.[0]?.field)
-                                  ? "Total Tender Revenue"
-                                  : "Total Number of Tenders"
+                                  ? chartTitles.groupedRevenueYAxis
+                                  : chartTitles.groupedCountYAxis
                               : chartData
                                     .yAxis
                                     ?.label ??
@@ -1657,6 +1599,7 @@ function ChartRenderer({
     chartData,
     chartType,
     richChart = false,
+    chartTitles,
 }) {
     const chartRef =
         useRef(null);
@@ -1801,7 +1744,8 @@ function ChartRenderer({
                     chartData,
                     theme,
                     chartType,
-                    richChart
+                    richChart,
+                    chartTitles
                 ),
 
                 series:
