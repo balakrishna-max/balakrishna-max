@@ -6,7 +6,8 @@ const STANDARD_CHART_CAPABILITY = {minYAxisFields: 1, maxYAxisFields: 1, allowed
 
 const CHART_DEFINITIONS = [
     {value: "area", label: "Area Chart", capability: {...STANDARD_CHART_CAPABILITY}},
-    {value: "bar", label: "Bar Chart", capability: {...STANDARD_CHART_CAPABILITY}},
+    {value: "bar", label: "Bar Chart", capability: {...STANDARD_CHART_CAPABILITY, allowedXAxisTypes: [COLUMN_TYPES.TEXT, COLUMN_TYPES.DATE]}},
+    {value: "grouped-bar", label: "Grouped Bar Chart", capability: {...STANDARD_CHART_CAPABILITY, maxYAxisFields: Infinity, multiYAxis: true}},
     {value: "composed", label: "Composed Chart", capability: {...STANDARD_CHART_CAPABILITY}},
     {value: "horizontal-bar", label: "Horizontal Bar Chart", capability: {...STANDARD_CHART_CAPABILITY, allowedXAxisTypes: [COLUMN_TYPES.TEXT, COLUMN_TYPES.DATE]}},
     {value: "line", label: "Line Chart", capability: {...STANDARD_CHART_CAPABILITY}},
@@ -475,7 +476,7 @@ function validateChartSelection({data, chartType, xAxisField, yAxisField, yAxisF
     ) {
         return {
             isValid: false,
-            message: "Stacked charts cannot combine money values with non-money values.",
+            message: "Multi-series charts cannot combine money values with non-money values.",
         };
     }
 

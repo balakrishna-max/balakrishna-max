@@ -18,8 +18,6 @@
  * so the dashboard's own values are set on .a2z-reports below instead.
  */
 :root {
-    --color-background: #fafbfe;
-    --color-surface: #ffffff;
     --color-surface-muted: #f9fafb;
     --color-text-primary: #6c757d;
     --color-text-secondary: #2d3748;
@@ -74,9 +72,18 @@
 
 /* what html / body gave the dashboard in the original app */
 .a2z-reports {
+    
     --shadow-sm: 0 1px 3px rgb(16 24 40 / 8%);
     --shadow-md: 0 4px 6px rgb(0 0 0 / 10%);
-
+    
+    --color-background: #f7fbfd;
+    --page-background:
+        radial-gradient(ellipse at 84% 50%, rgb(172 209 141 / 22%), transparent 14%),
+        linear-gradient(130deg, #f4fafc 0%, #f7fbfd 22%, #f7fbf3 80%);
+    --glass-surface: rgb(255 255 255 / 54%);
+    --glass-border: rgb(255 255 255 / 76%);
+    --glass-shadow: 0 8px 24px rgb(45 64 82 / 12%), inset 0 1px 0 rgb(255 255 255 / 88%);
+    --glass-blur: blur(16px) saturate(145%);
     display: flex;
     flex-direction: column;
     width: 100%;
