@@ -13,7 +13,7 @@ const MIS_REPORT_TYPES = {
 
 function getReportId(pathname) {
     const match = pathname.match(
-        /^\/(?:mis-reports|reports-dashboard)\/([^/]+)\/?$/
+        /^\/(?:mis-reports)\/([^/]+)\/?$/
     );
 
     return match ? decodeURIComponent(match[1]) : null;

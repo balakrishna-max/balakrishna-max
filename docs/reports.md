@@ -4,6 +4,10 @@ Part of **a2z-react-apps** (see the main README for how it is built and loaded).
 Code: `src/apps/reports/`. Mounted into `#a2z-reports-root` on `reports/newMisReports.jsp`
 (admin dashboard tile "Reports" -> `misReports.html`).
 
+The Reports tab routes to `/mis-reports`; each report card has its own detail URL. The FY-wise
+Tenders detail view is implemented in `components/FYWiseTenders.jsx`, while `pages/Reports.jsx`
+retains shared routing, loading, caching, and metrics.
+
 ## What was copied, what was changed
 
 The **analytics-dashboard-fe-report-only** project, copied as it is:
