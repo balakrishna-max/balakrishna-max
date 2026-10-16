@@ -1,7 +1,7 @@
 
 const commonURLConstants = {
 
-  APP_BASE_URL: 'http://localhost:8085/a2zproduct',
+  APP_BASE_URL: 'https://qa.a2zprocure.com',
 
   // REPORTS_API_URL: 'https://connector.a2zprocure.com/iconnector',
 

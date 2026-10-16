@@ -140,45 +140,17 @@ const FILTER_FIELD_ALIASES = {
 };
 
 const TENDER_STATUS_LABELS = {
-    101: "Under Creation",
-    102: "Under Editing",
-    103: "Sent for Publishing",
-    104: "Deleted Before Publishing",
-    105: "Published",
-    106: "Recalled",
-    107: "Rejected",
-    108: "Cancelled",
-    109: "Hard Copies TBS",
-    110: "Closed",
-    111: "LOA Issue",
-    112: "LOA Pending",
-    113: "LOA Approval",
-    114: "Waiting LOA Approval",
+    101: "Under Creation", 102: "Under Editing", 103: "Sent for Publishing",
+    104: "Deleted Before Publishing", 105: "Published", 106: "Recalled", 107: "Rejected",
+    108: "Cancelled", 109: "Hard Copies TBS", 110: "Closed", 111: "LOA Issue",
+    112: "LOA Pending", 113: "LOA Approval", 114: "Waiting LOA Approval",
 };
 
-const TENDER_TYPE_LABELS = {
-    101: "Open",
-    102: "Limited",
-    103: "Nomination",
-    104: "Proprietary",
-};
-
-const TENDER_EVALTYPE_LABELS = {
-    101: "Percentage",
-    102: "Item Wise",
-    103: "Both",
-    104: "Multiple",
-    105: "Price Bid EPC"
-};
-
-const TENDER_CATEGORY_LABELS = {
-    101: "Works",
-    102: "Products",
-    103: "Custom",
-    104: "Services",
-    105: "SwissChallengeApp",
-    106: "Catalog Request",
-};
+const TENDER_TYPE_LABELS = { 101: "Open", 102: "Limited", 103: "Nomination", 104: "Proprietary" };
+const TENDER_EVALTYPE_LABELS = { 101: "Percentage", 102: "Item Wise", 103: "Both",
+    104: "Multiple", 105: "Price Bid EPC" };
+const TENDER_CATEGORY_LABELS = { 101: "Works", 102: "Products", 103: "Custom",
+    104: "Services", 105: "SwissChallengeApp", 106: "Catalog Request" };
 
 function getTenderValueLabel(fieldName, value) {
     const filterType = getFilterTypeForField(fieldName);
@@ -1091,7 +1063,7 @@ function getReportMetrics(data, fieldLabels = {}) {
 }
 
 export {COLUMN_TYPES, API_DATA_TYPE_MAP, TENDER_STATUS_LABELS,
-    TENDER_CATEGORY_LABELS, isPhoneColumn, isNumericLikeField,
+    TENDER_CATEGORY_LABELS, TENDER_TYPE_LABELS, TENDER_EVALTYPE_LABELS,isPhoneColumn, isNumericLikeField,
     getNumericLikeFields, isNumericChartField, isRevenueField,
     getRevenueFields, getRevenueDisplayConfig, getRevenueUnitLabel, formatRevenueValue,
     parseRevenueValue, getTenderValueLabel, transformChartData,
