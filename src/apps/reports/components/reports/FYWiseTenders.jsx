@@ -526,6 +526,40 @@ function createEmptyDepartmentChartData(metric) {
     };
 }
 
+function buildPieChartData(data, metric) {
+    if (!data || !Array.isArray(data.fields) || !Array.isArray(data.rows)) {
+        return null;
+    }
+
+    const labelField = data.fields[0];
+    const valueField = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CHART_FIELDS.revenueTotal
+        : TENDER_CHART_FIELDS.tenderCount;
+    const valueFields = data.fields.slice(1);
+    const valueDataType = metric === TENDER_CONTROLS.metrics.revenue.value
+        ? TENDER_CONTROLS.dataTypes.revenue
+        : TENDER_CONTROLS.dataTypes.count;
+
+    return {
+        fields: [labelField, valueField],
+        rows: data.rows.map((row) => ({
+            [labelField]: row[labelField],
+            [valueField]: valueFields.reduce(
+                (total, field) => total + (parseRevenueValue(row[field]) || 0),
+                0
+            ),
+        })),
+        columnTypes: {
+            [labelField]: data.columnTypes[labelField],
+            [valueField]: COLUMN_TYPES.NUMBER,
+        },
+        dataTypes: {
+            [labelField]: data.dataTypes?.[labelField] || TENDER_CONTROLS.dataTypes.text,
+            [valueField]: valueDataType,
+        },
+    };
+}
+
 function FYWiseTenders({
     reportData,
     reportMetrics,
@@ -534,6 +568,7 @@ function FYWiseTenders({
     onNavigate,
 }) {
     const [chartMetric, setChartMetric] = useState(TENDER_CONTROLS.defaultMetric);
+    const [chartStyle, setChartStyle] = useState(TENDER_CONTROLS.defaultChartStyle);
     const [selectedFinancialYear, setSelectedFinancialYear] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const reportFields = reportData?.fields || [];
@@ -643,14 +678,19 @@ function FYWiseTenders({
               tenderTypeField
           )
         : null;
-    const chartSourceData = selectedDepartment
+    const barChartData = selectedDepartment
         ? departmentMonthlyData || createEmptyDepartmentMonthlyData(chartMetric)
         : selectedFinancialYear
           ? departmentData || createEmptyDepartmentChartData(chartMetric)
         : financialYearData || createEmptyChartData(chartMetric);
+    const chartSourceData = chartStyle === TENDER_CONTROLS.chartStyles.pie.value
+        ? buildPieChartData(barChartData, chartMetric)
+        : barChartData;
     const chartType = getSupportedChartType(
         chartSourceData,
-        TENDER_CONTROLS.chartTypes.financialYear,
+        chartStyle === TENDER_CONTROLS.chartStyles.pie.value
+            ? TENDER_CONTROLS.chartTypes.pie
+            : TENDER_CONTROLS.chartTypes.financialYear,
         null,
         REPORT_IDS.TENDERS
     );
@@ -754,6 +794,25 @@ function FYWiseTenders({
                 ))}
             </section>
             <div className="reports-chart-toggle-row">
+                <div className="reports-chart-toggle-group" role="group" aria-label="Chart type">
+                    <div className="reports-chart-toggle reports-chart-type-toggle">
+                        <span
+                            className={`reports-chart-toggle-indicator reports-chart-toggle-indicator-${chartStyle}`}
+                            aria-hidden="true"
+                        />
+                        {Object.values(TENDER_CONTROLS.chartStyles).map(({value, label}) => (
+                            <button
+                                className="reports-chart-toggle-option"
+                                type="button"
+                                key={value}
+                                aria-pressed={chartStyle === value}
+                                onClick={() => setChartStyle(value)}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 {selectedFinancialYear && (
                     <div className="reports-drilldown-context">
                         <span>
@@ -804,10 +863,10 @@ function FYWiseTenders({
             <DashboardVisualization
                 reportType={REPORT_IDS.TENDERS}
                 title={title}
-                data={chartSourceData}
+                data={reportData}
                 controlData={chartSourceData}
                 chartSourceData={chartSourceData}
-                revenueDisplayConfig={getRevenueDisplayConfig(chartSourceData)}
+                revenueDisplayConfig={getRevenueDisplayConfig(reportData)}
                 chartRevenueDisplayConfig={getRevenueDisplayConfig(chartSourceData)}
                 fieldLabels={fieldLabels}
                 fixedXAxisField={null}
