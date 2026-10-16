@@ -703,11 +703,6 @@ function FYWiseTenders({
         }
     );
     const title = TENDER_REPORT_CONFIG.cardLabel;
-    const chartHeading = selectedDepartment
-        ? `${selectedFinancialYear} · ${selectedDepartment} · Monthly by tender type`
-        : selectedFinancialYear
-          ? `Top departments · ${selectedFinancialYear}`
-          : "Tenders by financial year";
     let chartDataNotice = null;
 
     if (selectedFinancialYear) {
@@ -744,13 +739,9 @@ function FYWiseTenders({
     } else if (!financialYearData) {
         chartDataNotice = "Tender category or financial year data is unavailable for this chart.";
     }
-    const statusScopeNotice = statusField
-        ? null
-        : "The API returns pre-aggregated tender totals without a tender-status field; the selected Published + Closed filter cannot be applied, so all returned tenders are included.";
 
     return (
         <main className="reports-detail-page">
-            <h1 className="reports-drilldown-title">{chartHeading}</h1>
             <section
                 className="reports-metrics"
                 aria-label={`${title} summary metrics`}
@@ -810,12 +801,6 @@ function FYWiseTenders({
                     ))}
                 </div>
             </div>
-            {(statusScopeNotice || chartDataNotice) && (
-                <div className="reports-chart-data-notice" role="status">
-                    {statusScopeNotice && <p>{statusScopeNotice}</p>}
-                    {chartDataNotice && <p>{chartDataNotice}</p>}
-                </div>
-            )}
             <DashboardVisualization
                 reportType={REPORT_IDS.TENDERS}
                 title={title}
