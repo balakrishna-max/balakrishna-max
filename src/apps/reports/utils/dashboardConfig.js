@@ -83,9 +83,11 @@ const REPORT_CONFIG = {
         fields: {
             category: "ntendercategory",
             financialYear: "sfinyear",
+            month: "smonth",
             revenue: "secv",
             status: "ntenderstatus",
             tenderType: "ntendertype",
+            tenderCount: "nnooftenders",
         },
         chartFields: {
             financialYear: "Financial Year",
