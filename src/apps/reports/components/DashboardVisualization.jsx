@@ -24,7 +24,7 @@ function DashboardVisualization({
     title, reportError, isReportLoading, chartSourceData = data,
     showControls = true, showHeader = true,
     showActions = true, visualizationClassName = "", onBack,
-    richChart = false, visibleFields,
+    richChart = false, visibleFields, onChartDataPointClick,
 }) {
     const fileInputRef = useRef(null);
 
@@ -397,6 +397,7 @@ function DashboardVisualization({
                                             chartType={chartType}
                                             richChart={richChart}
                                             chartTitles={chartTitles}
+                                            onDataPointClick={onChartDataPointClick}
                                         />
                                     </div>
                                 )}

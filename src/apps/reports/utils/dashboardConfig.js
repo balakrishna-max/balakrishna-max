@@ -1,4 +1,5 @@
-import {COLUMN_TYPES, isNumericChartField, isRevenueField, getFilterField, getTenderValueLabel} from "./dashboardData.js";
+import {COLUMN_TYPES, isNumericChartField, isRevenueField, getFilterField,
+    getTenderValueLabel, TENDER_TYPE_LABELS} from "./dashboardData.js";
 
 const STANDARD_X_AXIS_TYPES = [COLUMN_TYPES.TEXT];
 const NUMBER_Y_AXIS_TYPES = [COLUMN_TYPES.NUMBER];
@@ -83,13 +84,20 @@ const REPORT_CONFIG = {
             category: "ntendercategory",
             financialYear: "sfinyear",
             revenue: "secv",
+            status: "ntenderstatus",
+            tenderType: "ntendertype",
         },
         chartFields: {
             financialYear: "Financial Year",
+            month: "Month",
             category: "Tender Category",
+            status: "Tender Status",
             revenueTotal: "Total Revenue",
             tenderCount: "Tender Count",
             revenueSuffix: "Revenue",
+            department: "Department Name",
+            departmentRevenue: "Tenders Revenue",
+            departmentCount: "No. of Tenders",
         },
         fyWiseControls: {
             defaultChartStyle: "bar",
@@ -105,6 +113,8 @@ const REPORT_CONFIG = {
             chartTypes: {
                 pie: "pie",
                 financialYear: "grouped-bar",
+                department: "grouped-bar",
+                departmentPie: "pie",
             },
             dataTypes: {
                 text: "STRING",
@@ -113,7 +123,11 @@ const REPORT_CONFIG = {
             },
         },
         maxFinancialYears: 8,
-        tenderCategoryValues: [102, 101, 104],
+        maxDepartments: 10,
+        financialYearStartMonth: DEFAULT_PERIOD_START_MONTH,
+        tenderCategoryValues: [101, 102, 104],
+        tenderStatusValues: [105, 110],
+        tenderTypeValues: Object.keys(TENDER_TYPE_LABELS).map(Number),
         card: true,
         dashboard: true,
     },

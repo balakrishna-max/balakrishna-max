@@ -7,6 +7,22 @@ Code: `src/apps/reports/`. Mounted into `#a2z-reports-root` on `reports/newMisRe
 The Reports tab is a single page at `pages/Dashboard.jsx`. It shows the report cards at
 `/mis-reports/` and renders the selected report component at `/mis-reports/<report-id>/`.
 The FY-wise Tenders detail view is implemented in `components/reports/FYWiseTenders.jsx`.
+Clicking any Works, Products or Services bar in a financial-year group drills down in the same
+chart panel to the top ten departments for that exact financial-year value, ordered by the
+currently selected tender-count or revenue metric. The pie view uses financial years as slices;
+clicking a financial-year slice opens the same department drilldown. A clicked Works, Products or
+Services bar scopes the following drilldowns to that category; a financial-year pie slice keeps all
+three categories in scope. In the department view, bar groups show the scoped categories, and pie
+slices represent the departments.
+Clicking a department bar or slice drills down again to that department's monthly counts or revenue,
+grouped by Published (105) and Closed (110) tender statuses. The financial-year and department
+context stays visible, with a back action to the department chart. The metric toggle stays aligned
+at the right. Each stage uses the selected financial year, configured category/status/type values,
+and the report's detected period date field; monthly rows are additionally constrained to the
+financial-year date range.
+Both chart-style and metric toggles remain available at every drilldown level. The drilldown ranks departments by count/revenue using the same Published/Closed status and
+configured Tender Type scope as the monthly detail, so a ranked department has matching monthly
+rows in the selected financial-year date range.
 The Overall Reports card renders `components/reports/OverallReports.jsx`, which contains the
 configurable dashboard controls and behavior. The old `/dashboard/` URL redirects to that card.
 Report metadata lives in `utils/dashboardConfig.js`. Each API-backed card declares its API request
