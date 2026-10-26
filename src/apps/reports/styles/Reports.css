@@ -2,10 +2,10 @@
     width: min(100%, var(--content-max-width));
     min-height: 100%;
     margin: 0 auto;
-    padding: clamp(1.25rem, 3vw, 3rem);
-    background: var(--page-background);
-    background-attachment: fixed;
     overflow-y: auto;
+    background-image: var(--bg-image);
+    background-position: var(--bg-position);
+    background-repeat: var(--bg-repeat);
 }
 
 .reports-header {
@@ -41,27 +41,12 @@
 .reports-card {
     position: relative;
     display: flex;
-    min-height: 11rem;
+    min-height: 10rem;
     flex-direction: column;
     align-items: flex-start;
     padding: var(--space-5);
-    isolation: isolate;
-    background:
-        linear-gradient(145deg, rgb(255 255 255 / 86%), rgb(239 245 255 / 62%));
-    border: 1px solid rgb(255 255 255 / 88%);
+    border: 0.75px solid rgb(255 255 255 / 88%);
     border-radius: 1.25rem;
-    box-shadow:
-        0 12px 32px rgb(39 65 112 / 9%),
-        inset 0 1px 0 rgb(255 255 255 / 92%),
-        inset 0 -1px 0 rgb(96 124 173 / 7%);
-    backdrop-filter: blur(18px) saturate(145%);
-    -webkit-backdrop-filter: blur(18px) saturate(145%);
-    text-align: left;
-    transition:
-        transform 280ms cubic-bezier(0.2, 0.75, 0.25, 1),
-        box-shadow 280ms ease,
-        border-color 280ms ease,
-        background 280ms ease;
 }
 
 .reports-card::before {
@@ -71,20 +56,6 @@
     content: "";
     inset: 0;
     border-radius: inherit;
-    background:
-        linear-gradient(135deg, rgb(255 255 255 / 76%), transparent 42%),
-        radial-gradient(ellipse at 90% 0%, rgb(184 208 255 / 25%), transparent 55%);
-    opacity: 0.85;
-    transition: opacity 280ms ease;
-}
-
-.reports-card:hover {
-    transform: translateY(-4px) scale(1.008);
-    border-color: rgb(94 132 207 / 35%);
-    box-shadow:
-        0 20px 42px rgb(39 65 112 / 15%),
-        inset 0 1px 0 rgb(255 255 255 / 98%),
-        inset 0 -1px 0 rgb(96 124 173 / 8%);
 }
 
 .reports-card:hover::before {
@@ -108,7 +79,7 @@
     height: 2.25rem;
     margin-bottom: var(--space-4);
     background: linear-gradient(145deg, rgb(255 255 255 / 90%), rgb(220 233 255 / 75%));
-    border: 1px solid rgb(255 255 255 / 85%);
+    border: 0.75px solid rgb(255 255 255 / 85%);
     border-radius: var(--radius-md);
     color: var(--color-primary);
     font-size: var(--font-size-sm);
@@ -150,7 +121,6 @@
     min-height: 0;
     padding: var(--space-4);
     gap: var(--space-4);
-    background: var(--page-background);
     background-attachment: fixed;
     overflow: auto;
 }
