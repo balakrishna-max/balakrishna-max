@@ -75,6 +75,8 @@ const REPORT_IDS = {
 const REPORT_CONFIG = {
     [REPORT_IDS.TENDERS]: {
         cardLabel: "Tenders - FY Wise",
+        cardDescription: "Compare tender activity across financial years.",
+        cardIcon: "document",
         label: "Tenders",
         apiReportType: "tcc",
         component: "fyWiseTenders",
@@ -135,6 +137,8 @@ const REPORT_CONFIG = {
     },
     [REPORT_IDS.PROCUREMENT_SUMMARY]: {
         cardLabel: "Procurement Summary",
+        cardDescription: "Review procurement value and activity at a glance.",
+        cardIcon: "procurement",
         label: "TD-ECV Summary",
         apiReportType: "td-ecv-summary",
         component: "procurementSummary",
@@ -147,6 +151,8 @@ const REPORT_CONFIG = {
     },
     [REPORT_IDS.DEPARTMENT_WISE_TENDERS]: {
         cardLabel: "Department-Wise Tenders",
+        cardDescription: "Explore tender activity across departments.",
+        cardIcon: "department",
         label: "Department Wise Tenders",
         apiReportType: "dw-tenders",
         component: "dwTenders",
@@ -158,42 +164,63 @@ const REPORT_CONFIG = {
     },
     "tender-analysis": {
         cardLabel: "Card 4", label: "Tender Analysis", apiReportType: "tender-analysis",
+        cardDescription: "Track tender performance, volumes, and outcomes.",
+        cardIcon: "analysis",
         component: null, card: true, dashboard: true,
         controls: OVERALL_REPORT_CONTROLS, chartTitles: OVERALL_REPORT_CHART_TITLES,
     },
     "supplier-analysis": {
         cardLabel: "Card 5", label: "Supplier Analysis", apiReportType: "supplier-analysis",
+        cardDescription: "Review supplier participation and performance trends.",
+        cardIcon: "suppliers",
         component: null, card: true, dashboard: true,
         controls: OVERALL_REPORT_CONTROLS, chartTitles: OVERALL_REPORT_CHART_TITLES,
     },
     "bid-analysis": {
         cardLabel: "Card 6", label: "Bid Analysis", apiReportType: "bid-analysis",
+        cardDescription: "Explore bid activity and competitive trends.",
+        cardIcon: "bids",
         component: null, card: true, dashboard: true,
         controls: OVERALL_REPORT_CONTROLS, chartTitles: OVERALL_REPORT_CHART_TITLES,
     },
     payment: {
         cardLabel: "Card 7", label: "Payment", apiReportType: "payment",
+        cardDescription: "Monitor payment activity and financial summaries.",
+        cardIcon: "payment",
         component: null, card: true, dashboard: true,
         controls: OVERALL_REPORT_CONTROLS, chartTitles: OVERALL_REPORT_CHART_TITLES,
     },
     "card-8": {
         cardLabel: "Card 8", label: "Card 8", apiReportType: "card-8",
+        cardDescription: "Explore procurement activity and key trends.",
+        cardIcon: "calendar",
         component: null, card: true,
     },
     "card-9": {
         cardLabel: "Card 9", label: "Card 9", apiReportType: "card-9",
+        cardDescription: "Review operational performance and report insights.",
+        cardIcon: "shield",
         component: null, card: true,
     },
     "card-10": {
         cardLabel: "Card 10", label: "Card 10", apiReportType: "card-10",
+        cardDescription: "Analyze activity across key reporting measures.",
+        cardIcon: "pieChart",
         component: null, card: true,
     },
     "card-11": {
-        cardLabel: "Card 11", label: "Card 11", apiReportType: "card-11",
-        component: null, card: true,
+        cardLabel: "Custom Report Builder",
+        label: "Custom Report Builder",
+        apiReportType: "dw",
+        component: "customReportBuilder",
+        cardDescription: "Create tailored reports with filters, charts, and data.",
+        cardIcon: "clipboard",
+        card: true,
     },
     [REPORT_IDS.OVERALL_REPORTS]: {
         cardLabel: "Overall Reports",
+        cardDescription: "View a comprehensive overview of tender reports.",
+        cardIcon: "overview",
         label: "Overall Reports",
         component: "overallReports",
         card: true,
@@ -213,7 +240,12 @@ const reportTypes = Object.entries(REPORT_CONFIG)
 
 const reportCards = Object.entries(REPORT_CONFIG)
     .filter(([, report]) => report.card)
-    .map(([id, report]) => ({id, label: report.cardLabel}));
+    .map(([id, report]) => ({
+        id,
+        label: report.cardLabel,
+        description: report.cardDescription,
+        icon: report.cardIcon,
+    }));
 
 function getReportConfig(reportId) {
     return REPORT_CONFIG[reportId];
