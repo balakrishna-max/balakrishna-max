@@ -137,28 +137,40 @@ const FILTER_FIELD_ALIASES = {
         "status", "state", "stage", "currentstatus", "bidstatus",
         "supplierstatus", "paymentstatus", "invoicestatus", "approvalstatus",
     ],
+    "tender-type": [
+        "ntendertype", "tendertype", "tendertypeid", "tendertypecode",
+    ],
+    "evaluation-type": [
+        "ntenderevaltype", "ntenderevaluationtype", "tenderevaltype",
+        "tenderevaluationtype", "nevaltype", "sevaltype", "evaltype",
+        "evaluationtype",
+    ],
 };
 
-const TENDER_STATUS_LABELS = {
-    101: "Under Creation", 102: "Under Editing", 103: "Sent for Publishing",
+const TENDER_STATUS_LABELS = { 101: "Under Creation", 102: "Under Editing", 103: "Sent for Publishing",
     104: "Deleted Before Publishing", 105: "Published", 106: "Recalled", 107: "Rejected",
     108: "Cancelled", 109: "Hard Copies TBS", 110: "Closed", 111: "LOA Issue",
     112: "LOA Pending", 113: "LOA Approval", 114: "Waiting LOA Approval",
 };
 
 const TENDER_TYPE_LABELS = { 101: "Open", 102: "Limited", 103: "Nomination", 104: "Proprietary" };
+
 const TENDER_EVALTYPE_LABELS = { 101: "Percentage", 102: "Item Wise", 103: "Both",
     104: "Multiple", 105: "Price Bid EPC" };
+
 const TENDER_CATEGORY_LABELS = { 101: "Works", 102: "Products", 103: "Custom",
     104: "Services", 105: "SwissChallengeApp", 106: "Catalog Request" };
 
+const TENDER_VALUE_LABELS = {
+    "category-wise": TENDER_CATEGORY_LABELS,
+    status: TENDER_STATUS_LABELS,
+    "tender-type": TENDER_TYPE_LABELS,
+    "evaluation-type": TENDER_EVALTYPE_LABELS,
+};
+
 function getTenderValueLabel(fieldName, value) {
     const filterType = getFilterTypeForField(fieldName);
-    const labels = filterType === "category-wise"
-        ? TENDER_CATEGORY_LABELS
-        : filterType === "status"
-          ? TENDER_STATUS_LABELS
-          : null;
+    const labels = TENDER_VALUE_LABELS[filterType];
 
     if (!labels || isEmptyValue(value)) {
         return value;
@@ -569,11 +581,18 @@ function getFilterField(
 
 function getFilterTypeForField(fieldName) {
     const normalizedFieldName = normalizeFieldName(fieldName);
+    const fieldNameTokens = {
+        "category-wise": ["tendercategory"],
+        status: ["tenderstatus"],
+        "tender-type": ["tendertype"],
+        "evaluation-type": ["tenderevaltype", "tenderevaluationtype"],
+    };
 
-    return Object.entries(FILTER_FIELD_ALIASES).find(([filterType, aliases]) =>
-        aliases.includes(normalizedFieldName) ||
-        normalizedFieldName.includes(`tender${filterType === "status" ? "status" : "category"}`)
-    )?.[0];
+    return Object.entries(FILTER_FIELD_ALIASES).find(([filterType, aliases]) => {
+        const tokens = fieldNameTokens[filterType] || [];
+        return aliases.includes(normalizedFieldName) ||
+            tokens.some((token) => normalizedFieldName.includes(token));
+    })?.[0];
 }
 
 function parseMonthYear(value) {

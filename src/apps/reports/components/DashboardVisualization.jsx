@@ -93,10 +93,10 @@ function DashboardVisualization({
     };
 
     const visualizationColumnTypes =
-        chartSourceData?.columnTypes || {};
+        data?.columnTypes || chartSourceData?.columnTypes || {};
 
     const visualizationDataTypes =
-        chartSourceData?.dataTypes || {};
+        data?.dataTypes || chartSourceData?.dataTypes || {};
 
     const validationResult =
         validateChartSelection({
