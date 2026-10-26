@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as echarts from "echarts/core";
 import { BarChart, LineChart, PieChart, RadarChart, ScatterChart } from "echarts/charts";
-import { GridComponent, RadarComponent, TitleComponent, TooltipComponent } from "echarts/components";
+import { GridComponent, LegendComponent, RadarComponent, TitleComponent, TooltipComponent } from "echarts/components";
 import { LabelLayout } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import {
@@ -14,7 +14,7 @@ import { CHART_COLORS } from "../utils/dashboardConfig.js";
 
 echarts.use([BarChart, LineChart, PieChart,
     RadarChart, ScatterChart, GridComponent,
-    RadarComponent, TitleComponent,
+    LegendComponent, RadarComponent, TitleComponent,
     TooltipComponent, LabelLayout, CanvasRenderer,]);
 
 const BAR_RADIUS = [6, 6, 0, 0];
