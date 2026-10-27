@@ -481,8 +481,8 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                       name:
                           chartType === "grouped-bar"
                               ? isRevenueField(chartData.yAxes?.[0]?.field)
-                                  ? chartTitles.groupedRevenueYAxis
-                                  : chartTitles.groupedCountYAxis
+                                  ? chartTitles?.groupedRevenueYAxis || chartData.yAxis?.label || ""
+                                  : chartTitles?.groupedCountYAxis || chartData.yAxis?.label || ""
                               : chartData
                                     .yAxis
                                     ?.label ??
@@ -1734,13 +1734,12 @@ function ChartRenderer({
                 revenueUnitTitle;
         }
 
-        chart.clear();
-
         chart.setOption(
             option,
             {
                 lazyUpdate:
                     true,
+                replaceMerge: ["series", "xAxis", "yAxis", "legend", "title"],
             }
         );
 

@@ -3,12 +3,17 @@ import ChartRenderer from "../ChartRenderer.jsx";
 import DataTable from "../DataTable.jsx";
 import {
     getFieldLabels,
+    getFieldByNormalizedName,
     getRevenueDisplayConfig,
+    getTenderValueLabel,
+    isNumericLikeField,
     normalizeReportData,
+    parseRevenueValue,
     transformChartData,
     getCurrentFinancialYearStartYear,
     formatFinancialYearLabel,
     filterDataByFinancialYears,
+    getFinancialYearStartYear,
 } from "../../utils/dashboardData.js";
 import { getApiReportType } from "../../utils/dashboardConfig.js";
 
@@ -27,11 +32,333 @@ const REPORT_CATALOGUE = [
 
 const FIELD_TRANSFER_TYPE = "application/x-custom-report-field";
 const COUNT_FIELD = "__customReportRecordCount";
+const COMBINED_X_FIELD = "__customReportDimensions";
 const MAX_CHART_CATEGORIES = 20;
 const FIRST_FINANCIAL_YEAR = 2020;
+const MAX_SERIES_CATEGORIES = 10;
+const OTHER_SERIES_LABEL = "Other";
+const MAIN_TENDER_CATEGORIES = ["Works", "Products", "Services"];
+const BUILDER_FIELD_DEFINITIONS = [
+    {
+        id: "departmentName",
+        label: "Department Name",
+        aliases: ["departmentname", "sdepartmentname", "sdeptname", "mappingdepartmentname"],
+    },
+    {id: "ecv", label: "ECV", aliases: ["ecv", "estimatedcontractvalue"]},
+    {id: "tenderType", label: "Tender Type", aliases: ["tendertype", "ntendertype"]},
+    {id: "tenderStatus", label: "Tender Status", aliases: ["tenderstatus", "status"]},
+    {id: "tenderCategory", label: "Tender Category", aliases: ["tendercategory", "ntendercategory"]},
+    {id: "tenderSubject", label: "Tender Subject", aliases: ["tendersubject", "nameofwork", "snameofwork"]},
+    {id: "financialYear", label: "Fin Year", aliases: ["finyear", "sfinyear", "financialyear"]},
+    {id: "month", label: "Month", aliases: ["month", "smonth"]},
+    {id: "estimatedCost", label: "Estimated Cost", aliases: ["estimatedcost"]},
+];
 
 function getPreferredField(fields, pattern) {
     return fields.find((field) => pattern.test(field)) || "";
+}
+
+function getBuilderFields(data) {
+    if (!data || !Array.isArray(data.fields)) {
+        return [];
+    }
+
+    return BUILDER_FIELD_DEFINITIONS.flatMap((definition) => {
+        const field = definition.aliases
+            .map((alias) => getFieldByNormalizedName(data.fields, alias))
+            .find(Boolean);
+
+        return field
+            ? [{
+                ...definition,
+                field,
+                isNumeric: ["ecv", "estimatedCost"].includes(definition.id) &&
+                    isNumericLikeField(data, field),
+            }]
+            : [];
+    });
+}
+
+function getBuilderDisplayValue(field, value) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+        return "Unspecified";
+    }
+
+    return String(getTenderValueLabel(field, value)).trim();
+}
+
+function getMonthSortValue(value) {
+    const text = String(value).trim().toLowerCase();
+    const monthNumber = Number(text);
+
+    if (Number.isInteger(monthNumber) && monthNumber >= 1 && monthNumber <= 12) {
+        return (monthNumber + 8) % 12;
+    }
+
+    const monthIndex = [
+        "jan", "feb", "mar", "apr", "may", "jun",
+        "jul", "aug", "sep", "oct", "nov", "dec",
+    ].findIndex((month) => text.startsWith(month));
+
+    return monthIndex < 0 ? Number.MAX_SAFE_INTEGER : (monthIndex + 9) % 12;
+}
+
+function compareBuilderSeriesValues(definition, first, second) {
+    if (definition.id === "financialYear") {
+        const firstYear = getFinancialYearStartYear(first);
+        const secondYear = getFinancialYearStartYear(second);
+        return (firstYear ?? Number.MAX_SAFE_INTEGER) -
+            (secondYear ?? Number.MAX_SAFE_INTEGER) ||
+            first.localeCompare(second);
+    }
+
+    if (definition.id === "month") {
+        return getMonthSortValue(first) - getMonthSortValue(second) ||
+            first.localeCompare(second);
+    }
+
+    return first.localeCompare(second);
+}
+
+function getBuilderSeriesValues(data, definition) {
+    if (definition.id === "tenderCategory") {
+        return MAIN_TENDER_CATEGORIES;
+    }
+
+    const counts = new Map();
+    data.rows.forEach((row) => {
+        const value = getBuilderDisplayValue(definition.field, row[definition.field]);
+        counts.set(value, (counts.get(value) || 0) + 1);
+    });
+    const values = [...counts.keys()].sort((first, second) =>
+        compareBuilderSeriesValues(definition, first, second)
+    );
+
+    if (values.length <= MAX_SERIES_CATEGORIES) {
+        return values;
+    }
+
+    const topValues = [...counts.entries()]
+        .sort(([firstLabel, firstCount], [secondLabel, secondCount]) =>
+            secondCount - firstCount ||
+            compareBuilderSeriesValues(definition, firstLabel, secondLabel)
+        )
+        .slice(0, MAX_SERIES_CATEGORIES - 1)
+        .map(([value]) => value);
+
+    return [...topValues, OTHER_SERIES_LABEL];
+}
+
+function createBuilderReportView(data, xFields, yFields, builderFields, fieldLabels, revenueDisplayConfig) {
+    if (!data || xFields.length === 0 || yFields.length === 0) {
+        return null;
+    }
+
+    const definitionsByField = new Map(builderFields.map((definition) => [definition.field, definition]));
+    const numericMeasures = yFields.filter((field) => definitionsByField.get(field)?.isNumeric);
+    const seriesDefinition = yFields
+        .map((field) => definitionsByField.get(field))
+        .find((definition) => definition && !definition.isNumeric);
+    const seriesValues = seriesDefinition
+        ? getBuilderSeriesValues(data, seriesDefinition)
+        : [];
+    const series = seriesDefinition
+        ? seriesValues.flatMap((value, valueIndex) => {
+            const measures = numericMeasures.length > 0
+                ? numericMeasures
+                : [null];
+
+            return measures.map((measure) => ({
+                key: measure
+                    ? `__aggregated_${measure}_${valueIndex}`
+                    : `${COUNT_FIELD}_${valueIndex}`,
+                label: measure
+                    ? `${value} — ${fieldLabels[measure] || measure}`
+                    : value,
+                value,
+                measure,
+                isCount: !measure,
+            }));
+        })
+        : numericMeasures.map((field) => ({
+            key: field,
+            label: fieldLabels[field] || field,
+            measure: field,
+            isCount: false,
+        }));
+
+    if (series.length === 0) {
+        return null;
+    }
+
+    const categoryLabels = new Set(MAIN_TENDER_CATEGORIES.map((category) => category.toLowerCase()));
+    const knownSeriesValues = new Set(seriesValues.filter((value) => value !== OTHER_SERIES_LABEL));
+    const groupMap = new Map();
+    let includedRowCount = 0;
+    let excludedCategoryRowCount = 0;
+
+    data.rows.forEach((row) => {
+        const dimensionValues = xFields.map((field) => getBuilderDisplayValue(field, row[field]));
+        let seriesValue = seriesDefinition
+            ? getBuilderDisplayValue(seriesDefinition.field, row[seriesDefinition.field])
+            : "";
+
+        if (seriesDefinition?.id === "tenderCategory") {
+            if (!categoryLabels.has(seriesValue.toLowerCase())) {
+                excludedCategoryRowCount += 1;
+                return;
+            }
+        } else if (seriesDefinition && !knownSeriesValues.has(seriesValue)) {
+            seriesValue = OTHER_SERIES_LABEL;
+        }
+
+        const groupKey = JSON.stringify(dimensionValues);
+        let group = groupMap.get(groupKey);
+
+        if (!group) {
+            group = {
+                dimensions: dimensionValues,
+                totals: Object.fromEntries(series.map(({key}) => [key, 0])),
+            };
+            groupMap.set(groupKey, group);
+        }
+
+        includedRowCount += 1;
+
+        if (seriesDefinition) {
+            if (numericMeasures.length === 0) {
+                const seriesItem = series.find((item) => item.value === seriesValue);
+                if (seriesItem) {
+                    group.totals[seriesItem.key] += 1;
+                }
+                return;
+            }
+
+            numericMeasures.forEach((measure) => {
+                const item = series.find((candidate) =>
+                    candidate.value === seriesValue &&
+                    candidate.measure === measure
+                );
+                const amount = parseRevenueValue(row[measure]);
+
+                if (item && amount !== null) {
+                    group.totals[item.key] += amount;
+                }
+            });
+            return;
+        }
+
+        numericMeasures.forEach((measure) => {
+            const amount = parseRevenueValue(row[measure]);
+
+            if (amount !== null) {
+                group.totals[measure] += amount;
+            }
+        });
+    });
+
+    const dimensionLabels = xFields.map((field) => fieldLabels[field] || field);
+    const chartXAxisField = xFields.length === 1 ? xFields[0] : COMBINED_X_FIELD;
+    const outputFields = [
+        ...xFields,
+        ...series.map(({key}) => key),
+    ];
+    const temporalFieldIndex = xFields.findIndex((field) =>
+        ["financialYear", "month"].includes(definitionsByField.get(field)?.id)
+    );
+    const hasTemporalXAxis = xFields.length === 1 && temporalFieldIndex === 0;
+    const outputRows = [...groupMap.values()]
+        .sort((first, second) => {
+            if (hasTemporalXAxis) {
+                const definition = definitionsByField.get(xFields[temporalFieldIndex]);
+                return compareBuilderSeriesValues(
+                    definition,
+                    first.dimensions[temporalFieldIndex],
+                    second.dimensions[temporalFieldIndex]
+                );
+            }
+
+            const firstTotal = series.reduce((total, item) => total + Math.abs(first.totals[item.key]), 0);
+            const secondTotal = series.reduce((total, item) => total + Math.abs(second.totals[item.key]), 0);
+            return secondTotal - firstTotal;
+        })
+        .map((group) => ({
+            ...Object.fromEntries(xFields.map((field, index) => [field, group.dimensions[index]])),
+            ...group.totals,
+            ...(xFields.length > 1
+                ? {[COMBINED_X_FIELD]: group.dimensions.join(" / ")}
+                : {}),
+        }));
+    const outputColumnTypes = {
+        ...Object.fromEntries(xFields.map((field) => [field, "text"])),
+        ...Object.fromEntries(series.map(({key}) => [key, "number"])),
+        ...(xFields.length > 1 ? {[COMBINED_X_FIELD]: "text"} : {}),
+    };
+    const outputDataTypes = {
+        ...Object.fromEntries(xFields.map((field) => [field, "STRING"])),
+        ...Object.fromEntries(series.map(({key, isCount}) => [key, isCount ? "INTEGER" : "DECIMAL"])),
+        ...(xFields.length > 1 ? {[COMBINED_X_FIELD]: "STRING"} : {}),
+    };
+    const outputLabels = {
+        ...fieldLabels,
+        ...Object.fromEntries(series.map(({key, label}) => [key, label])),
+        ...(xFields.length > 1 ? {[COMBINED_X_FIELD]: dimensionLabels.join(" / ")} : {}),
+    };
+    const outputRevenueConfig = {
+        ...revenueDisplayConfig,
+        ...Object.fromEntries(
+            series.filter(({measure}) => measure && revenueDisplayConfig[measure])
+                .map(({key, measure}) => [key, revenueDisplayConfig[measure]])
+        ),
+    };
+    const chartData = transformChartData({
+        rows: outputRows,
+        xAxisField: chartXAxisField,
+        yAxisField: series[0].key,
+        yAxisFields: series.length > 1 ? series.map(({key}) => key) : [],
+        columnTypes: {...outputColumnTypes, [chartXAxisField]: "text"},
+        dataTypes: {...outputDataTypes, [chartXAxisField]: "STRING"},
+        fieldLabels: outputLabels,
+        revenueDisplayConfig: outputRevenueConfig,
+    });
+    if (chartData.data.length > MAX_CHART_CATEGORIES) {
+        chartData.data = hasTemporalXAxis
+            ? chartData.data.slice(0, MAX_CHART_CATEGORIES)
+            : chartData.data
+                .map((item) => ({
+                    item,
+                    total: series.reduce((sum, {key}) =>
+                        sum + Math.abs(Number(item[key]) || 0), 0
+                    ),
+                }))
+                .sort((first, second) => second.total - first.total)
+                .slice(0, MAX_CHART_CATEGORIES)
+                .map(({item}) => item);
+    }
+
+    return {
+        data: {
+            fields: outputFields,
+            rows: outputRows,
+            columnTypes: outputColumnTypes,
+            dataTypes: outputDataTypes,
+        },
+        fieldLabels: outputLabels,
+        revenueDisplayConfig: outputRevenueConfig,
+        chart: chartData.data.length > 0
+            ? {
+                chartData,
+                chartType: series.length > 1 ? "grouped-bar" : "bar",
+                chartTitles: {
+                    groupedCountYAxis: "Tender / Resource Count",
+                    groupedRevenueYAxis: `Total ${numericMeasures.map((field) => fieldLabels[field] || field).join(" / ")}`,
+                },
+            }
+            : null,
+        includedRowCount,
+        excludedCategoryRowCount,
+        totalGroupCount: outputRows.length,
+    };
 }
 
 function requireNormalizedReportData(result, reportLabel) {
@@ -97,8 +424,21 @@ function createChartView(data, chartType, fieldLabels, revenueDisplayConfig) {
         };
     }
 
+    const totalsByCategory = new Map();
+    data.rows.forEach((row) => {
+        const category = getBuilderDisplayValue(xField, row[xField]);
+        const value = parseRevenueValue(row[yField]);
+
+        if (value !== null) {
+            totalsByCategory.set(category, (totalsByCategory.get(category) || 0) + value);
+        }
+    });
+    const aggregatedRows = [...totalsByCategory.entries()]
+        .sort((first, second) => second[1] - first[1])
+        .slice(0, MAX_CHART_CATEGORIES)
+        .map(([category, value]) => ({[xField]: category, [yField]: value}));
     const chartData = transformChartData({
-        rows: data.rows,
+        rows: aggregatedRows,
         xAxisField: xField,
         yAxisField: yField,
         columnTypes: data.columnTypes,
@@ -108,49 +448,6 @@ function createChartView(data, chartType, fieldLabels, revenueDisplayConfig) {
     });
 
     return chartData.data.length > 0 ? {chartType, chartData} : null;
-}
-
-function createBuilderChart(data, xFields, yFields, fieldLabels, revenueDisplayConfig) {
-    if (!data || xFields.length === 0 || yFields.length === 0) {
-        return null;
-    }
-
-    const axisLabel = xFields.map((field) => fieldLabels[field] || field).join(" / ");
-    const chartRows = xFields.length === 1
-        ? data.rows
-        : data.rows.map((row) => ({
-            ...row,
-            [COUNT_FIELD]: xFields
-                .map((field) => String(row[field] ?? ""))
-                .join(" / "),
-        }));
-    const chartSource = xFields.length === 1
-        ? data
-        : {
-            ...data,
-            fields: [...data.fields, COUNT_FIELD],
-            rows: chartRows,
-            columnTypes: {...data.columnTypes, [COUNT_FIELD]: "text"},
-            dataTypes: {...data.dataTypes, [COUNT_FIELD]: "STRING"},
-        };
-    const xAxisField = xFields.length === 1 ? xFields[0] : COUNT_FIELD;
-    const chartLabels = xFields.length === 1
-        ? fieldLabels
-        : {...fieldLabels, [COUNT_FIELD]: axisLabel};
-    const chartData = transformChartData({
-        rows: chartSource.rows,
-        xAxisField,
-        yAxisField: yFields[0],
-        yAxisFields: yFields.length > 1 ? yFields : [],
-        columnTypes: chartSource.columnTypes,
-        dataTypes: chartSource.dataTypes,
-        fieldLabels: chartLabels,
-        revenueDisplayConfig: revenueDisplayConfig || {},
-    });
-
-    return chartData.data.length > 0
-        ? {chartData, chartType: yFields.length > 1 ? "grouped-bar" : "bar"}
-        : null;
 }
 
 function CustomReportBuilder({ onBack, loadReport }) {
@@ -167,6 +464,25 @@ function CustomReportBuilder({ onBack, loadReport }) {
     const [catalogueData, setCatalogueData] = useState({});
     const [catalogueLoading, setCatalogueLoading] = useState({});
     const [catalogueErrors, setCatalogueErrors] = useState({});
+    const builderFields = useMemo(() => getBuilderFields(rawData), [rawData]);
+    const builderFieldByName = useMemo(
+        () => new Map(builderFields.map((definition) => [definition.field, definition])),
+        [builderFields]
+    );
+    const fieldLabels = useMemo(() => {
+        if (!rawData) {
+            return {};
+        }
+
+        return {
+            ...getFieldLabels(rawData.fields),
+            ...Object.fromEntries(builderFields.map(({field, label}) => [field, label])),
+        };
+    }, [builderFields, rawData]);
+    const unavailableBuilderFields = useMemo(() => {
+        const availableIds = new Set(builderFields.map(({id}) => id));
+        return BUILDER_FIELD_DEFINITIONS.filter(({id}) => !availableIds.has(id));
+    }, [builderFieldByName]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -175,12 +491,13 @@ function CustomReportBuilder({ onBack, loadReport }) {
             .then((result) => {
                 if (!isCancelled) {
                     const normalizedData = requireNormalizedReportData(result, "dw");
-                    const defaultXField = normalizedData.fields.find(
-                        (field) => normalizedData.columnTypes[field] !== "number"
-                    );
-                    const defaultYField = normalizedData.fields.find(
-                        (field) => normalizedData.columnTypes[field] === "number"
-                    );
+                    const availableFields = getBuilderFields(normalizedData);
+                    const defaultXField = availableFields.find(
+                        ({id}) => id === "departmentName"
+                    )?.field;
+                    const defaultYField = availableFields.find(
+                        ({id}) => id === "tenderCategory"
+                    )?.field;
 
                     setRawData(normalizedData);
                     setSelectedFields([defaultXField, defaultYField].filter(Boolean));
@@ -206,10 +523,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
         };
     }, [loadReport]);
 
-    const fieldLabels = useMemo(
-        () => rawData ? getFieldLabels(rawData.fields) : {},
-        [rawData]
-    );
     const financialYearOptions = useMemo(
         () => Array.from(
             {length: Math.max(0, currentFinancialYear - FIRST_FINANCIAL_YEAR + 1)},
@@ -234,15 +547,16 @@ function CustomReportBuilder({ onBack, loadReport }) {
         () => rawData ? getRevenueDisplayConfig(rawData) : {},
         [rawData]
     );
-    const builderChart = useMemo(
-        () => createBuilderChart(
+    const builderView = useMemo(
+        () => createBuilderReportView(
             filteredRawData,
             selectedXFields,
             selectedYFields,
+            builderFields,
             fieldLabels,
             revenueDisplayConfig
         ),
-        [fieldLabels, filteredRawData, revenueDisplayConfig, selectedXFields, selectedYFields]
+        [builderFields, fieldLabels, filteredRawData, revenueDisplayConfig, selectedXFields, selectedYFields]
     );
 
     const removeField = useCallback((field) => {
@@ -252,28 +566,55 @@ function CustomReportBuilder({ onBack, loadReport }) {
     }, []);
 
     const addField = useCallback((field) => {
-        if (!rawData?.fields.includes(field)) {
+        const definition = builderFieldByName.get(field);
+
+        if (!definition) {
             return;
         }
 
-        const canUseAsValue = rawData.columnTypes[field] === "number";
         setSelectedFields((currentFields) =>
             currentFields.includes(field) ? currentFields : [...currentFields, field]
         );
-        const updateFields = canUseAsValue ? setSelectedYFields : setSelectedXFields;
+        const updateFields = definition.isNumeric ? setSelectedYFields : setSelectedXFields;
         updateFields((currentFields) => currentFields.includes(field)
             ? currentFields
             : [...currentFields, field]
         );
-    }, [rawData]);
+    }, [builderFields]);
 
     const toggleAxis = useCallback((axis, field) => {
-        const updateFields = axis === "x" ? setSelectedXFields : setSelectedYFields;
-        updateFields((currentFields) => currentFields.includes(field)
+        const definition = builderFieldByName.get(field);
+
+        if (!definition || (axis === "x" && definition.isNumeric)) {
+            return;
+        }
+
+        if (axis === "x") {
+            setSelectedXFields((currentFields) => currentFields.includes(field)
+                ? currentFields.filter((item) => item !== field)
+                : [...currentFields, field]
+            );
+            if (!definition.isNumeric) {
+                setSelectedYFields((currentFields) => currentFields.filter((item) => item !== field));
+            }
+            return;
+        }
+
+        const isSelectedAsSeries = selectedYFields.includes(field);
+        if (!definition.isNumeric && selectedYFields.some((item) =>
+            item !== field && !builderFieldByName.get(item)?.isNumeric
+        )) {
+            return;
+        }
+
+        setSelectedYFields((currentFields) => isSelectedAsSeries
             ? currentFields.filter((item) => item !== field)
             : [...currentFields, field]
         );
-    }, []);
+        if (!definition.isNumeric && !isSelectedAsSeries) {
+            setSelectedXFields((currentFields) => currentFields.filter((item) => item !== field));
+        }
+    }, [builderFieldByName, selectedYFields]);
 
     const handleFromFinancialYearChange = (event) => {
         const nextYear = Number(event.target.value);
@@ -363,7 +704,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             <h2 id="custom-report-fields-title">Data Fields</h2>
                         </div>
                         <span className="custom-report-builder-count">
-                            {rawData?.fields.length || 0}
+                            {builderFields.length}
                         </span>
                     </header>
 
@@ -373,15 +714,18 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             {dataError.message || "The raw report data could not be loaded."}
                         </p>
                     )}
-                    {!isDataLoading && !dataError && rawData?.fields.length === 0 && (
-                        <p className="custom-report-builder-message">No data fields were returned.</p>
+                    {!isDataLoading && !dataError && rawData && builderFields.length === 0 && (
+                        <p className="custom-report-builder-message">None of the supported report fields were returned.</p>
                     )}
-                    {!isDataLoading && rawData?.fields.length > 0 && (
-                        <div className="custom-report-builder-field-list" aria-label="Available data fields">
-                            {rawData.fields.map((field) => {
-                                const isNumeric = rawData.columnTypes[field] === "number";
-
-                                return (
+                    {!isDataLoading && rawData && builderFields.length > 0 && (
+                        <>
+                            {unavailableBuilderFields.length > 0 && (
+                                <p className="custom-report-builder-message custom-report-builder-field-notice">
+                                    Not returned by this API: {unavailableBuilderFields.map(({label}) => label).join(", ")}.
+                                </p>
+                            )}
+                            <div className="custom-report-builder-field-list" aria-label="Available data fields">
+                                {builderFields.map(({field, isNumeric, label}) => (
                                     <button
                                         className="custom-report-builder-field-chip"
                                         type="button"
@@ -395,14 +739,14 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                         }}
                                         onClick={() => addField(field)}
                                     >
-                                        <span>{fieldLabels[field] || field}</span>
+                                        <span>{label}</span>
                                         <span className="custom-report-builder-field-type">
                                             {isNumeric ? "123" : "Aa"}
                                         </span>
                                     </button>
-                                );
-                            })}
-                        </div>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </section>
 
@@ -457,7 +801,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         <div>
                             <h2 id="custom-report-chart-builder-title">Build your Chart</h2>
                             <p className="custom-report-builder-builder-hint">
-                                Add field chips, then toggle X or Y on each one.
+                                Choose X-axis dimensions and Y-axis totals or one categorical breakdown.
                             </p>
                         </div>
                         <span className="custom-report-builder-selected-count">
@@ -474,9 +818,14 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         onDrop={handleFieldDrop}
                     >
                         {selectedFields.length > 0 ? selectedFields.map((field) => {
-                            const isNumeric = rawData?.columnTypes[field] === "number";
+                            const definition = builderFields.find((item) => item.field === field);
+                            const isNumeric = definition?.isNumeric || false;
                             const isXSelected = selectedXFields.includes(field);
                             const isYSelected = selectedYFields.includes(field);
+                            const hasAnotherCategoricalY = !isNumeric &&
+                                selectedYFields.some((item) =>
+                                    item !== field && !builderFieldByName.get(item)?.isNumeric
+                                );
 
                             return (
                                 <span className="custom-report-builder-selected-chip-wrap" key={field}>
@@ -490,6 +839,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                                 type="button"
                                                 aria-pressed={isXSelected}
                                                 aria-label={`${isXSelected ? "Remove from" : "Add to"} X axis`}
+                                                disabled={isNumeric || isYSelected}
                                                 onClick={() => toggleAxis("x", field)}
                                             >
                                                 X
@@ -498,8 +848,11 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                                 className={isYSelected ? "custom-report-builder-axis-toggle is-selected" : "custom-report-builder-axis-toggle"}
                                                 type="button"
                                                 aria-pressed={isYSelected}
-                                                aria-label={`${isYSelected ? "Remove from" : "Add to"} Y axis`}
-                                                disabled={!isNumeric}
+                                                aria-label={`${isYSelected ? "Remove from" : "Add to"} Y axis${!isNumeric ? " as a breakdown" : ""}`}
+                                                title={hasAnotherCategoricalY && !isYSelected
+                                                    ? "Only one categorical Y-axis breakdown can be selected at a time"
+                                                    : !isNumeric && isXSelected ? "Adds this field as the Y-axis breakdown" : ""}
+                                                disabled={!isNumeric && hasAnotherCategoricalY && !isYSelected}
                                                 onClick={() => toggleAxis("y", field)}
                                             >
                                                 Y
@@ -531,44 +884,68 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         </div>
                     </header>
                     <div className="custom-report-builder-main-chart">
-                        {builderChart ? (
+                        {builderView?.chart ? (
                             <ChartRenderer
-                                chartData={builderChart.chartData}
-                                chartType={builderChart.chartType}
+                                chartData={builderView.chart.chartData}
+                                chartType={builderView.chart.chartType}
+                                chartTitles={builderView.chart.chartTitles}
                                 richChart
                             />
                         ) : (
                             <p className="custom-report-builder-empty">
-                                {filteredRawData?.rows.length === 0
+                                {builderView?.includedRowCount === 0
+                                    ? "No rows match the selected category or FY range."
+                                    : filteredRawData?.rows.length === 0
                                     ? `No records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
-                                    : "Select at least one X-axis field and one numeric Y-axis field to build your chart."}
+                                    : "Select at least one X-axis field and one Y-axis field to build an aggregated chart."}
                             </p>
                         )}
                     </div>
+                    {builderView && builderView.totalGroupCount > MAX_CHART_CATEGORIES && (
+                        <p className="custom-report-builder-builder-hint">
+                            Chart shows up to {MAX_CHART_CATEGORIES} groups; the table below includes all {builderView.totalGroupCount.toLocaleString("en-IN")} groups.
+                        </p>
+                    )}
                 </section>
 
                 <section className="custom-report-builder-panel" aria-labelledby="custom-report-table-title">
                     <header className="custom-report-builder-panel-header">
                         <div>
                             <h2 id="custom-report-table-title">Data Table</h2>
+                            {builderView && (
+                                <p className="custom-report-builder-builder-hint">
+                                    {builderView.includedRowCount.toLocaleString("en-IN")} source rows aggregated into {builderView.data.rows.length.toLocaleString("en-IN")} groups.
+                                </p>
+                            )}
                         </div>
-                        {filteredRawData && <span className="custom-report-builder-selected-count">{filteredRawData.rows.length} records</span>}
+                        {builderView && (
+                            <span className="custom-report-builder-selected-count">
+                                {builderView.data.rows.length.toLocaleString("en-IN")} groups
+                            </span>
+                        )}
                     </header>
+                    {builderView?.excludedCategoryRowCount > 0 && (
+                        <p className="custom-report-builder-filter-notice" role="status">
+                            {builderView.excludedCategoryRowCount.toLocaleString("en-IN")} source rows outside Works, Products, and Services are excluded from this category view.
+                        </p>
+                    )}
                     <div className="custom-report-builder-table">
-                        {filteredRawData && selectedFields.length > 0 ? (
+                        {builderView && builderView.data.rows.length > 0 ? (
                             <DataTable
-                                data={filteredRawData}
-                                revenueDisplayConfig={revenueDisplayConfig}
-                                columnTypes={rawData.columnTypes}
-                                dataTypes={rawData.dataTypes}
-                                fieldLabels={fieldLabels}
-                                visibleFields={selectedFields}
+                                data={builderView.data}
+                                revenueDisplayConfig={builderView.revenueDisplayConfig}
+                                columnTypes={builderView.data.columnTypes}
+                                dataTypes={builderView.data.dataTypes}
+                                fieldLabels={builderView.fieldLabels}
+                                visibleFields={builderView.data.fields}
                             />
                         ) : (
                             <p className="custom-report-builder-empty">
-                                {rawData && filteredRawData?.rows.length === 0
+                                {builderView?.includedRowCount === 0
+                                    ? "No rows match the selected category or FY range."
+                                    : rawData && filteredRawData?.rows.length === 0
                                     ? `No records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
-                                    : "Add fields to the X or Y axis to display matching columns here."}
+                                    : "Add an X-axis dimension and at least one Y-axis total or categorical breakdown to see aggregated results."}
                             </p>
                         )}
                     </div>
