@@ -4,7 +4,8 @@ import { getChartAxisOptions, getDefaultVisualizationSelection,
     getReportConfig, getSupportedChartType, REPORT_IDS } from "../../utils/dashboardConfig.js";
 import { COLUMN_TYPES, getFieldLabels, getFieldByNormalizedName, getDepartmentNameField,
     parseRevenueValue, getRevenueDisplayConfig,
-    getTenderValueLabel, getFilterField, TENDER_TYPE_LABELS } from "../../utils/dashboardData.js";
+    getTenderValueLabel, getFilterField, TENDER_TYPE_LABELS,
+    getFinancialYearStartYear } from "../../utils/dashboardData.js";
 
 const TENDER_REPORT_CONFIG = getReportConfig(REPORT_IDS.TENDERS);
 const TENDER_CATEGORIES = TENDER_REPORT_CONFIG.tenderCategoryValues.map((apiValue) => ({
@@ -14,17 +15,6 @@ const TENDER_STATUS_VALUES = TENDER_REPORT_CONFIG.tenderStatusValues;
 const TENDER_TYPE_VALUES = TENDER_REPORT_CONFIG.tenderTypeValues;
 const TENDER_CHART_FIELDS = TENDER_REPORT_CONFIG.chartFields;
 const TENDER_CONTROLS = TENDER_REPORT_CONFIG.fyWiseControls;
-
-function getFinancialYearStart(value) {
-    const normalizedValue = String(value ?? "").trim();
-
-    if (!normalizedValue) {
-        return null;
-    }
-
-    const yearMatch = normalizedValue.match(/(?:^|\D)(\d{4})(?:\D|$)/);
-    return yearMatch ? Number(yearMatch[1]) : null;
-}
 
 function getEligibleTenderValues(row, categoryField, statusField, tenderTypeField) {
     const category = Number(String(row[categoryField] ?? "").trim());
@@ -86,7 +76,7 @@ function buildTenderFinancialYearData(
             tenderTypeField
         );
         const financialYear = String(row[financialYearField] ?? "").trim();
-        const yearStart = getFinancialYearStart(financialYear);
+        const yearStart = getFinancialYearStartYear(financialYear);
 
         if (
             !eligibleTender ||
@@ -125,7 +115,7 @@ function buildTenderFinancialYearData(
         fields,
         rows: Array.from(totalsByFinancialYear.entries())
             .sort(([firstYear], [secondYear]) =>
-                getFinancialYearStart(firstYear) - getFinancialYearStart(secondYear) ||
+                getFinancialYearStartYear(firstYear) - getFinancialYearStartYear(secondYear) ||
                 firstYear.localeCompare(secondYear)
             )
             .slice(-TENDER_REPORT_CONFIG.maxFinancialYears)
@@ -187,7 +177,7 @@ function buildDepartmentFinancialYearData(
         const department = String(row[departmentField] ?? "").trim();
 
         if (
-            getFinancialYearStart(rowFinancialYear) !== getFinancialYearStart(financialYear) ||
+            getFinancialYearStartYear(rowFinancialYear) !== getFinancialYearStartYear(financialYear) ||
             !department
         ) {
             return;
@@ -292,7 +282,7 @@ function getMonthValue(value) {
 }
 
 function isMonthInFinancialYear(month, financialYear) {
-    const financialYearStart = getFinancialYearStart(financialYear);
+    const financialYearStart = getFinancialYearStartYear(financialYear);
     if (financialYearStart === null) {
         return false;
     }
@@ -339,7 +329,7 @@ function buildDepartmentMonthlyTenderTypeData(
             ? `${TENDER_TYPE_LABELS[apiValue] || `Type ${apiValue}`} ${TENDER_CHART_FIELDS.revenueSuffix}`
             : TENDER_TYPE_LABELS[apiValue] || `Type ${apiValue}`,
     }));
-    const financialYearStart = getFinancialYearStart(financialYear);
+    const financialYearStart = getFinancialYearStartYear(financialYear);
     if (financialYearStart === null) {
         return null;
     }
@@ -368,7 +358,7 @@ function buildDepartmentMonthlyTenderTypeData(
     let matchedTenderCount = 0;
 
     data.rows.forEach((row) => {
-        if (getFinancialYearStart(row[financialYearField]) !== financialYearStart ||
+        if (getFinancialYearStartYear(row[financialYearField]) !== financialYearStart ||
             String(row[departmentField] ?? "").trim() !== department) {
             return;
         }

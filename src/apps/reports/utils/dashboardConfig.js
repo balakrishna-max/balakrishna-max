@@ -1,5 +1,6 @@
 import {COLUMN_TYPES, isNumericChartField, isRevenueField, getFilterField,
-    getTenderValueLabel, TENDER_TYPE_LABELS} from "./dashboardData.js";
+    getTenderValueLabel, TENDER_TYPE_LABELS, FINANCIAL_YEAR_START_MONTH,
+    getCurrentFinancialYearStartYear} from "./dashboardData.js";
 
 const STANDARD_X_AXIS_TYPES = [COLUMN_TYPES.TEXT];
 const NUMBER_Y_AXIS_TYPES = [COLUMN_TYPES.NUMBER];
@@ -34,7 +35,7 @@ const CHART_CAPABILITIES = Object.fromEntries(CHART_DEFINITIONS.map(({value, cap
 const OVERALL_REPORT_CONTROLS = Object.freeze({ reportType: true, chartType: true, xAxis: true, yAxis: true,
     filters: true, period: true, viewMode: true, csvImport: true, csvExport: true });
 
-const DEFAULT_PERIOD_START_MONTH = 4;
+const DEFAULT_PERIOD_START_MONTH = FINANCIAL_YEAR_START_MONTH;
 const OVERALL_REPORT_CHART_TITLES = Object.freeze({
     groupedRevenueYAxis: "Total Tender Revenue",
     groupedCountYAxis: "Total Number of Tenders",
@@ -55,9 +56,7 @@ const NO_REPORT_SELECTED_CHART_TITLES = Object.freeze({});
 function getDefaultPeriod(today = new Date()) {
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
-    const startYear = currentMonth >= DEFAULT_PERIOD_START_MONTH
-        ? currentYear
-        : currentYear - 1;
+    const startYear = getCurrentFinancialYearStartYear(today);
 
     return {
         fromDate: `${String(DEFAULT_PERIOD_START_MONTH).padStart(2, "0")}/${startYear}`,

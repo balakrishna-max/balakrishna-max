@@ -6,6 +6,9 @@ import {
     getRevenueDisplayConfig,
     normalizeReportData,
     transformChartData,
+    getCurrentFinancialYearStartYear,
+    formatFinancialYearLabel,
+    filterDataByFinancialYears,
 } from "../../utils/dashboardData.js";
 import { getApiReportType } from "../../utils/dashboardConfig.js";
 
@@ -25,6 +28,7 @@ const REPORT_CATALOGUE = [
 const FIELD_TRANSFER_TYPE = "application/x-custom-report-field";
 const COUNT_FIELD = "__customReportRecordCount";
 const MAX_CHART_CATEGORIES = 20;
+const FIRST_FINANCIAL_YEAR = 2020;
 
 function getPreferredField(fields, pattern) {
     return fields.find((field) => pattern.test(field)) || "";
@@ -150,9 +154,12 @@ function createBuilderChart(data, xFields, yFields, fieldLabels, revenueDisplayC
 }
 
 function CustomReportBuilder({ onBack, loadReport }) {
+    const currentFinancialYear = getCurrentFinancialYearStartYear();
     const [rawData, setRawData] = useState(null);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [dataError, setDataError] = useState(null);
+    const [fromFinancialYear, setFromFinancialYear] = useState(currentFinancialYear);
+    const [toFinancialYear, setToFinancialYear] = useState(currentFinancialYear);
     const [selectedFields, setSelectedFields] = useState([]);
     const [selectedXFields, setSelectedXFields] = useState([]);
     const [selectedYFields, setSelectedYFields] = useState([]);
@@ -203,19 +210,39 @@ function CustomReportBuilder({ onBack, loadReport }) {
         () => rawData ? getFieldLabels(rawData.fields) : {},
         [rawData]
     );
+    const financialYearOptions = useMemo(
+        () => Array.from(
+            {length: Math.max(0, currentFinancialYear - FIRST_FINANCIAL_YEAR + 1)},
+            (_, index) => FIRST_FINANCIAL_YEAR + index
+        ),
+        [currentFinancialYear]
+    );
+    const toFinancialYearOptions = useMemo(
+        () => financialYearOptions.filter((year) => year >= fromFinancialYear),
+        [financialYearOptions, fromFinancialYear]
+    );
+    const fromFinancialYearOptions = useMemo(
+        () => financialYearOptions.filter((year) => year <= toFinancialYear),
+        [financialYearOptions, toFinancialYear]
+    );
+    const filteredRawDataResult = useMemo(
+        () => filterDataByFinancialYears(rawData, fromFinancialYear, toFinancialYear),
+        [fromFinancialYear, rawData, toFinancialYear]
+    );
+    const filteredRawData = filteredRawDataResult.data;
     const revenueDisplayConfig = useMemo(
         () => rawData ? getRevenueDisplayConfig(rawData) : {},
         [rawData]
     );
     const builderChart = useMemo(
         () => createBuilderChart(
-            rawData,
+            filteredRawData,
             selectedXFields,
             selectedYFields,
             fieldLabels,
             revenueDisplayConfig
         ),
-        [fieldLabels, rawData, revenueDisplayConfig, selectedXFields, selectedYFields]
+        [fieldLabels, filteredRawData, revenueDisplayConfig, selectedXFields, selectedYFields]
     );
 
     const removeField = useCallback((field) => {
@@ -247,6 +274,15 @@ function CustomReportBuilder({ onBack, loadReport }) {
             : [...currentFields, field]
         );
     }, []);
+
+    const handleFromFinancialYearChange = (event) => {
+        const nextYear = Number(event.target.value);
+        setFromFinancialYear(nextYear);
+
+        if (toFinancialYear < nextYear) {
+            setToFinancialYear(nextYear);
+        }
+    };
 
     const handleFieldDrop = useCallback((event) => {
         event.preventDefault();
@@ -291,6 +327,35 @@ function CustomReportBuilder({ onBack, loadReport }) {
 
     return (
         <main className="custom-report-builder">
+            <section className="custom-report-builder-panel custom-report-builder-financial-year" aria-labelledby="custom-report-financial-year-title">
+                <h2 id="custom-report-financial-year-title">Financial Year</h2>
+                <label>
+                    <span>From</span>
+                    <select
+                        aria-label="Financial year from"
+                        value={fromFinancialYear}
+                        onChange={handleFromFinancialYearChange}
+                    >
+                        {fromFinancialYearOptions.map((year) => (
+                            <option key={year} value={year}>{formatFinancialYearLabel(year)}</option>
+                        ))}
+                    </select>
+                </label>
+                <span className="custom-report-builder-financial-year-to" aria-hidden="true">to</span>
+                <label>
+                    <span>To</span>
+                    <select
+                        aria-label="Financial year to"
+                        value={toFinancialYear}
+                        onChange={(event) => setToFinancialYear(Number(event.target.value))}
+                    >
+                        {toFinancialYearOptions.map((year) => (
+                            <option key={year} value={year}>{formatFinancialYearLabel(year)}</option>
+                        ))}
+                    </select>
+                </label>
+            </section>
+
             <aside className="custom-report-builder-sidebar" aria-label="Custom report builder options">
                 <section className="custom-report-builder-side-card" aria-labelledby="custom-report-fields-title">
                     <header className="custom-report-builder-side-header">
@@ -381,6 +446,12 @@ function CustomReportBuilder({ onBack, loadReport }) {
                     </button>
                 </header>
 
+                {rawData && !filteredRawDataResult.isFilterable && (
+                    <p className="custom-report-builder-filter-notice" role="status">
+                        No Financial Year or date field was returned, so the selected year range cannot filter these records.
+                    </p>
+                )}
+
                 <section className="custom-report-builder-panel" aria-labelledby="custom-report-chart-builder-title">
                     <header className="custom-report-builder-panel-header">
                         <div>
@@ -468,7 +539,9 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             />
                         ) : (
                             <p className="custom-report-builder-empty">
-                                Select at least one X-axis field and one numeric Y-axis field to build your chart.
+                                {filteredRawData?.rows.length === 0
+                                    ? `No records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
+                                    : "Select at least one X-axis field and one numeric Y-axis field to build your chart."}
                             </p>
                         )}
                     </div>
@@ -479,12 +552,12 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         <div>
                             <h2 id="custom-report-table-title">Data Table</h2>
                         </div>
-                        {rawData && <span className="custom-report-builder-selected-count">{rawData.rows.length} records</span>}
+                        {filteredRawData && <span className="custom-report-builder-selected-count">{filteredRawData.rows.length} records</span>}
                     </header>
                     <div className="custom-report-builder-table">
-                        {rawData && selectedFields.length > 0 ? (
+                        {filteredRawData && selectedFields.length > 0 ? (
                             <DataTable
-                                data={rawData}
+                                data={filteredRawData}
                                 revenueDisplayConfig={revenueDisplayConfig}
                                 columnTypes={rawData.columnTypes}
                                 dataTypes={rawData.dataTypes}
@@ -493,7 +566,9 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             />
                         ) : (
                             <p className="custom-report-builder-empty">
-                                Add fields to the X or Y axis to display matching columns here.
+                                {rawData && filteredRawData?.rows.length === 0
+                                    ? `No records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
+                                    : "Add fields to the X or Y axis to display matching columns here."}
                             </p>
                         )}
                     </div>
@@ -510,9 +585,15 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         <div className="custom-report-builder-chart-grid">
                             {REPORT_CATALOGUE.filter((item) => selectedCatalogueIds.includes(item.id)).map((item) => {
                                 const reportData = catalogueData[item.id];
+                                const filteredCatalogueResult = filterDataByFinancialYears(
+                                    reportData,
+                                    fromFinancialYear,
+                                    toFinancialYear
+                                );
+                                const filteredCatalogueData = filteredCatalogueResult.data;
                                 const labels = reportData ? getFieldLabels(reportData.fields) : {};
                                 const chart = createChartView(
-                                    reportData,
+                                    filteredCatalogueData,
                                     item.chartType,
                                     labels,
                                     reportData ? getRevenueDisplayConfig(reportData) : {}
@@ -542,7 +623,16 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                             </div>
                                         )}
                                         {!catalogueLoading[item.id] && !catalogueErrors[item.id] && reportData && !chart && (
-                                            <p className="custom-report-builder-message">This report has no chartable records.</p>
+                                            <p className="custom-report-builder-message">
+                                                {filteredCatalogueResult.isFilterable
+                                                    ? `No chartable records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
+                                                    : "This report has no chartable records."}
+                                            </p>
+                                        )}
+                                        {reportData && !filteredCatalogueResult.isFilterable && (
+                                            <p className="custom-report-builder-message">
+                                                No financial year or date field was returned; this chart is unfiltered.
+                                            </p>
                                         )}
                                     </article>
                                 );
