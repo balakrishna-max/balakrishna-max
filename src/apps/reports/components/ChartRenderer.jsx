@@ -215,7 +215,7 @@ function getTooltipFormatter(chartData, theme) {
     };
 }
 
-function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTitles) {
+function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTitles, fillAvailableSpace) {
     const isHorizontal = chartType === "horizontal-bar";
     const useCategoryX = chartType !== "scatter" && chartType !== "horizontal-bar";
     const xValues = chartData.data.map((item) =>String(item.x ?? ""));
@@ -242,12 +242,18 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
         title: revenueUnitTitle ? revenueUnitTitle : undefined,
 
         grid: {
-            top: richChart && chartType === "grouped-bar"
-                ? 64
-                : revenueUnitTitle ? 48 : 32,
-            right: 16,
-            bottom: showAllCategoryLabels ? 108 : chartType === "grouped-bar" ? 52 : 48,
-            left: chartType === "grouped-bar" ? 64 : 48,
+            top: fillAvailableSpace && chartType === "grouped-bar"
+                ? 52
+                : richChart && chartType === "grouped-bar"
+                    ? 64
+                    : revenueUnitTitle ? 48 : 32,
+            right: fillAvailableSpace ? 20 : 16,
+            bottom: fillAvailableSpace && showAllCategoryLabels
+                ? 88
+                : showAllCategoryLabels ? 108 : chartType === "grouped-bar" ? 52 : 48,
+            left: fillAvailableSpace && chartType === "grouped-bar"
+                ? 72
+                : chartType === "grouped-bar" ? 64 : 48,
             containLabel: true,
         },
 
@@ -349,7 +355,9 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                             chartType === "grouped-bar" ||
                             chartType ===  "stacked-bar",
                         nameLocation: "middle",
-                        nameGap: showAllCategoryLabels ? 44 : 26,
+                        nameGap: showAllCategoryLabels
+                            ? fillAvailableSpace ? 36 : 44
+                            : 26,
                         nameTextStyle: {
                             color: theme.axis,
                             fontFamily: theme.fontFamily,
@@ -372,15 +380,19 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                             color: theme.axis,
                             fontFamily: theme.fontFamily,
                             fontSize: theme.fontSize,
-                            hideOverlap: !showAllCategoryLabels,
-                            interval: showAllCategoryLabels ? 0 : "auto",
+                            hideOverlap: fillAvailableSpace ? false : !showAllCategoryLabels,
+                            interval: fillAvailableSpace || showAllCategoryLabels ? 0 : "auto",
                             rotate: showAllCategoryLabels
-                                ? 35
+                                ? fillAvailableSpace ? 28 : 35
                                 : chartType === "grouped-bar" ? 18 : 0,
-                            margin: showAllCategoryLabels
+                            margin: fillAvailableSpace && showAllCategoryLabels
+                                ? 10
+                                : showAllCategoryLabels
                                 ? 12
                                 : chartType === "grouped-bar" ? 10 : 6,
-                            width: showAllCategoryLabels ? 132 : undefined,
+                            width: showAllCategoryLabels
+                                ? fillAvailableSpace ? 116 : 132
+                                : undefined,
                             overflow: showAllCategoryLabels ? "break" : undefined,
                             align: showAllCategoryLabels ? "right" : undefined,
                             fontWeight: richChart ? 500 : undefined,
@@ -522,6 +534,14 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                                           .yAxis
                                           ?.dataType
                                   ),
+                      },
+                      splitLine: {
+                          show: fillAvailableSpace && chartType === "grouped-bar",
+                          lineStyle: {
+                              color: theme.grid,
+                              opacity: 0.55,
+                              type: "dashed",
+                          },
                       },
                   },
     };
@@ -1561,6 +1581,7 @@ function ChartRenderer({
     chartData,
     chartType,
     richChart = false,
+    fillAvailableSpace = false,
     chartTitles,
     onDataPointClick,
 }) {
@@ -1708,7 +1729,8 @@ function ChartRenderer({
                     theme,
                     chartType,
                     richChart,
-                    chartTitles
+                    chartTitles,
+                    fillAvailableSpace
                 ),
 
                 series:
@@ -1748,6 +1770,7 @@ function ChartRenderer({
         chartData,
         chartType,
         richChart,
+        fillAvailableSpace,
         isPieChart,
         isChartReady,
     ]);
