@@ -163,9 +163,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
                     const defaultXField = availableFields.find(
                         ({id}) => id === "departmentName"
                     )?.field;
-                    const defaultCategoryField = availableFields.find(
-                        ({id}) => id === "tenderCategory"
-                    )?.field;
                     const defaultMeasureField = availableFields.find(
                         ({id, isNumeric, isAvailable}) =>
                             id === "ecv" && isNumeric && isAvailable
@@ -173,12 +170,10 @@ function CustomReportBuilder({ onBack, loadReport }) {
 
                     setRawData(normalizedData);
                     setSelectedFields(
-                        [defaultXField, defaultCategoryField, defaultMeasureField].filter(Boolean)
+                        [defaultXField, defaultMeasureField].filter(Boolean)
                     );
                     setSelectedXFields(defaultXField ? [defaultXField] : []);
-                    setSelectedYFields(
-                        [defaultCategoryField, defaultMeasureField].filter(Boolean)
-                    );
+                    setSelectedYFields(defaultMeasureField ? [defaultMeasureField] : []);
                 }
             })
             .catch((error) => {
@@ -236,10 +231,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
     );
 
     const removeField = useCallback((field) => {
-        if (builderFieldByName.get(field)?.id === "tenderCategory") {
-            return;
-        }
-
         setSelectedFields((currentFields) => currentFields.filter((item) => item !== field));
         setSelectedXFields((currentFields) => currentFields.filter((item) => item !== field));
         setSelectedYFields((currentFields) => currentFields.filter((item) => item !== field));
@@ -254,11 +245,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
 
         setSelectedFields((currentFields) => [...currentFields, field]);
         if (definition.isNumeric) {
-            const categoryField = builderFields.find(({id}) => id === "tenderCategory")?.field;
-            setSelectedYFields((currentFields) => [
-                ...currentFields.filter((item) => item === categoryField),
-                field,
-            ]);
+            setSelectedYFields([field]);
             return;
         }
 
@@ -275,11 +262,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
             return;
         }
 
-        if (axis === "y" && definition.id === "tenderCategory" &&
-            selectedYFields.includes(field)) {
-            return;
-        }
-
         if (axis === "x") {
             setSelectedXFields((currentFields) => currentFields.includes(field)
                 ? currentFields.filter((item) => item !== field)
@@ -293,10 +275,9 @@ function CustomReportBuilder({ onBack, loadReport }) {
 
         const isSelectedAsSeries = selectedYFields.includes(field);
         if (definition.isNumeric) {
-            const categoryField = builderFields.find(({id}) => id === "tenderCategory")?.field;
             setSelectedYFields((currentFields) => isSelectedAsSeries
                 ? currentFields.filter((item) => item !== field)
-                : [...currentFields.filter((item) => item === categoryField), field]
+                : [field]
             );
             return;
         }
@@ -395,16 +376,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         ))}
                     </select>
                 </label>
-                <button
-                    className="custom-report-builder-year-range-button"
-                    type="button"
-                    onClick={() => {
-                        setFromFinancialYear(FIRST_FINANCIAL_YEAR);
-                        setToFinancialYear(currentFinancialYear);
-                    }}
-                >
-                    All available years
-                </button>
             </section>
 
             <aside className="custom-report-builder-sidebar" aria-label="Custom report builder options">
@@ -518,15 +489,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
             </aside>
 
             <section className="custom-report-builder-content" aria-label="Custom report workspace">
-                <header className="custom-report-builder-page-header">
-                    <div>
-                        <h1>Custom Report Builder</h1>
-                        <p>Arrange fields, build a chart, and explore report catalogue views.</p>
-                    </div>
-                    <button className="custom-report-builder-back" type="button" onClick={onBack}>
-                        Back to reports
-                    </button>
-                </header>
 
                 {rawData && !filteredRawDataResult.isFilterable && (
                     <p className="custom-report-builder-filter-notice" role="status">
@@ -539,8 +501,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         <div>
                             <h2 id="custom-report-chart-builder-title">Build your Chart</h2>
                             <p className="custom-report-builder-builder-hint">
-                                Use text, category, department, date, and financial-year fields as X dimensions.
-                                Choose one numeric Y measure at a time; Tender Category remains the common grouping.
+                                Select/Drag your fields to plot the chart
                             </p>
                         </div>
                         <span className="custom-report-builder-selected-count">
@@ -561,7 +522,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             const isNumeric = definition?.isNumeric || false;
                             const isXSelected = selectedXFields.includes(field);
                             const isYSelected = selectedYFields.includes(field);
-                            const isFixedCategoryGrouping = definition?.id === "tenderCategory";
                             const hasAnotherCategoricalY = !isNumeric &&
                                 selectedYFields.some((item) =>
                                     item !== field && !builderFieldByName.get(item)?.isNumeric
@@ -589,13 +549,10 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                                 type="button"
                                                 aria-pressed={isYSelected}
                                                 aria-label={`${isYSelected ? "Remove from" : "Add to"} Y axis${!isNumeric ? " as a breakdown" : ""}`}
-                                                title={isFixedCategoryGrouping && isYSelected
-                                                    ? "Tender Category is the fixed grouping for Y-axis measures"
-                                                    : hasAnotherCategoricalY && !isYSelected
+                                                title={hasAnotherCategoricalY && !isYSelected
                                                         ? "Only one categorical Y-axis breakdown can be selected at a time"
                                                     : !isNumeric && isXSelected ? "Adds this field as the Y-axis breakdown" : ""}
-                                                disabled={(isFixedCategoryGrouping && isYSelected) ||
-                                                    (!isNumeric && hasAnotherCategoricalY && !isYSelected)}
+                                                disabled={!isNumeric && hasAnotherCategoricalY && !isYSelected}
                                                 onClick={() => toggleAxis("y", field)}
                                             >
                                                 Y
@@ -606,8 +563,6 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                         className="custom-report-builder-remove-badge"
                                         type="button"
                                         aria-label={`Remove ${fieldLabels[field] || field} from selected fields`}
-                                        disabled={isFixedCategoryGrouping}
-                                        title={isFixedCategoryGrouping ? "Tender Category remains selected as the common chart grouping" : ""}
                                         onClick={() => removeField(field)}
                                     >
                                         −

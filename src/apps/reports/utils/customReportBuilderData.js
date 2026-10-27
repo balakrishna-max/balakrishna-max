@@ -190,9 +190,13 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
         .map((field) => definitionsByField.get(field))
         .filter((definition) => definition?.isNumeric && definition.isAvailable);
     const numericMeasures = numericMeasureDefinitions.map(({field}) => field);
-    const seriesDefinition = yFields
+    const selectedSeriesDefinition = yFields
         .map((field) => definitionsByField.get(field))
         .find((definition) => definition?.isAvailable && !definition.isNumeric);
+    const defaultCategoryDefinition = numericMeasures.length > 0
+        ? builderFields.find(({id, isAvailable}) => id === "tenderCategory" && isAvailable)
+        : null;
+    const seriesDefinition = selectedSeriesDefinition || defaultCategoryDefinition;
     const seriesValues = seriesDefinition
         ? getBuilderSeriesValues(data, seriesDefinition)
         : [];
@@ -399,6 +403,10 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
                 chartTitles: {
                     groupedCountYAxis: "Tender / Resource Count",
                     groupedRevenueYAxis: `Total ${numericMeasures.map((field) => fieldLabels[field] || field).join(" / ")}`,
+                    builderXAxisLabel: dimensionLabels.join(" / "),
+                    builderYAxisLabel: numericMeasures.length > 0
+                        ? numericMeasures.map((field) => fieldLabels[field] || field).join(" / ")
+                        : "Tender / Resource Count",
                 },
             }
             : null,
