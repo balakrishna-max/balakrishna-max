@@ -163,14 +163,22 @@ function CustomReportBuilder({ onBack, loadReport }) {
                     const defaultXField = availableFields.find(
                         ({id}) => id === "departmentName"
                     )?.field;
-                    const defaultYField = availableFields.find(
+                    const defaultCategoryField = availableFields.find(
                         ({id}) => id === "tenderCategory"
+                    )?.field;
+                    const defaultMeasureField = availableFields.find(
+                        ({id, isNumeric, isAvailable}) =>
+                            id === "ecv" && isNumeric && isAvailable
                     )?.field;
 
                     setRawData(normalizedData);
-                    setSelectedFields([defaultXField, defaultYField].filter(Boolean));
+                    setSelectedFields(
+                        [defaultXField, defaultCategoryField, defaultMeasureField].filter(Boolean)
+                    );
                     setSelectedXFields(defaultXField ? [defaultXField] : []);
-                    setSelectedYFields(defaultYField ? [defaultYField] : []);
+                    setSelectedYFields(
+                        [defaultCategoryField, defaultMeasureField].filter(Boolean)
+                    );
                 }
             })
             .catch((error) => {
@@ -228,32 +236,47 @@ function CustomReportBuilder({ onBack, loadReport }) {
     );
 
     const removeField = useCallback((field) => {
+        if (builderFieldByName.get(field)?.id === "tenderCategory") {
+            return;
+        }
+
         setSelectedFields((currentFields) => currentFields.filter((item) => item !== field));
         setSelectedXFields((currentFields) => currentFields.filter((item) => item !== field));
         setSelectedYFields((currentFields) => currentFields.filter((item) => item !== field));
-    }, []);
+    }, [builderFieldByName, builderFields, selectedFields]);
 
     const addField = useCallback((field) => {
         const definition = builderFieldByName.get(field);
 
-        if (!definition) {
+        if (!definition?.isAvailable || selectedFields.includes(field)) {
             return;
         }
 
-        setSelectedFields((currentFields) =>
-            currentFields.includes(field) ? currentFields : [...currentFields, field]
-        );
-        const updateFields = definition.isNumeric ? setSelectedYFields : setSelectedXFields;
-        updateFields((currentFields) => currentFields.includes(field)
+        setSelectedFields((currentFields) => [...currentFields, field]);
+        if (definition.isNumeric) {
+            const categoryField = builderFields.find(({id}) => id === "tenderCategory")?.field;
+            setSelectedYFields((currentFields) => [
+                ...currentFields.filter((item) => item === categoryField),
+                field,
+            ]);
+            return;
+        }
+
+        setSelectedXFields((currentFields) => currentFields.includes(field)
             ? currentFields
             : [...currentFields, field]
         );
-    }, [builderFields]);
+    }, [builderFieldByName]);
 
     const toggleAxis = useCallback((axis, field) => {
         const definition = builderFieldByName.get(field);
 
-        if (!definition || (axis === "x" && definition.isNumeric)) {
+        if (!definition?.isAvailable || (axis === "x" && definition.isNumeric)) {
+            return;
+        }
+
+        if (axis === "y" && definition.id === "tenderCategory" &&
+            selectedYFields.includes(field)) {
             return;
         }
 
@@ -269,6 +292,15 @@ function CustomReportBuilder({ onBack, loadReport }) {
         }
 
         const isSelectedAsSeries = selectedYFields.includes(field);
+        if (definition.isNumeric) {
+            const categoryField = builderFields.find(({id}) => id === "tenderCategory")?.field;
+            setSelectedYFields((currentFields) => isSelectedAsSeries
+                ? currentFields.filter((item) => item !== field)
+                : [...currentFields.filter((item) => item === categoryField), field]
+            );
+            return;
+        }
+
         if (!definition.isNumeric && selectedYFields.some((item) =>
             item !== field && !builderFieldByName.get(item)?.isNumeric
         )) {
@@ -282,7 +314,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
         if (!definition.isNumeric && !isSelectedAsSeries) {
             setSelectedXFields((currentFields) => currentFields.filter((item) => item !== field));
         }
-    }, [builderFieldByName, selectedYFields]);
+    }, [builderFieldByName, builderFields, selectedYFields]);
 
     const handleFromFinancialYearChange = (event) => {
         const nextYear = Number(event.target.value);
@@ -382,7 +414,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             <h2 id="custom-report-fields-title">Data Fields</h2>
                         </div>
                         <span className="custom-report-builder-count">
-                            {builderFields.length}
+                            {builderFields.length + unavailableBuilderFields.length}
                         </span>
                     </header>
 
@@ -397,20 +429,36 @@ function CustomReportBuilder({ onBack, loadReport }) {
                     )}
                     {!isDataLoading && rawData && builderFields.length > 0 && (
                         <>
-                            {unavailableBuilderFields.length > 0 && (
+                            {(unavailableBuilderFields.length > 0 ||
+                                !builderFieldByName.get("__customReportRevenue")?.isAvailable) && (
                                 <p className="custom-report-builder-message custom-report-builder-field-notice">
-                                    Not returned by this API: {unavailableBuilderFields.map(({label}) => label).join(", ")}.
+                                    {unavailableBuilderFields.length > 0 && (
+                                        <>Not returned by this API: {unavailableBuilderFields.map(({label}) => label).join(", ")}.</>
+                                    )}
+                                    {!builderFieldByName.get("__customReportRevenue")?.isAvailable && (
+                                        <> Revenue is disabled because this API response does not contain a numeric ECV field.</>
+                                    )}
                                 </p>
                             )}
                             <div className="custom-report-builder-field-list" aria-label="Available data fields">
-                                {builderFields.map(({field, isNumeric, label}) => (
+                                {builderFields.map(({field, isAvailable, isNumeric, label, sourceField}) => (
                                     <button
-                                        className="custom-report-builder-field-chip"
+                                        className={isAvailable
+                                            ? "custom-report-builder-field-chip"
+                                            : "custom-report-builder-field-chip is-unavailable"}
                                         type="button"
                                         key={field}
-                                        draggable
-                                        title="Drag or click to add this field to your chart"
+                                        draggable={isAvailable}
+                                        disabled={!isAvailable}
+                                        title={!isAvailable
+                                            ? "Unavailable: no numeric ECV field was returned by the API"
+                                            : isNumeric
+                                                ? `Numeric Y-axis measure (API field: ${sourceField})`
+                                                : `Categorical/date X-axis dimension or Y-axis breakdown (API field: ${sourceField})`}
                                         onDragStart={(event) => {
+                                            if (!isAvailable) {
+                                                return;
+                                            }
                                             event.dataTransfer.setData(FIELD_TRANSFER_TYPE, field);
                                             event.dataTransfer.setData("text/plain", field);
                                             event.dataTransfer.effectAllowed = "copy";
@@ -419,8 +467,20 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                     >
                                         <span>{label}</span>
                                         <span className="custom-report-builder-field-type">
-                                            {isNumeric ? "123" : "Aa"}
+                                            {!isAvailable ? "Unavailable" : isNumeric ? "123" : "Aa"}
                                         </span>
+                                    </button>
+                                ))}
+                                {unavailableBuilderFields.map(({id, label}) => (
+                                    <button
+                                        className="custom-report-builder-field-chip is-unavailable"
+                                        type="button"
+                                        key={`unavailable-${id}`}
+                                        disabled
+                                        title={`${label} was not returned by the API`}
+                                    >
+                                        <span>{label}</span>
+                                        <span className="custom-report-builder-field-type">Unavailable</span>
                                     </button>
                                 ))}
                             </div>
@@ -479,7 +539,8 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         <div>
                             <h2 id="custom-report-chart-builder-title">Build your Chart</h2>
                             <p className="custom-report-builder-builder-hint">
-                                Choose X-axis dimensions and Y-axis totals or one categorical breakdown.
+                                Use text, category, department, date, and financial-year fields as X dimensions.
+                                Choose one numeric Y measure at a time; Tender Category remains the common grouping.
                             </p>
                         </div>
                         <span className="custom-report-builder-selected-count">
@@ -500,6 +561,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             const isNumeric = definition?.isNumeric || false;
                             const isXSelected = selectedXFields.includes(field);
                             const isYSelected = selectedYFields.includes(field);
+                            const isFixedCategoryGrouping = definition?.id === "tenderCategory";
                             const hasAnotherCategoricalY = !isNumeric &&
                                 selectedYFields.some((item) =>
                                     item !== field && !builderFieldByName.get(item)?.isNumeric
@@ -527,10 +589,13 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                                 type="button"
                                                 aria-pressed={isYSelected}
                                                 aria-label={`${isYSelected ? "Remove from" : "Add to"} Y axis${!isNumeric ? " as a breakdown" : ""}`}
-                                                title={hasAnotherCategoricalY && !isYSelected
-                                                    ? "Only one categorical Y-axis breakdown can be selected at a time"
+                                                title={isFixedCategoryGrouping && isYSelected
+                                                    ? "Tender Category is the fixed grouping for Y-axis measures"
+                                                    : hasAnotherCategoricalY && !isYSelected
+                                                        ? "Only one categorical Y-axis breakdown can be selected at a time"
                                                     : !isNumeric && isXSelected ? "Adds this field as the Y-axis breakdown" : ""}
-                                                disabled={!isNumeric && hasAnotherCategoricalY && !isYSelected}
+                                                disabled={(isFixedCategoryGrouping && isYSelected) ||
+                                                    (!isNumeric && hasAnotherCategoricalY && !isYSelected)}
                                                 onClick={() => toggleAxis("y", field)}
                                             >
                                                 Y
@@ -541,6 +606,8 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                         className="custom-report-builder-remove-badge"
                                         type="button"
                                         aria-label={`Remove ${fieldLabels[field] || field} from selected fields`}
+                                        disabled={isFixedCategoryGrouping}
+                                        title={isFixedCategoryGrouping ? "Tender Category remains selected as the common chart grouping" : ""}
                                         onClick={() => removeField(field)}
                                     >
                                         −
@@ -598,6 +665,14 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             </span>
                         )}
                     </header>
+                    {builderView?.tenderValueRowsWithoutTenderId > 0 &&
+                        selectedYFields.some((field) =>
+                            ["ecv", "revenue"].includes(builderFieldByName.get(field)?.id)
+                        ) && (
+                            <p className="custom-report-builder-filter-notice" role="status">
+                                {builderView.tenderValueRowsWithoutTenderId.toLocaleString("en-IN")} source rows with ECV have no Tender ID, so those values are summed per row.
+                            </p>
+                        )}
                     <div className="custom-report-builder-table">
                         {builderView && builderView.data.rows.length > 0 ? (
                             <DataTable

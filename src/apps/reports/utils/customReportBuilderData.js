@@ -1,5 +1,6 @@
 import {
     getFieldByNormalizedName,
+    getHumanReadableFieldLabel,
     getTenderValueLabel,
     getFinancialYearStartYear,
     isNumericLikeField,
@@ -9,6 +10,7 @@ import {
 
 const COUNT_FIELD = "__customReportRecordCount";
 const COMBINED_X_FIELD = "__customReportDimensions";
+const REVENUE_FIELD = "__customReportRevenue";
 const MAIN_TENDER_CATEGORIES = ["Works", "Products", "Services"];
 const BUILDER_FIELD_DEFINITIONS = [
     {
@@ -16,9 +18,9 @@ const BUILDER_FIELD_DEFINITIONS = [
         label: "Department Name",
         aliases: ["departmentname", "sdepartmentname", "sdeptname", "mappingdepartmentname"],
     },
-    {id: "ecv", label: "ECV", aliases: ["ecv", "secv", "estimatedcontractvalue"]},
+    {id: "ecv", label: "ECV", aliases: ["ecv", "secv", "estimatedcontractvalue", "mestimatedcost"]},
     {id: "tenderType", label: "Tender Type", aliases: ["tendertype", "ntendertype"]},
-    {id: "tenderStatus", label: "Tender Status", aliases: ["tenderstatus", "status"]},
+    {id: "tenderStatus", label: "Tender Status", aliases: ["ntenderstatus", "ntendersattus", "nstatus", "status"]},
     {id: "tenderCategory", label: "Tender Category", aliases: ["tendercategory", "ntendercategory"]},
     {id: "tenderSubject", label: "Tender Subject", aliases: ["tendersubject", "nameofwork", "snameofwork"]},
     {id: "financialYear", label: "Fin Year", aliases: ["finyear", "sfinyear", "financialyear"]},
@@ -26,12 +28,29 @@ const BUILDER_FIELD_DEFINITIONS = [
     {id: "estimatedCost", label: "Estimated Cost", aliases: ["estimatedcost"]},
 ];
 
+function isBuilderNumericMeasure(data, field) {
+    const normalizedField = String(field).replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const measureName = /ecv|estimatedcost|revenue|amount|value|total|emd|bids|count|quantity|price|cost|fee|payment|award/i;
+
+    return isNumericLikeField(data, field) && measureName.test(normalizedField);
+}
+
+function normalizeBuilderFieldName(field) {
+    return String(field).replace(/[^a-z0-9]/gi, "").toLowerCase();
+}
+
+function getTenderIdentifierField(builderFields) {
+    return builderFields.find(({field}) =>
+        ["tenderid", "ntenderid"].includes(normalizeBuilderFieldName(field))
+    )?.field || "";
+}
+
 function getBuilderFields(data) {
     if (!data || !Array.isArray(data.fields)) {
         return [];
     }
 
-    return BUILDER_FIELD_DEFINITIONS.flatMap((definition) => {
+    const mappedFields = BUILDER_FIELD_DEFINITIONS.flatMap((definition) => {
         const field = definition.aliases
             .map((alias) => getFieldByNormalizedName(data.fields, alias))
             .find(Boolean);
@@ -41,10 +60,52 @@ function getBuilderFields(data) {
                 ...definition,
                 field,
                 isNumeric: ["ecv", "estimatedCost"].includes(definition.id) &&
-                    isNumericLikeField(data, field),
+                    isBuilderNumericMeasure(data, field),
+                sourceField: field,
+                isAvailable: true,
             }]
             : [];
     });
+    const mappedFieldNames = new Set(
+        mappedFields.map(({field}) => normalizeBuilderFieldName(field))
+    );
+    const displayedLabels = new Set(mappedFields.map(({label}) => normalizeBuilderFieldName(label)));
+    const additionalFields = data.fields
+        .flatMap((field) => {
+            const normalizedField = normalizeBuilderFieldName(field);
+
+            if (mappedFieldNames.has(normalizedField)) {
+                return [];
+            }
+
+            mappedFieldNames.add(normalizedField);
+            let label = getHumanReadableFieldLabel(field);
+
+            if (displayedLabels.has(normalizeBuilderFieldName(label))) {
+                label = `${label} · API column`;
+            }
+            displayedLabels.add(normalizeBuilderFieldName(label));
+
+            return [{
+                id: `source:${field}`,
+                label,
+                field,
+                sourceField: field,
+                isNumeric: isBuilderNumericMeasure(data, field),
+                isAvailable: true,
+            }];
+        });
+    const ecvField = mappedFields.find(({id}) => id === "ecv");
+    const revenueField = {
+        id: "revenue",
+        label: "Revenue",
+        field: REVENUE_FIELD,
+        sourceField: ecvField?.isNumeric ? ecvField.field : "",
+        isNumeric: true,
+        isAvailable: Boolean(ecvField?.isNumeric),
+    };
+
+    return [...mappedFields, ...additionalFields, revenueField];
 }
 
 function getMissingBuilderFields(builderFields) {
@@ -125,35 +186,40 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
     }
 
     const definitionsByField = new Map(builderFields.map((definition) => [definition.field, definition]));
-    const numericMeasures = yFields.filter((field) => definitionsByField.get(field)?.isNumeric);
+    const numericMeasureDefinitions = yFields
+        .map((field) => definitionsByField.get(field))
+        .filter((definition) => definition?.isNumeric && definition.isAvailable);
+    const numericMeasures = numericMeasureDefinitions.map(({field}) => field);
     const seriesDefinition = yFields
         .map((field) => definitionsByField.get(field))
-        .find((definition) => definition && !definition.isNumeric);
+        .find((definition) => definition?.isAvailable && !definition.isNumeric);
     const seriesValues = seriesDefinition
         ? getBuilderSeriesValues(data, seriesDefinition)
         : [];
     const series = seriesDefinition
         ? seriesValues.flatMap((value, valueIndex) => {
             const measures = numericMeasures.length > 0
-                ? numericMeasures
+                ? numericMeasureDefinitions
                 : [null];
 
             return measures.map((measure) => ({
                 key: measure
-                    ? `__aggregated_${measure}_${valueIndex}`
+                    ? `__aggregated_${measure.field}_${valueIndex}`
                     : `${COUNT_FIELD}_${valueIndex}`,
                 label: measure
-                    ? `${value} — ${fieldLabels[measure] || measure}`
+                    ? `${value} — ${fieldLabels[measure.field] || measure.label}`
                     : value,
                 value,
-                measure,
+                measure: measure?.field ?? null,
+                sourceField: measure?.sourceField ?? null,
                 isCount: !measure,
             }));
         })
         : numericMeasures.map((field) => ({
             key: field,
-            label: fieldLabels[field] || field,
+            label: fieldLabels[field] || definitionsByField.get(field)?.label || field,
             measure: field,
+            sourceField: definitionsByField.get(field)?.sourceField || field,
             isCount: false,
         }));
 
@@ -161,8 +227,33 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
         return null;
     }
 
+    const tenderIdentifierField = getTenderIdentifierField(builderFields);
     const groupMap = new Map();
+    const countedTenderValues = new Set();
     let includedRowCount = 0;
+    let tenderValueRowsWithoutTenderId = 0;
+
+    function shouldIncludeTenderValue(row, groupKey, seriesKey) {
+        if (!tenderIdentifierField) {
+            tenderValueRowsWithoutTenderId += 1;
+            return true;
+        }
+
+        const tenderId = String(row[tenderIdentifierField] ?? "").trim();
+
+        if (!tenderId) {
+            tenderValueRowsWithoutTenderId += 1;
+            return true;
+        }
+
+        const tenderValueKey = JSON.stringify([groupKey, seriesKey, tenderId]);
+        if (countedTenderValues.has(tenderValueKey)) {
+            return false;
+        }
+
+        countedTenderValues.add(tenderValueKey);
+        return true;
+    }
 
     data.rows.forEach((row) => {
         const dimensionValues = xFields.map((field) => getBuilderDisplayValue(field, row[field]));
@@ -197,9 +288,18 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
                     candidate.value === seriesValue &&
                     candidate.measure === measure
                 );
-                const amount = parseRevenueValue(row[measure]);
+                if (!item) {
+                    return;
+                }
 
-                if (item && amount !== null) {
+                const amount = parseRevenueValue(row[item.sourceField]);
+
+                if (amount !== null) {
+                    if (["ecv", "revenue"].includes(definitionsByField.get(item.measure)?.id) &&
+                        !shouldIncludeTenderValue(row, groupKey, item.key)) {
+                        return;
+                    }
+
                     group.totals[item.key] += amount;
                 }
             });
@@ -207,9 +307,12 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
         }
 
         numericMeasures.forEach((measure) => {
-            const amount = parseRevenueValue(row[measure]);
+            const definition = definitionsByField.get(measure);
+            const amount = parseRevenueValue(row[definition?.sourceField || measure]);
 
-            if (amount !== null) {
+            if (amount !== null &&
+                (!["ecv", "revenue"].includes(definition?.id) ||
+                    shouldIncludeTenderValue(row, groupKey, measure))) {
                 group.totals[measure] += amount;
             }
         });
@@ -265,8 +368,8 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
     const outputRevenueConfig = {
         ...revenueDisplayConfig,
         ...Object.fromEntries(
-            series.filter(({measure}) => measure && revenueDisplayConfig[measure])
-                .map(({key, measure}) => [key, revenueDisplayConfig[measure]])
+            series.filter(({sourceField}) => sourceField && revenueDisplayConfig[sourceField])
+                .map(({key, sourceField}) => [key, revenueDisplayConfig[sourceField]])
         ),
     };
     const chartData = transformChartData({
@@ -300,6 +403,9 @@ function createBuilderReportView(data, xFields, yFields, builderFields, fieldLab
             }
             : null,
         includedRowCount,
+        revenueRowsWithoutTenderId: tenderValueRowsWithoutTenderId,
+        tenderValueRowsWithoutTenderId,
+        revenueIsTenderDeduplicated: Boolean(tenderIdentifierField),
         totalGroupCount: outputRows.length,
     };
 }

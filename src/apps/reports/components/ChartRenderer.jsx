@@ -492,7 +492,8 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
 
                       name:
                           chartType === "grouped-bar"
-                              ? isRevenueField(chartData.yAxes?.[0]?.field)
+                              ? chartData.yAxes?.[0]?.revenueDisplayConfig ||
+                                  isRevenueField(chartData.yAxes?.[0]?.field)
                                   ? chartTitles?.groupedRevenueYAxis || chartData.yAxis?.label || ""
                                   : chartTitles?.groupedCountYAxis || chartData.yAxis?.label || ""
                               : chartData
