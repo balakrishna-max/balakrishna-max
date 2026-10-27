@@ -74,6 +74,21 @@ function getChartTheme() {
     };
 }
 
+let chartTextMeasureContext;
+
+function measureChartText(text, font) {
+    if (!chartTextMeasureContext) {
+        chartTextMeasureContext = document.createElement("canvas").getContext("2d");
+    }
+
+    if (!chartTextMeasureContext) {
+        return text.length * 8;
+    }
+
+    chartTextMeasureContext.font = font;
+    return chartTextMeasureContext.measureText(text).width;
+}
+
 function getChartRevenueDisplayConfig(chartData) {
     const axes = Array.isArray(chartData?.yAxes) &&
         chartData.yAxes.length > 0 ? chartData.yAxes : chartData?.yAxis ? [chartData.yAxis] : [];
@@ -215,13 +230,15 @@ function getTooltipFormatter(chartData, theme) {
     };
 }
 
-function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTitles) {
+function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTitles, fillAvailableSpace, getChartWidth) {
     const isHorizontal = chartType === "horizontal-bar";
     const useCategoryX = chartType !== "scatter" && chartType !== "horizontal-bar";
     const xValues = chartData.data.map((item) =>String(item.x ?? ""));
     const showAllCategoryLabels = richChart &&
         chartType === "grouped-bar" &&
         (xValues.length > 8 || xValues.some((value) => value.length > 12));
+    const isBuilderGroupedChart = fillAvailableSpace && chartType === "grouped-bar";
+    const builderCategoryPrefixLength = xValues.length > 10 ? 3 : 4;
     const xAxisRevenueDisplayConfig = chartData.xAxis?.revenueDisplayConfig || null;
     const yAxisRevenueDisplayConfig = chartData.yAxis?.revenueDisplayConfig || null;
 
@@ -242,12 +259,18 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
         title: revenueUnitTitle ? revenueUnitTitle : undefined,
 
         grid: {
-            top: richChart && chartType === "grouped-bar"
-                ? 64
-                : revenueUnitTitle ? 48 : 32,
-            right: 16,
-            bottom: showAllCategoryLabels ? 108 : chartType === "grouped-bar" ? 52 : 48,
-            left: chartType === "grouped-bar" ? 64 : 48,
+            top: fillAvailableSpace && chartType === "grouped-bar"
+                ? 52
+                : richChart && chartType === "grouped-bar"
+                    ? 64
+                    : revenueUnitTitle ? 48 : 32,
+            right: fillAvailableSpace ? 20 : 16,
+            bottom: isBuilderGroupedChart
+                ? 38
+                : showAllCategoryLabels ? 108 : chartType === "grouped-bar" ? 52 : 48,
+            left: isBuilderGroupedChart
+                ? 72
+                : chartType === "grouped-bar" ? 64 : 48,
             containLabel: true,
         },
 
@@ -343,13 +366,16 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                 : useCategoryX
                   ? {
                         type: "category",
-                        name: chartData.xAxis ?.label ?? "",
+                        position: isBuilderGroupedChart ? "bottom" : undefined,
+                        name: isBuilderGroupedChart ? "" : chartData.xAxis ?.label ?? "",
                         data: xValues,
                         boundaryGap: chartType === "bar" ||
                             chartType === "grouped-bar" ||
                             chartType ===  "stacked-bar",
                         nameLocation: "middle",
-                        nameGap: showAllCategoryLabels ? 44 : 26,
+                        nameGap: isBuilderGroupedChart
+                            ? 18
+                            : showAllCategoryLabels ? 44 : 26,
                         nameTextStyle: {
                             color: theme.axis,
                             fontFamily: theme.fontFamily,
@@ -371,18 +397,55 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                         axisLabel: {
                             color: theme.axis,
                             fontFamily: theme.fontFamily,
-                            fontSize: theme.fontSize,
-                            hideOverlap: !showAllCategoryLabels,
-                            interval: showAllCategoryLabels ? 0 : "auto",
-                            rotate: showAllCategoryLabels
-                                ? 35
+                            fontSize: isBuilderGroupedChart && xValues.length > 10
+                                ? Math.min(theme.fontSize, 10)
+                                : theme.fontSize,
+                            hideOverlap: isBuilderGroupedChart
+                                ? false
+                                : !fillAvailableSpace && !showAllCategoryLabels,
+                            interval: isBuilderGroupedChart
+                                ? 0
+                                : fillAvailableSpace || showAllCategoryLabels ? 0 : "auto",
+                            rotate: isBuilderGroupedChart
+                                ? 0
+                                : showAllCategoryLabels
+                                ? fillAvailableSpace ? 28 : 35
                                 : chartType === "grouped-bar" ? 18 : 0,
-                            margin: showAllCategoryLabels
+                            margin: isBuilderGroupedChart
+                                ? 8
+                                : fillAvailableSpace && showAllCategoryLabels
+                                ? 10
+                                : showAllCategoryLabels
                                 ? 12
                                 : chartType === "grouped-bar" ? 10 : 6,
-                            width: showAllCategoryLabels ? 132 : undefined,
-                            overflow: showAllCategoryLabels ? "break" : undefined,
-                            align: showAllCategoryLabels ? "right" : undefined,
+                            width: !isBuilderGroupedChart && showAllCategoryLabels
+                                ? fillAvailableSpace ? 116 : 132
+                                : undefined,
+                            formatter: isBuilderGroupedChart
+                                ? (value) => {
+                                    const label = String(value ?? "");
+                                    const labelFontSize = isBuilderGroupedChart && xValues.length > 10
+                                        ? Math.min(theme.fontSize, 10)
+                                        : theme.fontSize;
+                                    const chartWidth = getChartWidth();
+                                    const categorySlotWidth = Math.max(
+                                        0,
+                                        (chartWidth - 72 - 20) / xValues.length
+                                    );
+
+                                    if (measureChartText(label, `${labelFontSize}px ${theme.fontFamily}`) <= categorySlotWidth - 8) {
+                                        return label;
+                                    }
+
+                                    return label.length > builderCategoryPrefixLength
+                                        ? `${label.slice(0, builderCategoryPrefixLength)}...`
+                                        : label;
+                                }
+                                : undefined,
+                            overflow: !isBuilderGroupedChart && showAllCategoryLabels ? "break" : undefined,
+                            align: isBuilderGroupedChart
+                                ? "center"
+                                : showAllCategoryLabels ? "right" : undefined,
                             fontWeight: richChart ? 500 : undefined,
                         },
                     }
@@ -477,19 +540,23 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                   }
                 : {
                       type: "value",
+                      position: isBuilderGroupedChart ? "left" : undefined,
 
                       name:
-                          chartType === "grouped-bar"
-                              ? isRevenueField(chartData.yAxes?.[0]?.field)
-                                  ? chartTitles.groupedRevenueYAxis
-                                  : chartTitles.groupedCountYAxis
+                          isBuilderGroupedChart
+                              ? ""
+                              : chartType === "grouped-bar"
+                              ? chartData.yAxes?.[0]?.revenueDisplayConfig ||
+                                  isRevenueField(chartData.yAxes?.[0]?.field)
+                                  ? chartTitles?.groupedRevenueYAxis || chartData.yAxis?.label || ""
+                                  : chartTitles?.groupedCountYAxis || chartData.yAxis?.label || ""
                               : chartData
                                     .yAxis
                                     ?.label ??
                                 "",
 
                       nameLocation: "middle",
-                      nameGap: 30,
+                      nameGap: isBuilderGroupedChart ? 20 : 30,
 
                       nameTextStyle: {
                           color: theme.axis,
@@ -522,6 +589,14 @@ function getCartesianBaseOption(chartData, theme, chartType, richChart, chartTit
                                           .yAxis
                                           ?.dataType
                                   ),
+                      },
+                      splitLine: {
+                          show: fillAvailableSpace && chartType === "grouped-bar",
+                          lineStyle: {
+                              color: theme.grid,
+                              opacity: 0.55,
+                              type: "dashed",
+                          },
                       },
                   },
     };
@@ -1561,6 +1636,7 @@ function ChartRenderer({
     chartData,
     chartType,
     richChart = false,
+    fillAvailableSpace = false,
     chartTitles,
     onDataPointClick,
 }) {
@@ -1708,7 +1784,9 @@ function ChartRenderer({
                     theme,
                     chartType,
                     richChart,
-                    chartTitles
+                    chartTitles,
+                    fillAvailableSpace,
+                    () => chart.getWidth()
                 ),
 
                 series:
@@ -1734,13 +1812,12 @@ function ChartRenderer({
                 revenueUnitTitle;
         }
 
-        chart.clear();
-
         chart.setOption(
             option,
             {
                 lazyUpdate:
                     true,
+                replaceMerge: ["series", "xAxis", "yAxis", "legend", "title"],
             }
         );
 
@@ -1749,6 +1826,8 @@ function ChartRenderer({
         chartData,
         chartType,
         richChart,
+        fillAvailableSpace,
+        chartTitles,
         isPieChart,
         isChartReady,
     ]);
@@ -1786,11 +1865,9 @@ function ChartRenderer({
 
     return (
         <div
-            className={
-                isPieChart
-                    ? "pie-chart-container"
-                    : undefined
-            }
+            className={isPieChart
+                ? "pie-chart-container"
+                : fillAvailableSpace ? "custom-report-builder-chart-renderer" : undefined}
             style={{
                 width: "100%",
                 height: "100%",
@@ -1812,6 +1889,17 @@ function ChartRenderer({
                     minHeight: 0,
                 }}
             />
+
+            {fillAvailableSpace && chartType === "grouped-bar" && (
+                <>
+                    <span className="custom-report-builder-chart-axis-label custom-report-builder-chart-axis-label-y">
+                        {chartTitles?.builderYAxisLabel || chartData.yAxis?.label || "Value"}
+                    </span>
+                    <span className="custom-report-builder-chart-axis-label custom-report-builder-chart-axis-label-x">
+                        {chartTitles?.builderXAxisLabel || chartData.xAxis?.label || "Category"}
+                    </span>
+                </>
+            )}
 
             {isPieChart && (
                 <div className="pie-chart-toolbar">

@@ -106,12 +106,92 @@
     height: 100%;
     min-width: 0;
     min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-columns: minmax(15rem, 18fr) minmax(0, 82fr);
     gap: var(--space-4);
     overflow: hidden;
 }
 
+.custom-report-builder-panel.custom-report-builder-financial-year {
+    display: flex;
+    min-width: 0;
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: flex-end;
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-3);
+}
+
+.custom-report-builder-financial-year h2 {
+    align-self: center;
+    margin: 0 auto 0 0;
+    color: var(--color-heading);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+}
+
+.custom-report-builder-financial-year label {
+    display: flex;
+    min-width: 9rem;
+    flex-direction: column;
+    gap: var(--space-1);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+.custom-report-builder-financial-year select {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0 var(--space-3);
+    color: var(--color-text-secondary);
+    background: rgb(255 255 255 / 65%);
+    border: 1px solid rgb(71 101 186 / 22%);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--font-size-sm);
+}
+
+.custom-report-builder-financial-year select:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.custom-report-builder-year-range-button {
+    min-height: 2.5rem;
+    padding: 0 var(--space-3);
+    color: var(--color-primary);
+    background: transparent;
+    border: 1px solid rgb(71 101 186 / 25%);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+}
+
+.custom-report-builder-year-range-button:hover {
+    border-color: var(--color-primary);
+    background: rgb(71 101 186 / 6%);
+}
+
+.custom-report-builder-year-range-button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.custom-report-builder-financial-year-to {
+    padding-bottom: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
 .custom-report-builder-sidebar {
+    grid-column: 1;
+    grid-row: 2;
     display: grid;
     min-width: 0;
     min-height: 0;
@@ -152,6 +232,14 @@
     margin: var(--space-1) 0 0;
     color: var(--color-text-primary);
     font-size: var(--font-size-xs);
+}
+
+.custom-report-builder-field-notice {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    text-align: left;
 }
 
 .custom-report-builder-eyebrow {
@@ -212,6 +300,22 @@
     cursor: grabbing;
 }
 
+.custom-report-builder-field-chip.is-unavailable,
+.custom-report-builder-field-chip:disabled {
+    color: var(--color-text-muted);
+    background: rgb(100 116 139 / 6%);
+    border-color: rgb(100 116 139 / 14%);
+    cursor: not-allowed;
+    opacity: 0.72;
+}
+
+.custom-report-builder-field-chip.is-unavailable:hover,
+.custom-report-builder-field-chip:disabled:hover {
+    color: var(--color-text-muted);
+    background: rgb(100 116 139 / 6%);
+    border-color: rgb(100 116 139 / 14%);
+}
+
 .custom-report-builder-field-chip > span:first-child {
     min-width: 0;
     overflow: hidden;
@@ -264,6 +368,8 @@
 }
 
 .custom-report-builder-content {
+    grid-column: 2;
+    grid-row: 2;
     display: flex;
     min-width: 0;
     min-height: 0;
@@ -273,6 +379,15 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
+}
+
+.custom-report-builder-filter-notice {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-warning);
+    background: rgb(217 119 6 / 8%);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
 }
 
 .custom-report-builder-page-header {
@@ -318,7 +433,7 @@
     min-width: 0;
     flex: 0 0 auto;
     flex-direction: column;
-    padding: var(--space-5);
+    padding: var(--space-3);
     gap: var(--space-4);
     background: rgb(255 255 255 / 35%);
     border: 1px solid rgb(71 101 186 / 13%);
@@ -331,10 +446,9 @@
     min-height: 5rem;
     align-content: flex-start;
     flex-wrap: wrap;
-    padding: var(--space-4);
+    padding: var(--space-3);
     gap: var(--space-4) var(--space-3);
     background: rgb(255 255 255 / 28%);
-    border: 1px dashed rgb(71 101 186 / 30%);
     border-radius: 0.8rem;
 }
 
@@ -441,9 +555,39 @@
 
 .custom-report-builder-main-chart {
     width: 100%;
-    height: 22rem;
+    height: clamp(34rem, 65vh, 42rem);
+    flex: 0 0 auto;
     min-width: 0;
     min-height: 0;
+}
+
+.custom-report-builder-chart-renderer {
+    position: relative;
+}
+
+.custom-report-builder-chart-axis-label {
+    position: absolute;
+    z-index: 1;
+    max-width: 35%;
+    overflow: hidden;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.2;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-report-builder-chart-axis-label-y {
+    top: 0.35rem;
+    left: 0.6rem;
+}
+
+.custom-report-builder-chart-axis-label-x {
+    right: 0.6rem;
+    bottom: 0.35rem;
+    text-align: right;
 }
 
 .custom-report-builder-table {
@@ -541,7 +685,9 @@
     padding: var(--space-5);
     overflow: hidden;
     border-radius: 1.35rem;
-    box-shadow: var(--glass-shadow);
+    box-shadow:
+        0 14px 32px rgb(45 64 82 / 16%),
+        inset 0 1px 0 rgb(255 255 255 / 96%);
     transition:
         transform 280ms cubic-bezier(0.2, 0.75, 0.25, 1),
         box-shadow 280ms ease,
@@ -853,6 +999,14 @@
         overflow: visible;
     }
 
+    .custom-report-builder-financial-year {
+        flex-wrap: wrap;
+    }
+
+    .custom-report-builder-financial-year h2 {
+        width: 100%;
+    }
+
     .custom-report-builder-sidebar {
         min-height: 30rem;
         grid-template-rows: repeat(2, minmax(14rem, 1fr));
@@ -920,7 +1074,7 @@
     }
 
     .custom-report-builder-main-chart {
-        height: 18rem;
+        height: 27rem;
     }
 
     .custom-report-builder-table {

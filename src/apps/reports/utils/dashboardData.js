@@ -1,4 +1,5 @@
 const COLUMN_TYPES = { NUMBER: "number", DATE: "date", TEXT: "text" };
+const FINANCIAL_YEAR_START_MONTH = 4;
 const DECIMAL_NUMBER_FORMATTER = new Intl.NumberFormat("en-IN", {
     useGrouping: true,
     maximumFractionDigits: 20,
@@ -10,6 +11,45 @@ const PLAIN_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
 
 const API_DATA_TYPE_MAP = { STRING: COLUMN_TYPES.TEXT, INTEGER: COLUMN_TYPES.NUMBER, LONG: COLUMN_TYPES.NUMBER, 
     DECIMAL: COLUMN_TYPES.NUMBER, BOOLEAN: COLUMN_TYPES.TEXT, DATE: COLUMN_TYPES.DATE, DATETIME: COLUMN_TYPES.DATE };
+
+function getFinancialYearStartYear(value) {
+    const yearMatch = String(value ?? "").trim().match(/(?:^|\D)(\d{4})(?:\D|$)/);
+    return yearMatch ? Number(yearMatch[1]) : null;
+}
+
+function getCurrentFinancialYearStartYear(date = new Date()) {
+    const year = date.getFullYear();
+    return date.getMonth() + 1 >= FINANCIAL_YEAR_START_MONTH ? year : year - 1;
+}
+
+function formatFinancialYearLabel(startYear) {
+    return `${startYear}-${String(startYear + 1).slice(-2)}`;
+}
+
+function getFinancialYearStartYearFromDate(value) {
+    if (isEmptyValue(value)) {
+        return null;
+    }
+
+    const text = String(value).trim();
+    const localDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    const date = localDateMatch
+        ? new Date(
+            Number(localDateMatch[3]),
+            Number(localDateMatch[2]) - 1,
+            Number(localDateMatch[1])
+        )
+        : new Date(value);
+
+    if (Number.isNaN(date.getTime()) || (localDateMatch && (
+        date.getDate() !== Number(localDateMatch[1]) ||
+        date.getMonth() !== Number(localDateMatch[2]) - 1
+    ))) {
+        return null;
+    }
+
+    return getCurrentFinancialYearStartYear(date);
+}
 
 function isEmptyValue(value) {
     return (value === null || value === undefined || String(value).trim() === "");
@@ -1001,6 +1041,55 @@ function getFieldByNormalizedName(fields = [], targetName) {
     return fields.find((field) => normalizeLookupFieldName(field) === target) || "";
 }
 
+function getFinancialYearField(fields = []) {
+    const aliases = ["sfinyear", "financialyear", "finyear", "financialyr", "finyr", "fy"];
+    return aliases.map((alias) => getFieldByNormalizedName(fields, alias)).find(Boolean) || "";
+}
+
+function filterDataByFinancialYears(data, fromYear, toYear) {
+    if (!data || !Array.isArray(data.rows)) {
+        return {data, isFilterable: true};
+    }
+
+    if (!Number.isInteger(fromYear) || !Number.isInteger(toYear) || fromYear > toYear) {
+        return {data, isFilterable: false};
+    }
+
+    const fields = Array.isArray(data.fields) ? data.fields : [];
+    const financialYearField = getFinancialYearField(fields);
+    const dateField = financialYearField
+        ? ""
+        : getPeriodDateFields(data).periodDateField ||
+            fields.find((field) => data.columnTypes?.[field] === COLUMN_TYPES.DATE) ||
+            "";
+    const field = financialYearField || dateField;
+
+    if (!field) {
+        return {data, isFilterable: false};
+    }
+
+    const getRowYear = financialYearField
+        ? (row) => getFinancialYearStartYear(row[field])
+        : (row) => getFinancialYearStartYearFromDate(row[field]);
+    const rowYears = data.rows.map(getRowYear);
+
+    if (rowYears.length > 0 && !rowYears.some((year) => year !== null)) {
+        return {data, isFilterable: false};
+    }
+
+    return {
+        data: {
+            ...data,
+            rows: data.rows.filter((_, index) =>
+                rowYears[index] !== null &&
+                rowYears[index] >= fromYear &&
+                rowYears[index] <= toYear
+            ),
+        },
+        isFilterable: true,
+    };
+}
+
 function getFieldLabels(fields) {
     return Object.fromEntries(
         fields.map((field) => [field, getHumanReadableFieldLabel(field)])
@@ -1081,7 +1170,7 @@ function getReportMetrics(data, fieldLabels = {}) {
         }));
 }
 
-export {COLUMN_TYPES, API_DATA_TYPE_MAP, TENDER_STATUS_LABELS,
+export {COLUMN_TYPES, FINANCIAL_YEAR_START_MONTH, API_DATA_TYPE_MAP, TENDER_STATUS_LABELS,
     TENDER_CATEGORY_LABELS, TENDER_TYPE_LABELS, TENDER_EVALTYPE_LABELS,isPhoneColumn, isNumericLikeField,
     getNumericLikeFields, isNumericChartField, isRevenueField,
     getRevenueFields, getRevenueDisplayConfig, getRevenueUnitLabel, formatRevenueValue,
@@ -1089,5 +1178,8 @@ export {COLUMN_TYPES, API_DATA_TYPE_MAP, TENDER_STATUS_LABELS,
     formatNumericValue,
     getFilterField, normalizeCsvData, normalizeReportData,
     filterNormalizedData, getPeriodDateFields, getHumanReadableFieldLabel,
-    getFieldLabels, getFieldByNormalizedName, getDepartmentNameField,
+    getFieldLabels, getFieldByNormalizedName, getFinancialYearField,
+    getFinancialYearStartYear, getFinancialYearStartYearFromDate,
+    getCurrentFinancialYearStartYear, formatFinancialYearLabel,
+    filterDataByFinancialYears, getDepartmentNameField,
     getReportMetrics};
