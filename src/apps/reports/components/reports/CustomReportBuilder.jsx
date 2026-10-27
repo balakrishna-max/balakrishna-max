@@ -5,9 +5,19 @@ import {
     getFieldLabels,
     getRevenueDisplayConfig,
     normalizeReportData,
+    parseRevenueValue,
     transformChartData,
+    getCurrentFinancialYearStartYear,
+    formatFinancialYearLabel,
+    filterDataByFinancialYears,
 } from "../../utils/dashboardData.js";
 import { getApiReportType } from "../../utils/dashboardConfig.js";
+import {
+    createBuilderReportView,
+    getBuilderFields,
+    getBuilderDisplayValue,
+    getMissingBuilderFields,
+} from "../../utils/customReportBuilderData.js";
 
 const REPORT_CATALOGUE = [
     {id: "current-fy-tenders", label: "Current FY Tenders", reportId: "tenders", chartType: "bar"},
@@ -24,7 +34,7 @@ const REPORT_CATALOGUE = [
 
 const FIELD_TRANSFER_TYPE = "application/x-custom-report-field";
 const COUNT_FIELD = "__customReportRecordCount";
-const MAX_CHART_CATEGORIES = 20;
+const FIRST_FINANCIAL_YEAR = 2020;
 
 function getPreferredField(fields, pattern) {
     return fields.find((field) => pattern.test(field)) || "";
@@ -63,19 +73,12 @@ function createChartView(data, chartType, fieldLabels, revenueDisplayConfig) {
         const counts = new Map();
 
         for (const row of data.rows) {
-            const value = row[xField];
-
-            if (value === null || value === undefined || String(value).trim() === "") {
-                continue;
-            }
-
-            const label = String(value);
+            const label = getBuilderDisplayValue(xField, row[xField]);
             counts.set(label, (counts.get(label) || 0) + 1);
         }
 
         const chartRows = [...counts.entries()]
             .sort((first, second) => second[1] - first[1])
-            .slice(0, MAX_CHART_CATEGORIES)
             .map(([x, y]) => ({x, y}));
 
         if (chartRows.length === 0) {
@@ -93,8 +96,20 @@ function createChartView(data, chartType, fieldLabels, revenueDisplayConfig) {
         };
     }
 
+    const totalsByCategory = new Map();
+    data.rows.forEach((row) => {
+        const category = getBuilderDisplayValue(xField, row[xField]);
+        const value = parseRevenueValue(row[yField]);
+
+        if (value !== null) {
+            totalsByCategory.set(category, (totalsByCategory.get(category) || 0) + value);
+        }
+    });
+    const aggregatedRows = [...totalsByCategory.entries()]
+        .sort((first, second) => second[1] - first[1])
+        .map(([category, value]) => ({[xField]: category, [yField]: value}));
     const chartData = transformChartData({
-        rows: data.rows,
+        rows: aggregatedRows,
         xAxisField: xField,
         yAxisField: yField,
         columnTypes: data.columnTypes,
@@ -106,53 +121,13 @@ function createChartView(data, chartType, fieldLabels, revenueDisplayConfig) {
     return chartData.data.length > 0 ? {chartType, chartData} : null;
 }
 
-function createBuilderChart(data, xFields, yFields, fieldLabels, revenueDisplayConfig) {
-    if (!data || xFields.length === 0 || yFields.length === 0) {
-        return null;
-    }
-
-    const axisLabel = xFields.map((field) => fieldLabels[field] || field).join(" / ");
-    const chartRows = xFields.length === 1
-        ? data.rows
-        : data.rows.map((row) => ({
-            ...row,
-            [COUNT_FIELD]: xFields
-                .map((field) => String(row[field] ?? ""))
-                .join(" / "),
-        }));
-    const chartSource = xFields.length === 1
-        ? data
-        : {
-            ...data,
-            fields: [...data.fields, COUNT_FIELD],
-            rows: chartRows,
-            columnTypes: {...data.columnTypes, [COUNT_FIELD]: "text"},
-            dataTypes: {...data.dataTypes, [COUNT_FIELD]: "STRING"},
-        };
-    const xAxisField = xFields.length === 1 ? xFields[0] : COUNT_FIELD;
-    const chartLabels = xFields.length === 1
-        ? fieldLabels
-        : {...fieldLabels, [COUNT_FIELD]: axisLabel};
-    const chartData = transformChartData({
-        rows: chartSource.rows,
-        xAxisField,
-        yAxisField: yFields[0],
-        yAxisFields: yFields.length > 1 ? yFields : [],
-        columnTypes: chartSource.columnTypes,
-        dataTypes: chartSource.dataTypes,
-        fieldLabels: chartLabels,
-        revenueDisplayConfig: revenueDisplayConfig || {},
-    });
-
-    return chartData.data.length > 0
-        ? {chartData, chartType: yFields.length > 1 ? "grouped-bar" : "bar"}
-        : null;
-}
-
 function CustomReportBuilder({ onBack, loadReport }) {
+    const currentFinancialYear = getCurrentFinancialYearStartYear();
     const [rawData, setRawData] = useState(null);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [dataError, setDataError] = useState(null);
+    const [fromFinancialYear, setFromFinancialYear] = useState(currentFinancialYear);
+    const [toFinancialYear, setToFinancialYear] = useState(currentFinancialYear);
     const [selectedFields, setSelectedFields] = useState([]);
     const [selectedXFields, setSelectedXFields] = useState([]);
     const [selectedYFields, setSelectedYFields] = useState([]);
@@ -160,6 +135,22 @@ function CustomReportBuilder({ onBack, loadReport }) {
     const [catalogueData, setCatalogueData] = useState({});
     const [catalogueLoading, setCatalogueLoading] = useState({});
     const [catalogueErrors, setCatalogueErrors] = useState({});
+    const builderFields = useMemo(() => getBuilderFields(rawData), [rawData]);
+    const builderFieldByName = useMemo(
+        () => new Map(builderFields.map((definition) => [definition.field, definition])),
+        [builderFields]
+    );
+    const fieldLabels = useMemo(() => {
+        if (!rawData) {
+            return {};
+        }
+
+        return {
+            ...getFieldLabels(rawData.fields),
+            ...Object.fromEntries(builderFields.map(({field, label}) => [field, label])),
+        };
+    }, [builderFields, rawData]);
+    const unavailableBuilderFields = getMissingBuilderFields(builderFields);
 
     useEffect(() => {
         let isCancelled = false;
@@ -168,17 +159,21 @@ function CustomReportBuilder({ onBack, loadReport }) {
             .then((result) => {
                 if (!isCancelled) {
                     const normalizedData = requireNormalizedReportData(result, "dw");
-                    const defaultXField = normalizedData.fields.find(
-                        (field) => normalizedData.columnTypes[field] !== "number"
-                    );
-                    const defaultYField = normalizedData.fields.find(
-                        (field) => normalizedData.columnTypes[field] === "number"
-                    );
+                    const availableFields = getBuilderFields(normalizedData);
+                    const defaultXField = availableFields.find(
+                        ({id}) => id === "departmentName"
+                    )?.field;
+                    const defaultMeasureField = availableFields.find(
+                        ({id, isNumeric, isAvailable}) =>
+                            id === "ecv" && isNumeric && isAvailable
+                    )?.field;
 
                     setRawData(normalizedData);
-                    setSelectedFields([defaultXField, defaultYField].filter(Boolean));
+                    setSelectedFields(
+                        [defaultXField, defaultMeasureField].filter(Boolean)
+                    );
                     setSelectedXFields(defaultXField ? [defaultXField] : []);
-                    setSelectedYFields(defaultYField ? [defaultYField] : []);
+                    setSelectedYFields(defaultMeasureField ? [defaultMeasureField] : []);
                 }
             })
             .catch((error) => {
@@ -199,54 +194,117 @@ function CustomReportBuilder({ onBack, loadReport }) {
         };
     }, [loadReport]);
 
-    const fieldLabels = useMemo(
-        () => rawData ? getFieldLabels(rawData.fields) : {},
-        [rawData]
+    const financialYearOptions = useMemo(
+        () => Array.from(
+            {length: Math.max(0, currentFinancialYear - FIRST_FINANCIAL_YEAR + 1)},
+            (_, index) => FIRST_FINANCIAL_YEAR + index
+        ),
+        [currentFinancialYear]
     );
+    const toFinancialYearOptions = useMemo(
+        () => financialYearOptions.filter((year) => year >= fromFinancialYear),
+        [financialYearOptions, fromFinancialYear]
+    );
+    const fromFinancialYearOptions = useMemo(
+        () => financialYearOptions.filter((year) => year <= toFinancialYear),
+        [financialYearOptions, toFinancialYear]
+    );
+    const filteredRawDataResult = useMemo(
+        () => filterDataByFinancialYears(rawData, fromFinancialYear, toFinancialYear),
+        [fromFinancialYear, rawData, toFinancialYear]
+    );
+    const filteredRawData = filteredRawDataResult.data;
     const revenueDisplayConfig = useMemo(
         () => rawData ? getRevenueDisplayConfig(rawData) : {},
         [rawData]
     );
-    const builderChart = useMemo(
-        () => createBuilderChart(
-            rawData,
+    const builderView = useMemo(
+        () => createBuilderReportView(
+            filteredRawData,
             selectedXFields,
             selectedYFields,
+            builderFields,
             fieldLabels,
             revenueDisplayConfig
         ),
-        [fieldLabels, rawData, revenueDisplayConfig, selectedXFields, selectedYFields]
+        [builderFields, fieldLabels, filteredRawData, revenueDisplayConfig, selectedXFields, selectedYFields]
     );
 
     const removeField = useCallback((field) => {
         setSelectedFields((currentFields) => currentFields.filter((item) => item !== field));
         setSelectedXFields((currentFields) => currentFields.filter((item) => item !== field));
         setSelectedYFields((currentFields) => currentFields.filter((item) => item !== field));
-    }, []);
+    }, [builderFieldByName, builderFields, selectedFields]);
 
     const addField = useCallback((field) => {
-        if (!rawData?.fields.includes(field)) {
+        const definition = builderFieldByName.get(field);
+
+        if (!definition?.isAvailable || selectedFields.includes(field)) {
             return;
         }
 
-        const canUseAsValue = rawData.columnTypes[field] === "number";
-        setSelectedFields((currentFields) =>
-            currentFields.includes(field) ? currentFields : [...currentFields, field]
-        );
-        const updateFields = canUseAsValue ? setSelectedYFields : setSelectedXFields;
-        updateFields((currentFields) => currentFields.includes(field)
+        setSelectedFields((currentFields) => [...currentFields, field]);
+        if (definition.isNumeric) {
+            setSelectedYFields([field]);
+            return;
+        }
+
+        setSelectedXFields((currentFields) => currentFields.includes(field)
             ? currentFields
             : [...currentFields, field]
         );
-    }, [rawData]);
+    }, [builderFieldByName]);
 
     const toggleAxis = useCallback((axis, field) => {
-        const updateFields = axis === "x" ? setSelectedXFields : setSelectedYFields;
-        updateFields((currentFields) => currentFields.includes(field)
+        const definition = builderFieldByName.get(field);
+
+        if (!definition?.isAvailable || (axis === "x" && definition.isNumeric)) {
+            return;
+        }
+
+        if (axis === "x") {
+            setSelectedXFields((currentFields) => currentFields.includes(field)
+                ? currentFields.filter((item) => item !== field)
+                : [...currentFields, field]
+            );
+            if (!definition.isNumeric) {
+                setSelectedYFields((currentFields) => currentFields.filter((item) => item !== field));
+            }
+            return;
+        }
+
+        const isSelectedAsSeries = selectedYFields.includes(field);
+        if (definition.isNumeric) {
+            setSelectedYFields((currentFields) => isSelectedAsSeries
+                ? currentFields.filter((item) => item !== field)
+                : [field]
+            );
+            return;
+        }
+
+        if (!definition.isNumeric && selectedYFields.some((item) =>
+            item !== field && !builderFieldByName.get(item)?.isNumeric
+        )) {
+            return;
+        }
+
+        setSelectedYFields((currentFields) => isSelectedAsSeries
             ? currentFields.filter((item) => item !== field)
             : [...currentFields, field]
         );
-    }, []);
+        if (!definition.isNumeric && !isSelectedAsSeries) {
+            setSelectedXFields((currentFields) => currentFields.filter((item) => item !== field));
+        }
+    }, [builderFieldByName, builderFields, selectedYFields]);
+
+    const handleFromFinancialYearChange = (event) => {
+        const nextYear = Number(event.target.value);
+        setFromFinancialYear(nextYear);
+
+        if (toFinancialYear < nextYear) {
+            setToFinancialYear(nextYear);
+        }
+    };
 
     const handleFieldDrop = useCallback((event) => {
         event.preventDefault();
@@ -291,6 +349,35 @@ function CustomReportBuilder({ onBack, loadReport }) {
 
     return (
         <main className="custom-report-builder">
+            <section className="custom-report-builder-panel custom-report-builder-financial-year" aria-labelledby="custom-report-financial-year-title">
+                <h2 id="custom-report-financial-year-title">Financial Year</h2>
+                <label>
+                    <span>From</span>
+                    <select
+                        aria-label="Financial year from"
+                        value={fromFinancialYear}
+                        onChange={handleFromFinancialYearChange}
+                    >
+                        {fromFinancialYearOptions.map((year) => (
+                            <option key={year} value={year}>{formatFinancialYearLabel(year)}</option>
+                        ))}
+                    </select>
+                </label>
+                <span className="custom-report-builder-financial-year-to" aria-hidden="true">to</span>
+                <label>
+                    <span>To</span>
+                    <select
+                        aria-label="Financial year to"
+                        value={toFinancialYear}
+                        onChange={(event) => setToFinancialYear(Number(event.target.value))}
+                    >
+                        {toFinancialYearOptions.map((year) => (
+                            <option key={year} value={year}>{formatFinancialYearLabel(year)}</option>
+                        ))}
+                    </select>
+                </label>
+            </section>
+
             <aside className="custom-report-builder-sidebar" aria-label="Custom report builder options">
                 <section className="custom-report-builder-side-card" aria-labelledby="custom-report-fields-title">
                     <header className="custom-report-builder-side-header">
@@ -298,7 +385,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             <h2 id="custom-report-fields-title">Data Fields</h2>
                         </div>
                         <span className="custom-report-builder-count">
-                            {rawData?.fields.length || 0}
+                            {builderFields.length + unavailableBuilderFields.length}
                         </span>
                     </header>
 
@@ -308,36 +395,67 @@ function CustomReportBuilder({ onBack, loadReport }) {
                             {dataError.message || "The raw report data could not be loaded."}
                         </p>
                     )}
-                    {!isDataLoading && !dataError && rawData?.fields.length === 0 && (
-                        <p className="custom-report-builder-message">No data fields were returned.</p>
+                    {!isDataLoading && !dataError && rawData && builderFields.length === 0 && (
+                        <p className="custom-report-builder-message">None of the supported report fields were returned.</p>
                     )}
-                    {!isDataLoading && rawData?.fields.length > 0 && (
-                        <div className="custom-report-builder-field-list" aria-label="Available data fields">
-                            {rawData.fields.map((field) => {
-                                const isNumeric = rawData.columnTypes[field] === "number";
-
-                                return (
+                    {!isDataLoading && rawData && builderFields.length > 0 && (
+                        <>
+                            {(unavailableBuilderFields.length > 0 ||
+                                !builderFieldByName.get("__customReportRevenue")?.isAvailable) && (
+                                <p className="custom-report-builder-message custom-report-builder-field-notice">
+                                    {unavailableBuilderFields.length > 0 && (
+                                        <>Not returned by this API: {unavailableBuilderFields.map(({label}) => label).join(", ")}.</>
+                                    )}
+                                    {!builderFieldByName.get("__customReportRevenue")?.isAvailable && (
+                                        <> Revenue is disabled because this API response does not contain a numeric ECV field.</>
+                                    )}
+                                </p>
+                            )}
+                            <div className="custom-report-builder-field-list" aria-label="Available data fields">
+                                {builderFields.map(({field, isAvailable, isNumeric, label, sourceField}) => (
                                     <button
-                                        className="custom-report-builder-field-chip"
+                                        className={isAvailable
+                                            ? "custom-report-builder-field-chip"
+                                            : "custom-report-builder-field-chip is-unavailable"}
                                         type="button"
                                         key={field}
-                                        draggable
-                                        title="Drag or click to add this field to your chart"
+                                        draggable={isAvailable}
+                                        disabled={!isAvailable}
+                                        title={!isAvailable
+                                            ? "Unavailable: no numeric ECV field was returned by the API"
+                                            : isNumeric
+                                                ? `Numeric Y-axis measure (API field: ${sourceField})`
+                                                : `Categorical/date X-axis dimension or Y-axis breakdown (API field: ${sourceField})`}
                                         onDragStart={(event) => {
+                                            if (!isAvailable) {
+                                                return;
+                                            }
                                             event.dataTransfer.setData(FIELD_TRANSFER_TYPE, field);
                                             event.dataTransfer.setData("text/plain", field);
                                             event.dataTransfer.effectAllowed = "copy";
                                         }}
                                         onClick={() => addField(field)}
                                     >
-                                        <span>{fieldLabels[field] || field}</span>
+                                        <span>{label}</span>
                                         <span className="custom-report-builder-field-type">
-                                            {isNumeric ? "123" : "Aa"}
+                                            {!isAvailable ? "Unavailable" : isNumeric ? "123" : "Aa"}
                                         </span>
                                     </button>
-                                );
-                            })}
-                        </div>
+                                ))}
+                                {unavailableBuilderFields.map(({id, label}) => (
+                                    <button
+                                        className="custom-report-builder-field-chip is-unavailable"
+                                        type="button"
+                                        key={`unavailable-${id}`}
+                                        disabled
+                                        title={`${label} was not returned by the API`}
+                                    >
+                                        <span>{label}</span>
+                                        <span className="custom-report-builder-field-type">Unavailable</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </section>
 
@@ -371,22 +489,19 @@ function CustomReportBuilder({ onBack, loadReport }) {
             </aside>
 
             <section className="custom-report-builder-content" aria-label="Custom report workspace">
-                <header className="custom-report-builder-page-header">
-                    <div>
-                        <h1>Custom Report Builder</h1>
-                        <p>Arrange fields, build a chart, and explore report catalogue views.</p>
-                    </div>
-                    <button className="custom-report-builder-back" type="button" onClick={onBack}>
-                        Back to reports
-                    </button>
-                </header>
+
+                {rawData && !filteredRawDataResult.isFilterable && (
+                    <p className="custom-report-builder-filter-notice" role="status">
+                        No Financial Year or date field was returned, so the selected year range cannot filter these records.
+                    </p>
+                )}
 
                 <section className="custom-report-builder-panel" aria-labelledby="custom-report-chart-builder-title">
                     <header className="custom-report-builder-panel-header">
                         <div>
                             <h2 id="custom-report-chart-builder-title">Build your Chart</h2>
                             <p className="custom-report-builder-builder-hint">
-                                Add field chips, then toggle X or Y on each one.
+                                Select/Drag your fields to plot the chart
                             </p>
                         </div>
                         <span className="custom-report-builder-selected-count">
@@ -403,9 +518,14 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         onDrop={handleFieldDrop}
                     >
                         {selectedFields.length > 0 ? selectedFields.map((field) => {
-                            const isNumeric = rawData?.columnTypes[field] === "number";
+                            const definition = builderFields.find((item) => item.field === field);
+                            const isNumeric = definition?.isNumeric || false;
                             const isXSelected = selectedXFields.includes(field);
                             const isYSelected = selectedYFields.includes(field);
+                            const hasAnotherCategoricalY = !isNumeric &&
+                                selectedYFields.some((item) =>
+                                    item !== field && !builderFieldByName.get(item)?.isNumeric
+                                );
 
                             return (
                                 <span className="custom-report-builder-selected-chip-wrap" key={field}>
@@ -419,6 +539,7 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                                 type="button"
                                                 aria-pressed={isXSelected}
                                                 aria-label={`${isXSelected ? "Remove from" : "Add to"} X axis`}
+                                                disabled={isNumeric || isYSelected}
                                                 onClick={() => toggleAxis("x", field)}
                                             >
                                                 X
@@ -427,8 +548,11 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                                 className={isYSelected ? "custom-report-builder-axis-toggle is-selected" : "custom-report-builder-axis-toggle"}
                                                 type="button"
                                                 aria-pressed={isYSelected}
-                                                aria-label={`${isYSelected ? "Remove from" : "Add to"} Y axis`}
-                                                disabled={!isNumeric}
+                                                aria-label={`${isYSelected ? "Remove from" : "Add to"} Y axis${!isNumeric ? " as a breakdown" : ""}`}
+                                                title={hasAnotherCategoricalY && !isYSelected
+                                                        ? "Only one categorical Y-axis breakdown can be selected at a time"
+                                                    : !isNumeric && isXSelected ? "Adds this field as the Y-axis breakdown" : ""}
+                                                disabled={!isNumeric && hasAnotherCategoricalY && !isYSelected}
                                                 onClick={() => toggleAxis("y", field)}
                                             >
                                                 Y
@@ -460,15 +584,21 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         </div>
                     </header>
                     <div className="custom-report-builder-main-chart">
-                        {builderChart ? (
+                        {builderView?.chart ? (
                             <ChartRenderer
-                                chartData={builderChart.chartData}
-                                chartType={builderChart.chartType}
+                                chartData={builderView.chart.chartData}
+                                chartType={builderView.chart.chartType}
+                                chartTitles={builderView.chart.chartTitles}
                                 richChart
+                                fillAvailableSpace
                             />
                         ) : (
                             <p className="custom-report-builder-empty">
-                                Select at least one X-axis field and one numeric Y-axis field to build your chart.
+                                {builderView?.includedRowCount === 0
+                                    ? "No rows match the selected financial year range."
+                                    : filteredRawData?.rows.length === 0
+                                    ? `No records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
+                                    : "Select at least one X-axis field and one Y-axis field to build an aggregated chart."}
                             </p>
                         )}
                     </div>
@@ -478,22 +608,43 @@ function CustomReportBuilder({ onBack, loadReport }) {
                     <header className="custom-report-builder-panel-header">
                         <div>
                             <h2 id="custom-report-table-title">Data Table</h2>
+                            {builderView && (
+                                <p className="custom-report-builder-builder-hint">
+                                    {builderView.includedRowCount.toLocaleString("en-IN")} source rows aggregated into {builderView.data.rows.length.toLocaleString("en-IN")} groups.
+                                </p>
+                            )}
                         </div>
-                        {rawData && <span className="custom-report-builder-selected-count">{rawData.rows.length} records</span>}
+                        {builderView && (
+                            <span className="custom-report-builder-selected-count">
+                                {builderView.data.rows.length.toLocaleString("en-IN")} groups
+                            </span>
+                        )}
                     </header>
+                    {builderView?.tenderValueRowsWithoutTenderId > 0 &&
+                        selectedYFields.some((field) =>
+                            ["ecv", "revenue"].includes(builderFieldByName.get(field)?.id)
+                        ) && (
+                            <p className="custom-report-builder-filter-notice" role="status">
+                                {builderView.tenderValueRowsWithoutTenderId.toLocaleString("en-IN")} source rows with ECV have no Tender ID, so those values are summed per row.
+                            </p>
+                        )}
                     <div className="custom-report-builder-table">
-                        {rawData && selectedFields.length > 0 ? (
+                        {builderView && builderView.data.rows.length > 0 ? (
                             <DataTable
-                                data={rawData}
-                                revenueDisplayConfig={revenueDisplayConfig}
-                                columnTypes={rawData.columnTypes}
-                                dataTypes={rawData.dataTypes}
-                                fieldLabels={fieldLabels}
-                                visibleFields={selectedFields}
+                                data={builderView.data}
+                                revenueDisplayConfig={builderView.revenueDisplayConfig}
+                                columnTypes={builderView.data.columnTypes}
+                                dataTypes={builderView.data.dataTypes}
+                                fieldLabels={builderView.fieldLabels}
+                                visibleFields={builderView.data.fields}
                             />
                         ) : (
                             <p className="custom-report-builder-empty">
-                                Add fields to the X or Y axis to display matching columns here.
+                                {builderView?.includedRowCount === 0
+                                    ? "No rows match the selected financial year range."
+                                    : rawData && filteredRawData?.rows.length === 0
+                                    ? `No records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
+                                    : "Add an X-axis dimension and at least one Y-axis total or categorical breakdown to see aggregated results."}
                             </p>
                         )}
                     </div>
@@ -510,9 +661,15 @@ function CustomReportBuilder({ onBack, loadReport }) {
                         <div className="custom-report-builder-chart-grid">
                             {REPORT_CATALOGUE.filter((item) => selectedCatalogueIds.includes(item.id)).map((item) => {
                                 const reportData = catalogueData[item.id];
+                                const filteredCatalogueResult = filterDataByFinancialYears(
+                                    reportData,
+                                    fromFinancialYear,
+                                    toFinancialYear
+                                );
+                                const filteredCatalogueData = filteredCatalogueResult.data;
                                 const labels = reportData ? getFieldLabels(reportData.fields) : {};
                                 const chart = createChartView(
-                                    reportData,
+                                    filteredCatalogueData,
                                     item.chartType,
                                     labels,
                                     reportData ? getRevenueDisplayConfig(reportData) : {}
@@ -542,7 +699,16 @@ function CustomReportBuilder({ onBack, loadReport }) {
                                             </div>
                                         )}
                                         {!catalogueLoading[item.id] && !catalogueErrors[item.id] && reportData && !chart && (
-                                            <p className="custom-report-builder-message">This report has no chartable records.</p>
+                                            <p className="custom-report-builder-message">
+                                                {filteredCatalogueResult.isFilterable
+                                                    ? `No chartable records found for ${formatFinancialYearLabel(fromFinancialYear)} to ${formatFinancialYearLabel(toFinancialYear)}.`
+                                                    : "This report has no chartable records."}
+                                            </p>
+                                        )}
+                                        {reportData && !filteredCatalogueResult.isFilterable && (
+                                            <p className="custom-report-builder-message">
+                                                No financial year or date field was returned; this chart is unfiltered.
+                                            </p>
                                         )}
                                     </article>
                                 );
