@@ -1,0 +1,93 @@
+/* ============================================
+   UPDATE TICKET FORM (inside detail panel)
+   ============================================ */
+
+.update-form {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}
+
+.update-header h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4765BA;
+  margin: 0 0 12px;
+}
+
+.update-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.field.full { grid-column: 1 / -1; }
+
+.field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.field select,
+.field textarea,
+.field input {
+  padding: 8px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.field select:focus,
+.field textarea:focus,
+.field input:focus {
+  border-color: #4765BA;
+  box-shadow: 0 0 0 3px rgba(71,101,186,0.1);
+}
+
+.field textarea { resize: vertical; }
+
+.update-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #4765BA, #5a7dd6);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(71,101,186,0.3);
+}
+
+@media (max-width: 640px) {
+  .update-grid { grid-template-columns: 1fr; }
+}

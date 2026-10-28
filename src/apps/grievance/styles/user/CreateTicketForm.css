@@ -1,0 +1,397 @@
+/* ============================================================
+   CREATE TICKET FORM — Matching Admin Style
+   ============================================================ */
+
+.create-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 22px;
+  position: sticky;
+  top: 20px;
+}
+
+.create-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef1f7;
+  margin-bottom: 18px;
+}
+
+.create-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #eef2fb;
+  color: #4765BA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.create-card-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.create-card-header p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cf-field > label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cf-field .req {
+  color: #ef4444;
+  margin-left: 3px;
+}
+
+.cf-field input,
+.cf-field select,
+.cf-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  color: #1f2937;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.cf-field input:hover:not(.readonly),
+.cf-field select:hover,
+.cf-field textarea:hover {
+  border-color: #cbd5e1;
+}
+
+.cf-field input:focus,
+.cf-field select:focus,
+.cf-field textarea:focus {
+  border-color: #4765BA;
+  box-shadow: 0 0 0 3px rgba(71, 101, 186, 0.12);
+}
+
+.cf-field input.has-error,
+.cf-field select.has-error,
+.cf-field textarea.has-error {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+.cf-field input.readonly {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+  font-size: 12px;
+}
+
+.cf-field textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+.cf-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cf-error {
+  font-size: 11px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.cf-field-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.cf-counter {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: auto;
+}
+
+.cf-counter.warn { color: #d97706; }
+.cf-counter.danger { color: #dc2626; }
+
+/* Priority chips */
+.priority-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.priority-chip {
+  padding: 9px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  text-align: center;
+}
+
+.priority-chip:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.priority-chip.high.active {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+.priority-chip.medium.active {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+.priority-chip.low.active {
+  background: #dcfce7;
+  border-color: #10b981;
+  color: #16a34a;
+}
+
+/* Upload */
+.cf-upload {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  background: #fafbff;
+  color: #4765BA;
+  transition: all 0.2s;
+}
+
+.cf-upload:hover {
+  border-color: #4765BA;
+  background: #f0f4ff;
+}
+
+.cf-upload.is-dragging {
+  border-color: #4765BA;
+  background: #e8edf8;
+}
+
+.cf-upload.has-file {
+  border-color: #10b981;
+  border-style: solid;
+  background: #f0fdf4;
+  color: #059669;
+}
+
+.cf-upload-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 8px;
+}
+
+.cf-upload-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.cf-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.cf-file-chip button {
+  border: none;
+  background: transparent;
+  color: #16a34a;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 2px;
+}
+
+/* Submit */
+.cf-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.cf-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: #4765BA;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(71, 101, 186, 0.28);
+  width: 100%;
+  font-family: inherit;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.cf-btn-primary:hover:not(:disabled) {
+  background: #3a559f;
+  box-shadow: 0 6px 16px rgba(71, 101, 186, 0.35);
+}
+
+.cf-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success screen */
+.create-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 50px 22px 60px;
+  text-align: center;
+}
+
+.create-success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-success h3 {
+  margin: 8px 0 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.create-success p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .cf-row-2 { grid-template-columns: 1fr; }
+  .create-card { position: static; }
+}
+
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1000px) {
+  .create-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+  .create-card-header {
+    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+  }
+  .create-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+  .create-card-header h2 {
+    font-size: 14px;
+  }
+  .create-card-header p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .create-card {
+    padding: 16px;
+  }
+  .cf-row-2 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .priority-group {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .create-card {
+    padding: 14px;
+  }
+  .cf-field input,
+  .cf-field select,
+  .cf-field textarea {
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+}

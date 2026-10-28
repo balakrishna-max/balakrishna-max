@@ -1,0 +1,44 @@
+/* ============================================================
+   DASHBOARD LOADER
+   ============================================================ */
+
+.grv-dash-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.grv-dash-loader-logo-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.grv-dash-loader-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #425466;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+/* Dark mode variant */
+body.grv-admin-dark .grv-dash-loader {
+  background: rgba(10, 15, 30, 0.92);
+}
+
+body.grv-admin-dark .grv-dash-loader-text {
+  color: #8b95a8;
+}

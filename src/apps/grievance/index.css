@@ -1,0 +1,75 @@
+/* ============================================
+   GRIEVANCE REACT — Entry CSS
+   Imports all component styles
+   ============================================ */
+
+/* Global */
+@import './styles/global.css';
+
+
+
+
+
+
+/* Shared modals */
+@import './styles/admin/UniversalModal.css';
+
+/* Grievance (end-user) Bidder pages */
+@import './styles/grievance/TicketForm.css';
+@import './styles/grievance/TicketConfirmation.css';
+@import './styles/grievance/TicketTracking.css';
+
+
+/* Grievance (end-user)dept pages */
+/* ============================================================
+   DEPT GRIEVANCE — component styles
+   ============================================================ */
+
+@import './styles/deptGrievance/grievance.css';
+@import './styles/deptGrievance/TicketForm.css';
+@import './styles/deptGrievance/TicketConfirmation.css';
+@import './styles/deptGrievance/TicketTracking.css';
+@import './styles/deptGrievance/ChatbotWidget.css';
+@import './styles/deptGrievance/darkMode.css';
+
+
+
+/* ============================================================
+   DEPT DASHBOARD
+   ============================================================ */
+@import './styles/deptDashboard/DeptDashboard.css';
+@import './styles/deptDashboard/StatCards.css';
+@import './styles/deptDashboard/CreateTicketForm.css';
+@import './styles/deptDashboard/TicketsList.css';
+@import './styles/deptDashboard/CommentsModal.css';
+@import './styles/deptDashboard/HistoryModal.css';
+@import './styles/deptDashboard/FeedbackModal.css';
+@import './styles/deptDashboard/darkMode.css';
+
+
+
+
+
+/* Admin dashboard */
+@import './styles/admin/AdminDashboard.css';
+@import './styles/admin/AnalyticsCards.css';
+@import './styles/admin/TicketsTable.css';
+@import './styles/admin/TicketDetailsPanel.css';
+@import './styles/admin/FilterPanel.css';
+@import './styles/admin/UpdateTicketForm.css';
+@import './styles/admin/HistoryModal.css';
+@import './styles/admin/SlaModal.css';
+@import './styles/admin/CommentsModal.css';
+
+
+
+/* User / Supplier */
+@import './styles/user/UserDashboard.css';
+@import './styles/user/StatCards.css';
+@import './styles/user/CreateTicketForm.css';
+@import './styles/user/TicketsList.css';
+@import './styles/user/FeedbackModal.css';
+@import './styles/user/HistoryModal.css';
+
+
+

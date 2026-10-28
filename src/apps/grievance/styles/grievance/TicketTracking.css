@@ -1,0 +1,107 @@
+/* ============================================
+   GRIEVANCE — Ticket Tracking (timeline)
+   ============================================ */
+
+.grv-timeline {
+  position: relative;
+  padding-left: 40px;
+}
+
+.grv-timeline::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--a2z-border);
+}
+
+.grv-tl-item {
+  position: relative;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: #fff;
+  border: 1px solid var(--a2z-border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.grv-tl-item.done {
+  border-color: #b0ecc9;
+  background: #f4fdf9;
+}
+
+.grv-tl-item.current {
+  border-color: var(--a2z-warning);
+  background: #fffbf0;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.15);
+}
+
+.grv-tl-icon {
+  position: absolute;
+  left: -40px;
+  top: 16px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #eef1f8;
+  color: var(--a2z-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border: 3px solid var(--a2z-bg);
+  z-index: 1;
+}
+
+.grv-tl-item.done .grv-tl-icon {
+  background: var(--a2z-success);
+  color: #fff;
+}
+
+.grv-tl-item.current .grv-tl-icon {
+  background: var(--a2z-warning);
+  color: #fff;
+  animation: pulseTimeline 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseTimeline {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+  50%      { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+}
+
+.grv-tl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.grv-tl-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--a2z-text);
+}
+
+.grv-tl-item.done .grv-tl-title { color: var(--a2z-success); }
+.grv-tl-item.current .grv-tl-title { color: var(--a2z-warning); }
+
+.grv-tl-time {
+  font-size: 11px;
+  color: var(--a2z-text-muted);
+  background: var(--a2z-bg);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.grv-tl-desc {
+  font-size: 13px;
+  color: var(--a2z-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}

@@ -121,7 +121,25 @@ export default function FormBuilder({ mode, sourceFormId, initialLayout, onExit,
     getDepartments().then(setDepartments).catch((e) => console.error('Department list failed', e));
   }, []);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   if (mode === 'new' || hydrated.current) return;
+  //   hydrated.current = true;
+  //   getFormDetails(sourceFormId)
+  //     .then(({ json, department: dep }) => {
+  //       const f = fromSavedJson(json);
+  //       dispatch({ type: 'INIT', ...f });
+  //       if (mode === 'edit') savedJsonRef.current = json;
+  //       if (dep) setDepartment(dep);
+  //     })
+  //     .catch((e) => {
+  //       console.error(e);
+  //       setLoadError(e.message || 'The form could not be loaded.');
+  //     })
+  //     .finally(() => setLoading(false));
+  // }, [mode, sourceFormId]);
+
+
+    useEffect(() => {
     if (mode === 'new' || hydrated.current) return;
     hydrated.current = true;
     getFormDetails(sourceFormId)
@@ -138,12 +156,6 @@ export default function FormBuilder({ mode, sourceFormId, initialLayout, onExit,
       .finally(() => setLoading(false));
   }, [mode, sourceFormId]);
 
-
-  useEffect(() => {
-    const h = (e) => { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } };
-    window.addEventListener('beforeunload', h);
-    return () => window.removeEventListener('beforeunload', h);
-  }, [state.dirty]);
 
   const addElement = useCallback((key, index) => {
     const created = ELEMENTS[key].create(state.items);
