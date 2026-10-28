@@ -1,0 +1,288 @@
+/* ============================================================
+   DEPT GRIEVANCE — Ticket Confirmation (supplier-matched)
+   ============================================================ */
+
+/* Success card */
+.grv-success {
+  text-align: center;
+  padding: 32px 24px;
+}
+
+/* Flat green circle with icon — no ring animation */
+.grv-success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+/* Title */
+.grv-success-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #1f2937;
+  letter-spacing: -0.3px;
+}
+
+/* Ticket ID pill */
+.grv-ticket-id {
+  display: inline-block;
+  background: #e8edf8;
+  color: #4765BA;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Message */
+.grv-success-msg {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 28px;
+}
+
+/* Detail grid — 3 columns, supplier-style */
+.grv-confirm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  text-align: left;
+  max-width: 720px;
+  margin: 0 auto 28px;
+}
+
+/* Detail box — matches supplier .grv-detail-box */
+.grv-detail-box {
+  background: #f8f9fb;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.grv-detail-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.grv-detail-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  word-break: break-word;
+}
+
+/* Priority badge */
+.grv-priority-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grv-priority-badge.high   { background: #fee2e2; color: #dc2626; }
+.grv-priority-badge.medium { background: #fef3c7; color: #d97706; }
+.grv-priority-badge.low    { background: #dcfce7; color: #16a34a; }
+
+/* Action buttons — inline, right-aligned like supplier */
+.grv-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* ---- Optional steps/FAQ section below the fold ---- */
+.grv-success-extra {
+  text-align: left;
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.grv-success-extra .grv-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.grv-success-extra .grv-section-header h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: #1f2937;
+}
+
+.grv-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #4765BA;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.grv-link-btn:hover { background: #eef2fb; }
+
+/* Steps */
+.grv-step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.grv-step-row:last-child { border-bottom: none; }
+
+.grv-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef2fb;
+  color: #4765BA;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.grv-step-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  padding-top: 4px;
+}
+
+/* FAQ */
+.grv-faq {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.grv-faq summary {
+  padding: 14px 18px;
+  background: #fafbfd;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grv-faq summary::after {
+  content: '+';
+  font-size: 18px;
+  color: #6b7280;
+}
+
+.grv-faq[open] summary::after { content: '−'; }
+.grv-faq summary:hover { background: #f2f4f7; }
+
+.grv-faq-body {
+  padding: 14px 18px;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.grv-faq-body p {
+  font-size: 13.5px;
+  color: #4b5563;
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.grv-faq-body p:last-child { margin-bottom: 0; }
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+body.grv-ticket-dark .grv-success-title { color: #f1f5f9; }
+body.grv-ticket-dark .grv-success-msg   { color: #94a3b8; }
+
+body.grv-ticket-dark .grv-ticket-id {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+
+body.grv-ticket-dark .grv-success-icon {
+  background: #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+body.grv-ticket-dark .grv-detail-box {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.grv-ticket-dark .grv-detail-label { color: #94a3b8; }
+body.grv-ticket-dark .grv-detail-value { color: #f1f5f9; }
+
+body.grv-ticket-dark .grv-priority-badge.high   { background: #7f1d1d; color: #fca5a5; }
+body.grv-ticket-dark .grv-priority-badge.medium { background: #78350f; color: #fcd34d; }
+body.grv-ticket-dark .grv-priority-badge.low    { background: #064e3b; color: #6ee7b7; }
+
+body.grv-ticket-dark .grv-success-extra { border-top-color: #334155; }
+body.grv-ticket-dark .grv-success-extra .grv-section-header h3 { color: #f1f5f9; }
+body.grv-ticket-dark .grv-step-row { border-bottom-color: #334155; }
+body.grv-ticket-dark .grv-step-num { background: #1e3a8a; color: #93c5fd; }
+body.grv-ticket-dark .grv-step-text { color: #cbd5e1; }
+
+body.grv-ticket-dark .grv-faq { border-color: #334155; }
+body.grv-ticket-dark .grv-faq summary {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+body.grv-ticket-dark .grv-faq-body {
+  background: #1e293b;
+  border-top-color: #334155;
+}
+body.grv-ticket-dark .grv-faq-body p { color: #cbd5e1; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .grv-success { padding: 24px 16px; }
+  .grv-success-icon { width: 64px; height: 64px; }
+  .grv-success-title { font-size: 18px; }
+  .grv-ticket-id { font-size: 15px; padding: 6px 14px; }
+  .grv-confirm-grid { grid-template-columns: 1fr; gap: 10px; }
+  .grv-actions { flex-direction: column; }
+  .grv-actions .grv-btn { width: 100%; }
+}

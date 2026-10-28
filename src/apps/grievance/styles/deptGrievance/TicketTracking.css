@@ -1,0 +1,303 @@
+/* ============================================================
+   DEPT GRIEVANCE — Ticket Tracking
+   ============================================================ */
+
+/* ---------- Loading / Error ---------- */
+.grv-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.grv-error-state { color: #dc2626; }
+
+.spin { animation: grvSpin 1s linear infinite; }
+@keyframes grvSpin { to { transform: rotate(360deg); } }
+
+/* ---------- Ticket ID bar ---------- */
+.grv-ticket-id-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #f8f9fb;      /* was #f7f9fc */
+  border: 1px solid #e5e7eb; /* new */
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.grv-ticket-id-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+}
+
+.grv-ticket-id-value {
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #4765BA;
+  letter-spacing: 0.3px;
+}
+
+/* ---------- Timeline ---------- */
+.grv-timeline {
+  position: relative;
+  padding-left: 44px;
+  margin-bottom: 20px;
+}
+
+.grv-timeline::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+
+/* Timeline item */
+.grv-tl-item {
+  position: relative;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.grv-tl-item:last-child { margin-bottom: 0; }
+
+.grv-tl-item.done {
+  border-color: #b0ecc9;
+  background: #f4fdf9;
+}
+
+.grv-tl-item.current {
+  border-color: #f59e0b;
+  background: #fffbf0;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.15);
+}
+
+.grv-tl-item.pending {
+  opacity: 0.85;
+}
+
+/* ---------- Timeline icon node ---------- */
+.grv-tl-icon {
+  position: absolute;
+  left: -44px;
+  top: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef1f8;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  z-index: 2;
+  box-shadow: 0 0 0 2px #e5e7eb;
+}
+
+/* Force the SVG icon to be visible */
+.grv-tl-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+}
+
+.grv-tl-icon.done {
+  background: #10b981;
+  color: #fff;
+  box-shadow: 0 0 0 2px #d1fae5, 0 4px 12px rgba(16, 185, 129, 0.28);
+}
+
+.grv-tl-icon.current {
+  background: #f59e0b;
+  color: #fff;
+  box-shadow: 0 0 0 2px #fef3c7, 0 0 0 6px rgba(245, 158, 11, 0.15);
+  animation: pulseTimeline 1.8s ease-in-out infinite;
+}
+
+.grv-tl-icon.pending {
+  background: #eef1f8;
+  color: #9ca3af;
+}
+
+@keyframes pulseTimeline {
+  0%, 100% { box-shadow: 0 0 0 2px #fef3c7, 0 0 0 6px rgba(245, 158, 11, 0.15); }
+  50%      { box-shadow: 0 0 0 2px #fef3c7, 0 0 0 12px rgba(245, 158, 11, 0); }
+}
+
+/* ---------- Header row ---------- */
+.grv-tl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.grv-tl-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+.grv-tl-title.done    { color: #10b981; }
+.grv-tl-title.current { color: #d97706; }
+.grv-tl-title.pending { color: #6b7280; }
+
+/* Time chip */
+.grv-tl-time {
+  font-size: 11px;
+  color: #6b7280;
+  background: #f7f9fc;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Description */
+.grv-tl-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Auto-assign pill */
+.grv-tl-badge-row { margin-top: 8px; }
+
+.grv-tl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #eef2fb;
+  color: #4765BA;
+  border: 1px solid #dbe3f8;
+}
+
+/* Latest comment box */
+.grv-tl-comment {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-left: 3px solid #4765BA;
+  border-radius: 8px;
+}
+
+.grv-tl-comment-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4765BA;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.grv-tl-comment p {
+  margin: 0;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- Dark mode ---------- */
+body.grv-ticket-dark .grv-timeline::before { background: #334155; }
+
+body.grv-ticket-dark .grv-tl-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.grv-ticket-dark .grv-tl-item.done {
+  background: #0f2a20;
+  border-color: #065f46;
+}
+
+body.grv-ticket-dark .grv-tl-item.current {
+  background: #2a1f0a;
+  border-color: #d97706;
+}
+
+body.grv-ticket-dark .grv-tl-icon {
+  background: #334155;
+  color: #94a3b8;
+  border-color: #1e293b;
+  box-shadow: 0 0 0 2px #334155;
+}
+
+body.grv-ticket-dark .grv-tl-icon.pending {
+  background: #334155;
+  color: #64748b;
+}
+
+body.grv-ticket-dark .grv-tl-title { color: #f1f5f9; }
+body.grv-ticket-dark .grv-tl-title.done    { color: #34d399; }
+body.grv-ticket-dark .grv-tl-title.current { color: #fbbf24; }
+body.grv-ticket-dark .grv-tl-title.pending { color: #94a3b8; }
+
+body.grv-ticket-dark .grv-tl-time {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+body.grv-ticket-dark .grv-tl-desc { color: #94a3b8; }
+
+body.grv-ticket-dark .grv-tl-pill {
+  background: #1e3a8a;
+  color: #93c5fd;
+  border-color: #1e40af;
+}
+
+body.grv-ticket-dark .grv-tl-comment {
+  background: #0f172a;
+  border-left-color: #60a5fa;
+}
+
+body.grv-ticket-dark .grv-tl-comment-label { color: #93c5fd; }
+body.grv-ticket-dark .grv-tl-comment p     { color: #cbd5e1; }
+
+body.grv-ticket-dark .grv-ticket-id-bar { background: #1e293b; }
+body.grv-ticket-dark .grv-ticket-id-label { color: #94a3b8; }
+body.grv-ticket-dark .grv-ticket-id-value { color: #93c5fd; }
+
+body.grv-ticket-dark .grv-loading { color: #94a3b8; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .grv-timeline { padding-left: 36px; }
+  .grv-timeline::before { left: 12px; }
+  .grv-tl-icon { left: -36px; width: 24px; height: 24px; }
+  .grv-tl-icon svg { width: 12px; height: 12px; }
+  .grv-tl-item { padding: 12px 14px; }
+  .grv-tl-header { flex-direction: column; gap: 4px; }
+  .grv-tl-time { align-self: flex-start; }
+}

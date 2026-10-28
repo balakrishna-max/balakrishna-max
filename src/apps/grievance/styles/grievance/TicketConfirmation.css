@@ -1,0 +1,191 @@
+/* ============================================================
+   TICKET CONFIRMATION
+   ============================================================ */
+
+/* Success layout */
+.grv-success {
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.grv-success-icon {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4f5e3, #b0ecc9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #10b981;
+  margin-bottom: 20px;
+  animation: pulseSuccess 2s ease-in-out infinite;
+}
+
+@keyframes pulseSuccess {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50%      { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+}
+
+.grv-success-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #1f2937;
+}
+
+.grv-ticket-id {
+  display: inline-block;
+  background: #e8edf8;
+  color: #4765BA;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  font-family: 'Courier New', monospace;
+}
+
+.grv-success-msg {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 28px;
+}
+
+/* Confirm details grid */
+.grv-confirm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  text-align: left;
+  max-width: 720px;
+  margin: 0 auto 28px;
+}
+
+/* Detail box */
+.grv-detail-box {
+  background: #f8f9fb;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.grv-detail-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.grv-detail-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  word-break: break-word;
+}
+
+/* Priority badge */
+.grv-priority-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grv-priority-badge.high { background: #fee2e2; color: #dc2626; }
+.grv-priority-badge.medium { background: #fef3c7; color: #d97706; }
+.grv-priority-badge.low { background: #dcfce7; color: #16a34a; }
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+body.grv-ticket-dark .grv-success-title,
+.grv-ticket-dark .grv-success-title {
+  color: #f1f5f9 !important;
+}
+
+body.grv-ticket-dark .grv-success-msg,
+.grv-ticket-dark .grv-success-msg {
+  color: #94a3b8 !important;
+}
+
+body.grv-ticket-dark .grv-ticket-id,
+.grv-ticket-dark .grv-ticket-id {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+body.grv-ticket-dark .grv-success-icon,
+.grv-ticket-dark .grv-success-icon {
+  background: linear-gradient(135deg, #064e3b, #065f46) !important;
+  color: #6ee7b7 !important;
+}
+
+body.grv-ticket-dark .grv-detail-box,
+.grv-ticket-dark .grv-detail-box {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+body.grv-ticket-dark .grv-detail-label,
+.grv-ticket-dark .grv-detail-label {
+  color: #94a3b8 !important;
+}
+
+body.grv-ticket-dark .grv-detail-value,
+.grv-ticket-dark .grv-detail-value {
+  color: #f1f5f9 !important;
+}
+
+/* Dark mode priority badges — darker backgrounds */
+body.grv-ticket-dark .grv-priority-badge.high,
+.grv-ticket-dark .grv-priority-badge.high {
+  background: #7f1d1d !important;
+  color: #fca5a5 !important;
+}
+
+body.grv-ticket-dark .grv-priority-badge.medium,
+.grv-ticket-dark .grv-priority-badge.medium {
+  background: #78350f !important;
+  color: #fcd34d !important;
+}
+
+body.grv-ticket-dark .grv-priority-badge.low,
+.grv-ticket-dark .grv-priority-badge.low {
+  background: #064e3b !important;
+  color: #6ee7b7 !important;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .grv-success {
+    padding: 16px 8px;
+  }
+  .grv-success-icon {
+    width: 72px;
+    height: 72px;
+  }
+  .grv-success-title {
+    font-size: 18px;
+  }
+  .grv-ticket-id {
+    font-size: 15px;
+    padding: 6px 12px;
+  }
+  .grv-confirm-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .grv-actions {
+    flex-direction: column;
+  }
+  .grv-actions .grv-btn {
+    width: 100%;
+  }
+}

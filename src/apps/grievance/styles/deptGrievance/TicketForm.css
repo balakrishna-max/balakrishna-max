@@ -1,0 +1,202 @@
+/* Meta grid with icons */
+.grv-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9ff, #eef2fb);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.grv-meta-item { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.grv-meta-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4765BA;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.grv-meta-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.grv-meta-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Form grid */
+.grv-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.grv-form-group { margin-bottom: 20px; min-width: 0; }
+
+.grv-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.grv-label-req { color: #ef4444; margin-left: 2px; }
+
+.grv-input,
+.grv-select,
+.grv-textarea {
+  width: 100% !important;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.grv-input:focus,
+.grv-select:focus,
+.grv-textarea:focus {
+  border-color: #4765BA;
+  box-shadow: 0 0 0 4px rgba(71, 101, 186, 0.1);
+}
+
+.grv-input.error,
+.grv-select.error,
+.grv-textarea.error {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+.grv-textarea { resize: vertical; min-height: 110px; }
+
+.grv-error-msg {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grv-counter-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.grv-counter { font-size: 11px; color: #9ca3af; }
+
+/* Upload */
+.grv-upload {
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafbff;
+}
+
+.grv-upload:hover { border-color: #4765BA; background: #eef2f8; }
+
+.grv-upload.dragover {
+  border-color: #4765BA;
+  background: #e8edf8;
+  transform: scale(1.01);
+}
+
+.grv-upload-icon { color: #4765BA; margin-bottom: 8px; display: flex; justify-content: center; }
+.grv-upload-text { font-size: 13px; color: #1f2937; font-weight: 500; }
+.grv-upload-hint { font-size: 11px; color: #6b7280; margin-top: 4px; }
+
+.grv-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef2f8;
+  color: #4765BA;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+/* Buttons */
+.grv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.grv-btn-primary {
+  background: linear-gradient(135deg, #4765BA, #5a7dd6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(71, 101, 186, 0.3);
+}
+
+.grv-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(71, 101, 186, 0.4);
+}
+
+.grv-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.grv-btn-block { width: 100%; }
+
+.grv-btn-secondary {
+  background: #fff;
+  color: #425466;
+  border: 1.5px solid #e5e7eb;
+}
+
+.grv-btn-secondary:hover {
+  background: #f7f9fc;
+  color: #1f2937;
+  border-color: #d1d5db;
+}
+
+.grv-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.spin { animation: grvSpin 1s linear infinite; }
+@keyframes grvSpin { to { transform: rotate(360deg); } }

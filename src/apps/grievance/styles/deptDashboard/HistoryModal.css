@@ -1,0 +1,333 @@
+.dept-history-modal-box { max-width: 800px; }
+
+.dept-history-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #eef1f7;
+  background: linear-gradient(135deg, #f9fbff 0%, #f3f6fd 100%);
+}
+
+.dept-history-modal-title { display: flex; align-items: center; gap: 14px; }
+
+.dept-history-modal-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: #4765BA;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(71, 101, 186, 0.3);
+}
+
+.dept-history-modal-title h2 { margin: 0; font-size: 16px; font-weight: 700; color: #111827; }
+.dept-history-modal-title p  { margin: 2px 0 0; font-size: 12px; color: #6b7280; }
+
+.dept-history-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.dept-history-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.dept-history-timeline { position: relative; padding-left: 8px; }
+
+.dept-history-timeline-item {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding: 4px 0 20px;
+}
+
+.dept-history-timeline-item:last-child { padding-bottom: 0; }
+
+.dept-history-timeline-node {
+  flex-shrink: 0;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #e5e7eb;
+  z-index: 2;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px #e5e7eb;
+}
+
+.dept-history-timeline-node.done {
+  background: #10b981;
+  box-shadow: 0 0 0 2px #d1fae5, 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+
+.dept-history-timeline-node.current {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px #fef3c7, 0 0 0 6px rgba(245, 158, 11, 0.15);
+  animation: deptPulseNode 2s ease-in-out infinite;
+}
+
+.dept-history-timeline-node.pending { background: #e5e7eb; color: #9ca3af; }
+
+@keyframes deptPulseNode {
+  0%, 100% { box-shadow: 0 0 0 2px #fef3c7, 0 0 0 6px rgba(245, 158, 11, 0.15); }
+  50%      { box-shadow: 0 0 0 2px #fef3c7, 0 0 0 12px rgba(245, 158, 11, 0); }
+}
+
+.dept-history-timeline-connector {
+  position: absolute;
+  left: 17px;
+  top: 40px;
+  bottom: 0;
+  width: 2px;
+  background: #e5e7eb;
+  z-index: 1;
+}
+
+.dept-history-timeline-connector.done {
+  background: linear-gradient(180deg, #10b981 0%, #d1fae5 100%);
+}
+
+.dept-history-timeline-content {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #eef1f7;
+  border-radius: 12px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.dept-history-timeline-item.done .dept-history-timeline-content {
+  background: #f7fdfa;
+  border-color: #d1fae5;
+}
+
+.dept-history-timeline-item.current .dept-history-timeline-content {
+  background: #fffbf0;
+  border-color: #fde68a;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.dept-history-timeline-item.pending .dept-history-timeline-content {
+  background: #fbfcfe;
+  opacity: 0.85;
+}
+
+.dept-history-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.dept-history-timeline-title { margin: 0; font-size: 14px; font-weight: 700; color: #111827; }
+
+.dept-history-timeline-item.done .dept-history-timeline-title    { color: #059669; }
+.dept-history-timeline-item.current .dept-history-timeline-title { color: #d97706; }
+.dept-history-timeline-item.pending .dept-history-timeline-title { color: #9ca3af; }
+
+.dept-history-timeline-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #eef2fb;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.dept-history-timeline-badge-row { margin-top: 8px; }
+
+.dept-history-timeline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #eef2fb;
+  color: #4765BA;
+  border: 1px solid #dbe3f8;
+}
+
+.dept-history-timeline-remarks {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-left: 3px solid #4765BA;
+  border-radius: 8px;
+}
+
+.dept-history-timeline-remarks-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4765BA;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.dept-history-timeline-remarks p {
+  margin: 0;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dept-history-modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid #eef1f7;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fbfcfe;
+}
+
+.dept-feedback-trigger { background: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28); }
+.dept-feedback-trigger:hover:not(:disabled) { background: #d97706; }
+
+/* ============================================================
+   DARK MODE — History Modal (dept-dashboard scope)
+   Matches body.grv-ticket-dark, not body.grv-dark
+   ============================================================ */
+
+/* Modal shell */
+body.grv-ticket-dark .grv-modal-box {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #334155 !important;
+}
+
+/* Header */
+body.grv-ticket-dark .dept-history-modal-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-bottom-color: #334155 !important;
+}
+body.grv-ticket-dark .dept-history-modal-title h2 { color: #f1f5f9 !important; }
+body.grv-ticket-dark .dept-history-modal-title p  { color: #94a3b8 !important; }
+
+/* Body */
+body.grv-ticket-dark .dept-history-modal-body {
+  background: #0f172a !important;
+}
+
+/* Timeline items */
+body.grv-ticket-dark .dept-history-timeline-content {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+body.grv-ticket-dark .dept-history-timeline-item.done .dept-history-timeline-content {
+  background: #0f2a20 !important;
+  border-color: #065f46 !important;
+}
+body.grv-ticket-dark .dept-history-timeline-item.current .dept-history-timeline-content {
+  background: #2a1f0a !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2) !important;
+}
+body.grv-ticket-dark .dept-history-timeline-item.pending .dept-history-timeline-content {
+  background: #131a2a !important;
+  border-color: #334155 !important;
+  opacity: 0.85 !important;
+}
+
+/* Nodes */
+body.grv-ticket-dark .dept-history-timeline-node {
+  border-color: #0f172a !important;
+}
+body.grv-ticket-dark .dept-history-timeline-node.pending {
+  background: #334155 !important;
+  color: #64748b !important;
+  box-shadow: 0 0 0 2px #334155 !important;
+}
+
+/* Connector */
+body.grv-ticket-dark .dept-history-timeline-connector {
+  background: #334155 !important;
+}
+body.grv-ticket-dark .dept-history-timeline-connector.done {
+  background: linear-gradient(180deg, #10b981 0%, #065f46 100%) !important;
+}
+
+/* Title */
+body.grv-ticket-dark .dept-history-timeline-title { color: #f1f5f9 !important; }
+body.grv-ticket-dark .dept-history-timeline-item.done .dept-history-timeline-title    { color: #34d399 !important; }
+body.grv-ticket-dark .dept-history-timeline-item.current .dept-history-timeline-title { color: #fbbf24 !important; }
+body.grv-ticket-dark .dept-history-timeline-item.pending .dept-history-timeline-title { color: #64748b !important; }
+
+/* Time chip */
+body.grv-ticket-dark .dept-history-timeline-time {
+  background: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Auto-assigned pill */
+body.grv-ticket-dark .dept-history-timeline-pill {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+  border-color: #1e40af !important;
+}
+
+/* Latest Comments box */
+body.grv-ticket-dark .dept-history-timeline-remarks {
+  background: #0f172a !important;
+  border-left-color: #60a5fa !important;
+}
+body.grv-ticket-dark .dept-history-timeline-remarks-header { color: #93c5fd !important; }
+body.grv-ticket-dark .dept-history-timeline-remarks p       { color: #cbd5e1 !important; }
+
+/* Footer */
+body.grv-ticket-dark .dept-history-modal-footer {
+  background: #1e293b !important;
+  border-top-color: #334155 !important;
+}
+
+/* Close / icon buttons */
+body.grv-ticket-dark .dept-icon-btn {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+body.grv-ticket-dark .dept-icon-btn:hover {
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Ghost button (Close) */
+body.grv-ticket-dark .dept-btn-ghost {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+body.grv-ticket-dark .dept-btn-ghost:hover {
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Primary button (Give Feedback) */
+body.grv-ticket-dark .dept-btn-primary {
+  background: #4765BA !important;
+  box-shadow: 0 4px 12px rgba(71, 101, 186, 0.35) !important;
+}

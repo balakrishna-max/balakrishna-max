@@ -1,0 +1,13 @@
+/* Add your existing styles here, ensure you include: */
+.timeline-container { background-color: white; border-radius: 12px; padding: 24px; }
+.timeline { position: relative; padding-left: 53px; }
+.timeline::before { content: ''; position: absolute; left: 18px; top: 0; bottom: 0; width: 2px; background-color: #e5e7eb; }
+.timeline-item { position: relative; padding-bottom: 12px; padding-top: 12px; margin-bottom: 12px; padding-left: 20px; border-radius: 12px; padding-right: 20px; box-shadow: 0 0px 8px rgb(0 0 0 / 16%); }
+.timeline-icon { position: absolute; left: -45px; top: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; z-index: 10; }
+.timeline-icon.completed { background-color: #10b981; }
+.timeline-icon.current { background-color: #f59e0b; }
+.timeline-icon.pending { background-color: #9ca3af; }
+.timeline-title.completed { color: #10b981; }
+.timeline-title.current { color: #f59e0b; }
+.timeline-title.pending { color: #9ca3af; }
+/* ... rest of your CSS ... */

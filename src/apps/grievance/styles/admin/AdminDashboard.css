@@ -1,0 +1,818 @@
+/* ============================================================
+   ADMIN DASHBOARD — Stripe style
+   ============================================================ */
+
+:root {
+  --stripe-bg: #f6f9fc;
+  --stripe-surface: #ffffff;
+  --stripe-border-subtle: #e3e8ee;
+  --stripe-border-strong: #d6dee8;
+  --stripe-text: #0a2540;
+  --stripe-text-2: #425466;
+  --stripe-text-muted: #697386;
+  --stripe-accent: #635bff;
+  --stripe-accent-dark: #4f46e5;
+  --stripe-success: #0e8f60;
+  --stripe-warning: #bb5504;
+  --stripe-danger: #cd3d64;
+  --stripe-info: #0a7bbd;
+}
+
+.admin-wrapper {
+  padding: 32px 40px 60px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  background: var(--stripe-bg) !important;
+  min-height: 100vh !important;
+  box-sizing: border-box !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  color: var(--stripe-text) !important;
+  font-feature-settings: 'cv11', 'ss01', 'tnum' !important;
+}
+
+.admin-wrapper * {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   HERO HEADER — no gradient, floating title + action bar
+   ============================================================ */
+
+.admin-hero {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+  gap: 24px !important;
+  padding: 0 0 28px !important;
+  margin-bottom: 28px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--stripe-border-subtle) !important;
+  flex-wrap: wrap !important;
+  position: static !important;
+}
+
+.admin-hero::before {
+  display: none !important;
+}
+
+.admin-hero-left h1 {
+  font-size: 32px !important;
+  font-weight: 800 !important;
+  color: var(--stripe-text) !important;
+  margin: 0 0 6px !important;
+  letter-spacing: -1.2px !important;
+  line-height: 1.1 !important;
+}
+
+.admin-hero-left p {
+  font-size: 14px !important;
+  color: var(--stripe-text-muted) !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+}
+
+.admin-hero-right {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+
+/* Search bar — pill with inner shadow */
+.hero-search {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 16px !important;
+  background: var(--stripe-surface) !important;
+  border: 1px solid var(--stripe-border-subtle) !important;
+  border-radius: 10px !important;
+  min-width: 320px !important;
+  box-shadow:
+    inset 0 1px 2px rgba(10, 37, 64, 0.04),
+    0 1px 2px rgba(10, 37, 64, 0.03) !important;
+  transition: all 0.15s ease !important;
+}
+
+.hero-search:focus-within {
+  border-color: var(--stripe-accent) !important;
+  box-shadow:
+    0 0 0 4px rgba(99, 91, 255, 0.15),
+    inset 0 1px 2px rgba(10, 37, 64, 0.04) !important;
+}
+
+.hero-search svg {
+  color: var(--stripe-text-muted) !important;
+  flex-shrink: 0 !important;
+}
+
+.hero-search input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-size: 14px !important;
+  flex: 1 !important;
+  color: var(--stripe-text) !important;
+  font-family: inherit !important;
+  font-weight: 400 !important;
+}
+
+.hero-search input::placeholder {
+  color: var(--stripe-text-muted) !important;
+}
+
+/* Icon buttons (theme toggle) */
+.hero-icon-btn {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  background: var(--stripe-surface) !important;
+  border: 1px solid var(--stripe-border-subtle) !important;
+  color: var(--stripe-text-2) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 2px rgba(10, 37, 64, 0.04) !important;
+}
+
+.hero-icon-btn:hover {
+  background: #f7f9fc !important;
+  color: var(--stripe-text) !important;
+  border-color: var(--stripe-border-strong) !important;
+}
+
+/* Filter button */
+.hero-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  background: var(--stripe-surface) !important;
+  border: 1px solid var(--stripe-border-subtle) !important;
+  color: var(--stripe-text) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 2px rgba(10, 37, 64, 0.04) !important;
+  font-family: inherit !important;
+}
+
+.hero-btn:hover {
+  background: #f7f9fc !important;
+  border-color: var(--stripe-border-strong) !important;
+}
+
+.hero-btn.active {
+  background: var(--stripe-accent) !important;
+  color: #fff !important;
+  border-color: var(--stripe-accent) !important;
+  box-shadow: 0 4px 12px rgba(99, 91, 255, 0.3) !important;
+}
+
+.hero-btn-badge {
+  background: var(--stripe-danger) !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 2px 7px !important;
+  border-radius: 10px !important;
+  min-width: 18px !important;
+  text-align: center !important;
+  line-height: 1.3 !important;
+}
+
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
+
+.admin-body {
+  display: flex !important;
+  gap: 24px !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+}
+
+.admin-table-col {
+  flex: 1 !important;
+  min-width: 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-table-col.full {
+  width: 100% !important;
+}
+
+.admin-table-col.shrunk {
+  flex: 0 0 62% !important;
+  max-width: 62% !important;
+}
+
+.admin-detail-col {
+  flex: 1 !important;
+  position: sticky !important;
+  top: 24px !important;
+  min-width: 0 !important;
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+.grv-admin-dark.admin-wrapper {
+  background: #0a0f1e !important;
+  color: #e8ecf2 !important;
+}
+
+.grv-admin-dark .admin-hero {
+  border-bottom-color: #1f2937 !important;
+}
+
+.grv-admin-dark .admin-hero-left h1 {
+  color: #e8ecf2 !important;
+}
+
+.grv-admin-dark .admin-hero-left p {
+  color: #8b95a8 !important;
+}
+
+.grv-admin-dark .hero-search,
+.grv-admin-dark .hero-icon-btn,
+.grv-admin-dark .hero-btn {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  color: #e8ecf2 !important;
+}
+
+.grv-admin-dark .hero-search input {
+  color: #e8ecf2 !important;
+}
+
+.grv-admin-dark .hero-search input::placeholder {
+  color: #55607a !important;
+}
+
+.grv-admin-dark .hero-btn.active {
+  background: #8b82ff !important;
+  color: #0a0f1e !important;
+  border-color: #8b82ff !important;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1400px) {
+  .admin-wrapper { padding: 28px 32px 50px !important; }
+}
+
+@media (max-width: 1200px) {
+  .hero-search { min-width: 240px !important; }
+}
+
+@media (max-width: 1000px) {
+  .admin-wrapper { padding: 24px !important; }
+  .admin-body { flex-direction: column !important; }
+  .admin-table-col.shrunk {
+    flex: 1 !important;
+    max-width: 100% !important;
+  }
+  .admin-detail-col {
+    position: static !important;
+    width: 100% !important;
+  }
+  .admin-hero-left h1 { font-size: 26px !important; }
+}
+
+@media (max-width: 768px) {
+  .admin-wrapper { padding: 20px 16px 40px !important; }
+  .admin-hero {
+    padding-bottom: 20px !important;
+    margin-bottom: 20px !important;
+  }
+  .admin-hero-left h1 {
+    font-size: 22px !important;
+    letter-spacing: -0.8px !important;
+  }
+  .admin-hero-left p { font-size: 13px !important; }
+  .hero-search { min-width: 0 !important; width: 100% !important; }
+}
+
+@media (max-width: 640px) {
+  .admin-wrapper { padding: 16px 12px 32px !important; }
+  .admin-hero-right {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .hero-icon-btn { width: 100% !important; }
+  .hero-btn { justify-content: center !important; }
+}
+
+
+
+
+/* ============================================================
+   DARK MODE — All modals (History, SLA, Comments)
+   Scoped via body.grv-admin-dark so portaled modals inherit
+   ============================================================ */
+
+/* ---------- Modal shell (shared by all 3) ---------- */
+body.grv-admin-dark .grv-modal-overlay {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+
+body.grv-admin-dark .grv-modal-box {
+  background: #131a2a !important;
+  color: #e8ecf2 !important;
+  border: 1px solid #1f2937 !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* ---------- Modal headers ---------- */
+body.grv-admin-dark .history-modal-header,
+body.grv-admin-dark .sla-modal-header,
+body.grv-admin-dark .comments-modal-header {
+  background: linear-gradient(135deg, #131a2a 0%, #0a0f1e 100%) !important;
+  border-bottom-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .history-modal-title h2,
+body.grv-admin-dark .sla-modal-title h2,
+body.grv-admin-dark .comments-modal-title h2 {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .history-modal-title p,
+body.grv-admin-dark .sla-modal-title p,
+body.grv-admin-dark .comments-modal-title p {
+  color: #8b95a8 !important;
+}
+
+/* ---------- Modal body & footer ---------- */
+body.grv-admin-dark .history-modal-body,
+body.grv-admin-dark .sla-modal-body,
+body.grv-admin-dark .comments-modal-body {
+  background: #0a0f1e !important;
+}
+
+body.grv-admin-dark .history-modal-footer,
+body.grv-admin-dark .sla-modal-footer,
+body.grv-admin-dark .comments-modal-footer {
+  background: #131a2a !important;
+  border-top-color: #1f2937 !important;
+}
+
+/* ---------- Modal close/ghost buttons ---------- */
+body.grv-admin-dark .grv-modal-box .icon-btn {
+  background: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .grv-modal-box .icon-btn:hover {
+  background: #2d3748 !important;
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .grv-modal-box .btn-ghost {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .grv-modal-box .btn-ghost:hover {
+  background: #1f2937 !important;
+  color: #e8ecf2 !important;
+}
+
+/* ============================================================
+   HISTORY MODAL — Timeline
+   ============================================================ */
+
+body.grv-admin-dark .history-timeline-node.pending {
+  background: #1f2937 !important;
+  color: #55607a !important;
+  box-shadow: 0 0 0 2px #1f2937 !important;
+}
+
+body.grv-admin-dark .history-timeline-connector {
+  background: #1f2937 !important;
+}
+
+body.grv-admin-dark .history-timeline-connector.done {
+  background: linear-gradient(180deg, #10b981 0%, #065f46 100%) !important;
+}
+
+body.grv-admin-dark .history-timeline-content {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .history-timeline-item.done .history-timeline-content {
+  background: #0f2a20 !important;
+  border-color: #065f46 !important;
+}
+
+body.grv-admin-dark .history-timeline-item.current .history-timeline-content {
+  background: #2a1f0a !important;
+  border-color: #d97706 !important;
+}
+
+body.grv-admin-dark .history-timeline-item.pending .history-timeline-content {
+  background: #131a2a !important;
+  opacity: 0.65 !important;
+}
+
+body.grv-admin-dark .history-timeline-title {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .history-timeline-item.done .history-timeline-title {
+  color: #34d399 !important;
+}
+
+body.grv-admin-dark .history-timeline-item.current .history-timeline-title {
+  color: #fbbf24 !important;
+}
+
+body.grv-admin-dark .history-timeline-item.pending .history-timeline-title {
+  color: #55607a !important;
+}
+
+body.grv-admin-dark .history-timeline-time {
+  background: #1f2937 !important;
+  color: #cbd5e1 !important;
+}
+
+body.grv-admin-dark .history-timeline-pill {
+  background: #1e2a44 !important;
+  color: #a5b4fc !important;
+  border-color: #2d3d5a !important;
+}
+
+body.grv-admin-dark .history-timeline-remarks {
+  background: #0a0f1e !important;
+  border-left-color: #8b82ff !important;
+}
+
+body.grv-admin-dark .history-timeline-remarks-header {
+  color: #a5b4fc !important;
+}
+
+body.grv-admin-dark .history-timeline-remarks p {
+  color: #cbd5e1 !important;
+}
+
+body.grv-admin-dark .history-loading {
+  color: #8b95a8 !important;
+}
+
+/* ============================================================
+   SLA MODAL
+   ============================================================ */
+
+body.grv-admin-dark .sla-loading {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .sla-empty-hint {
+  color: #55607a !important;
+}
+
+body.grv-admin-dark .sla-overall-banner.success {
+  background: linear-gradient(135deg, #0a2a1e, #064e3b) !important;
+  border-left-color: #10b981 !important;
+}
+
+body.grv-admin-dark .sla-overall-banner.warning {
+  background: linear-gradient(135deg, #2a1a0a, #78350f) !important;
+  border-left-color: #f59e0b !important;
+}
+
+body.grv-admin-dark .sla-overall-banner.danger {
+  background: linear-gradient(135deg, #2a0f18, #7f1d1d) !important;
+  border-left-color: #dc2626 !important;
+}
+
+body.grv-admin-dark .sla-overall-icon {
+  background: #131a2a !important;
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .sla-overall-label {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .sla-overall-value,
+body.grv-admin-dark .sla-overall-pct {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .sla-overall-sub {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .sla-card {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .sla-card.breached {
+  background: #2a0f18 !important;
+  border-color: #7f1d1d !important;
+}
+
+body.grv-admin-dark .sla-card.active {
+  background: #2a1f0a !important;
+  border-color: #d97706 !important;
+}
+
+body.grv-admin-dark .sla-card-title-text h3 {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .sla-card-title-text p {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .sla-card-level-badge.blue {
+  background: #0a1a2a !important;
+  color: #60a5fa !important;
+}
+body.grv-admin-dark .sla-card-level-badge.purple {
+  background: #1a1530 !important;
+  color: #a5b4fc !important;
+}
+body.grv-admin-dark .sla-card-level-badge.amber {
+  background: #2a1f0a !important;
+  color: #fbbf24 !important;
+}
+body.grv-admin-dark .sla-card-level-badge.red {
+  background: #2a0f18 !important;
+  color: #f472b6 !important;
+}
+
+body.grv-admin-dark .sla-card-meta-item {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .sla-card-meta-item strong {
+  color: #cbd5e1 !important;
+}
+
+body.grv-admin-dark .sla-progress {
+  background: #1f2937 !important;
+}
+
+body.grv-admin-dark .sla-card-remarks {
+  background: #0a0f1e !important;
+  color: #cbd5e1 !important;
+}
+
+body.grv-admin-dark .sla-legend {
+  background: #0a0f1e !important;
+  border-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .sla-legend h4 {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .sla-legend-item {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .sla-legend-title {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .sla-legend-desc {
+  color: #8b95a8 !important;
+}
+
+/* ============================================================
+   COMMENTS MODAL
+   ============================================================ */
+
+body.grv-admin-dark .comments-loading {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .comments-empty-hint {
+  color: #55607a !important;
+}
+
+body.grv-admin-dark .comment-bubble {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  border-left-color: #8b82ff !important;
+}
+
+body.grv-admin-dark .comment-bubble:hover {
+  border-color: #2d3748 !important;
+  border-left-color: #a5b4fc !important;
+}
+
+body.grv-admin-dark .comment-bubble-author {
+  color: #a5b4fc !important;
+}
+
+body.grv-admin-dark .comment-bubble-time {
+  background: #1f2937 !important;
+  color: #cbd5e1 !important;
+}
+
+body.grv-admin-dark .comment-bubble-text {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .comment-avatar {
+  background: linear-gradient(135deg, #635bff, #4f46e5) !important;
+}
+
+body.grv-admin-dark .comment-avatar-initial {
+  color: #fff !important;
+}
+
+
+/* ============================================================
+   DARK MODE — Filter Panel (slide-in drawer)
+   ============================================================ */
+
+/* Backdrop behind the drawer */
+body.grv-admin-dark .filter-backdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* The drawer itself */
+body.grv-admin-dark .filter-panel,
+.grv-admin-dark .filter-panel {
+  background: #131a2a !important;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Header */
+body.grv-admin-dark .filter-panel-header,
+.grv-admin-dark .filter-panel-header {
+  background: linear-gradient(135deg, #131a2a 0%, #0a0f1e 100%) !important;
+  border-bottom-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .filter-panel-title,
+.grv-admin-dark .filter-panel-title {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .filter-panel-title svg,
+.grv-admin-dark .filter-panel-title svg {
+  color: #a5b4fc !important;
+}
+
+body.grv-admin-dark .filter-count,
+.grv-admin-dark .filter-count {
+  background: #635bff !important;
+  color: #fff !important;
+}
+
+/* Close button */
+body.grv-admin-dark .filter-panel .icon-btn,
+.grv-admin-dark .filter-panel .icon-btn {
+  background: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .filter-panel .icon-btn:hover,
+.grv-admin-dark .filter-panel .icon-btn:hover {
+  background: #2d3748 !important;
+  color: #e8ecf2 !important;
+}
+
+/* Body */
+body.grv-admin-dark .filter-panel-body,
+.grv-admin-dark .filter-panel-body {
+  background: #131a2a !important;
+}
+
+/* Section labels */
+body.grv-admin-dark .filter-group > label,
+.grv-admin-dark .filter-group > label {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .filter-group > label svg,
+.grv-admin-dark .filter-group > label svg {
+  color: #a5b4fc !important;
+}
+
+/* Inputs and selects */
+body.grv-admin-dark .filter-group input,
+body.grv-admin-dark .filter-group select,
+.grv-admin-dark .filter-group input,
+.grv-admin-dark .filter-group select {
+  background: #0a0f1e !important;
+  color: #e8ecf2 !important;
+  border-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .filter-group input::placeholder,
+.grv-admin-dark .filter-group input::placeholder {
+  color: #55607a !important;
+}
+
+body.grv-admin-dark .filter-group input:focus,
+body.grv-admin-dark .filter-group select:focus,
+.grv-admin-dark .filter-group input:focus,
+.grv-admin-dark .filter-group select:focus {
+  border-color: #8b82ff !important;
+  box-shadow: 0 0 0 3px rgba(139, 130, 255, 0.18) !important;
+}
+
+body.grv-admin-dark .filter-group select option,
+.grv-admin-dark .filter-group select option {
+  background: #0a0f1e !important;
+  color: #e8ecf2 !important;
+}
+
+/* Chips (priority / SLA) */
+body.grv-admin-dark .filter-chip,
+.grv-admin-dark .filter-chip {
+  background: #0a0f1e !important;
+  border-color: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .filter-chip:hover,
+.grv-admin-dark .filter-chip:hover {
+  background: #1f2937 !important;
+  border-color: #2d3748 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Active chip states — keep their semantic colors but darker */
+body.grv-admin-dark .filter-chip.high.active {
+  background: #2a0f18 !important;
+  border-color: #cd3d64 !important;
+  color: #f472b6 !important;
+}
+
+body.grv-admin-dark .filter-chip.medium.active {
+  background: #2a1f0a !important;
+  border-color: #bb5504 !important;
+  color: #fbbf24 !important;
+}
+
+body.grv-admin-dark .filter-chip.low.active {
+  background: #0f2a20 !important;
+  border-color: #0e8f60 !important;
+  color: #34d399 !important;
+}
+
+body.grv-admin-dark .filter-chip.ok.active {
+  background: #0f2a20 !important;
+  border-color: #0e8f60 !important;
+  color: #34d399 !important;
+}
+
+body.grv-admin-dark .filter-chip.breach.active {
+  background: #2a0f18 !important;
+  border-color: #cd3d64 !important;
+  color: #f472b6 !important;
+}
+
+/* Footer */
+body.grv-admin-dark .filter-panel-footer,
+.grv-admin-dark .filter-panel-footer {
+  background: #0a0f1e !important;
+  border-top-color: #1f2937 !important;
+}
+
+/* Reset button */
+body.grv-admin-dark .btn-ghost,
+.grv-admin-dark .filter-panel-footer .btn-ghost {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .btn-ghost:hover,
+.grv-admin-dark .filter-panel-footer .btn-ghost:hover {
+  background: #1f2937 !important;
+  color: #e8ecf2 !important;
+}
+
+/* Apply button — keep indigo */
+body.grv-admin-dark .filter-btn-apply,
+body.grv-admin-dark .filter-panel-footer .btn-primary,
+.grv-admin-dark .filter-btn-apply {
+  background: linear-gradient(135deg, #635bff, #4f46e5) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}

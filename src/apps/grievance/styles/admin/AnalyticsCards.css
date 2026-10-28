@@ -1,0 +1,146 @@
+/* ============================================
+   ANALYTICS CARDS
+   ============================================ */
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.analytic-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid transparent;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.analytic-card.clickable { cursor: pointer; }
+.analytic-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(0,0,0,0.1); }
+
+.analytic-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.5));
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.analytic-card:hover::before { opacity: 1; }
+
+.analytic-card.active {
+  border-color: #4765BA;
+  box-shadow: 0 8px 24px rgba(71, 101, 186, 0.2);
+}
+
+.analytic-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.analytic-icon.green  { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #16a34a; }
+.analytic-icon.orange { background: linear-gradient(135deg, #ffedd5, #fed7aa); color: #ea580c; }
+.analytic-icon.amber  { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+.analytic-icon.blue   { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+.analytic-icon.red    { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
+.analytic-icon.purple { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #7c3aed; }
+.analytic-icon.teal   { background: linear-gradient(135deg, #ccfbf1, #99f6e4); color: #0d9488; }
+
+.analytic-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.analytic-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+/* ============================================================
+   DARK MODE — Force overrides for stat cards
+   ============================================================ */
+
+body.grv-admin-dark .analytic-card,
+.grv-admin-dark .analytic-card,
+.grv-admin-dark.admin-wrapper .analytic-card {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.25) !important;
+}
+
+body.grv-admin-dark .analytic-card.clickable:hover,
+.grv-admin-dark .analytic-card.clickable:hover {
+  border-color: #2d3748 !important;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    0 8px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.grv-admin-dark .analytic-card.active,
+.grv-admin-dark .analytic-card.active {
+  border-color: #8b82ff !important;
+  box-shadow:
+    0 0 0 3px rgba(139, 130, 255, 0.18),
+    0 8px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.grv-admin-dark .analytic-value,
+.grv-admin-dark .analytic-value {
+  color: #e8ecf2 !important;
+}
+
+body.grv-admin-dark .analytic-label,
+.grv-admin-dark .analytic-label {
+  color: #8b95a8 !important;
+}
+
+/* Icon backgrounds — deeper tinted versions */
+body.grv-admin-dark .analytic-icon.green,
+.grv-admin-dark .analytic-icon.green  { background: #0f2a20 !important; color: #34d399 !important; }
+
+body.grv-admin-dark .analytic-icon.orange,
+.grv-admin-dark .analytic-icon.orange { background: #2a1a0a !important; color: #fb923c !important; }
+
+body.grv-admin-dark .analytic-icon.amber,
+.grv-admin-dark .analytic-icon.amber  { background: #2a1f0a !important; color: #fbbf24 !important; }
+
+body.grv-admin-dark .analytic-icon.blue,
+.grv-admin-dark .analytic-icon.blue   { background: #0a1a2a !important; color: #60a5fa !important; }
+
+body.grv-admin-dark .analytic-icon.red,
+.grv-admin-dark .analytic-icon.red    { background: #2a0f18 !important; color: #f472b6 !important; }
+
+body.grv-admin-dark .analytic-icon.purple,
+.grv-admin-dark .analytic-icon.purple { background: #1a1530 !important; color: #a5b4fc !important; }
+
+body.grv-admin-dark .analytic-icon.teal,
+.grv-admin-dark .analytic-icon.teal   { background: #0a201a !important; color: #5eead4 !important; }

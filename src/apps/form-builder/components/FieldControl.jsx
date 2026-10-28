@@ -263,13 +263,13 @@ export function FieldControl({ comp, mode = 'design', value, onChange, error, fo
       break;
     }
 
-    // case 'signature':
-    //   control = design ? (
-    //     <div className="dfb-sign-design" style={{ height: `${Number(comp.height || 160)}px` }}>Sign here</div>
-    //   ) : (
-    //     <SignaturePad id={id} value={value} onChange={(v) => set(v)} penColor={comp.penColor || '#000000'} height={comp.height || 160} />
-    //   );
-    //   break;
+    case 'signature':
+      control = design ? (
+        <div className="dfb-sign-design" style={{ height: `${Number(comp.height || 160)}px` }}>Sign here</div>
+      ) : (
+        <SignaturePad id={id} value={value} onChange={(v) => set(v)} penColor={comp.penColor || '#000000'} height={comp.height || 160} />
+      );
+      break;
 
     case 'file': {
       const files = !design && value ? Array.from(value) : [];

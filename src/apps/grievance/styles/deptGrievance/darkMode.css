@@ -1,0 +1,172 @@
+body.grv-ticket-dark { background: #0f172a !important; }
+body.grv-ticket-dark .dept-grievance-root { color: #e2e8f0; }
+
+/* Header */
+body.grv-ticket-dark .grv-header-title    { color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-header-subtitle { color: #94a3b8 !important; }
+
+body.grv-ticket-dark .grv-theme-toggle {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #fbbf24 !important;
+}
+
+/* Stepper */
+body.grv-ticket-dark .grv-stepper {
+  background: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+body.grv-ticket-dark .grv-step            { color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-step-num        { background: #334155 !important; color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-step.active     { color: #93c5fd !important; }
+body.grv-ticket-dark .grv-step-line       { background: #334155 !important; }
+
+/* Card */
+body.grv-ticket-dark .grv-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Meta grid */
+body.grv-ticket-dark .grv-meta-grid {
+  background: linear-gradient(135deg, #0f172a, #1e293b) !important;
+}
+body.grv-ticket-dark .grv-meta-icon  { background: #334155 !important; color: #93c5fd !important; }
+body.grv-ticket-dark .grv-meta-label { color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-meta-value { color: #e2e8f0 !important; }
+
+/* Form */
+body.grv-ticket-dark .grv-label { color: #cbd5e1 !important; }
+
+body.grv-ticket-dark .grv-input,
+body.grv-ticket-dark .grv-select,
+body.grv-ticket-dark .grv-textarea {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+body.grv-ticket-dark .grv-input:focus,
+body.grv-ticket-dark .grv-select:focus,
+body.grv-ticket-dark .grv-textarea:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2) !important;
+}
+
+body.grv-ticket-dark .grv-textarea::placeholder { color: #64748b !important; }
+
+/* Upload */
+body.grv-ticket-dark .grv-upload {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+body.grv-ticket-dark .grv-upload:hover {
+  background: #1e293b !important;
+  border-color: #60a5fa !important;
+}
+body.grv-ticket-dark .grv-upload-text { color: #e2e8f0 !important; }
+body.grv-ticket-dark .grv-upload-hint { color: #64748b !important; }
+body.grv-ticket-dark .grv-file-chip {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+/* Buttons */
+body.grv-ticket-dark .grv-btn-secondary {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+body.grv-ticket-dark .grv-btn-secondary:hover {
+  background: #334155 !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+body.grv-ticket-dark .grv-link-btn { color: #93c5fd !important; }
+body.grv-ticket-dark .grv-link-btn:hover { background: #1e3a8a !important; }
+
+/* Priority pills */
+body.grv-ticket-dark .grv-priority-badge.high   { background: #7f1d1d !important; color: #fca5a5 !important; }
+body.grv-ticket-dark .grv-priority-badge.medium { background: #78350f !important; color: #fcd34d !important; }
+body.grv-ticket-dark .grv-priority-badge.low    { background: #064e3b !important; color: #6ee7b7 !important; }
+
+/* Success page */
+body.grv-ticket-dark .grv-success-title { color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-success-msg   { color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-ticket-id     { background: #1e3a8a !important; color: #93c5fd !important; }
+body.grv-ticket-dark .grv-success-icon  {
+  background: linear-gradient(135deg, #064e3b, #065f46) !important;
+  color: #6ee7b7 !important;
+}
+
+/* Section headers + steps + FAQ */
+body.grv-ticket-dark .grv-section-header h3 { color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-step-row { border-bottom-color: #334155 !important; }
+body.grv-ticket-dark .grv-step-num { background: #1e3a8a !important; color: #93c5fd !important; }
+body.grv-ticket-dark .grv-step-text { color: #cbd5e1 !important; }
+
+body.grv-ticket-dark .grv-faq { border-color: #334155 !important; }
+body.grv-ticket-dark .grv-faq summary { background: #0f172a !important; color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-faq-body { background: #1e293b !important; border-top-color: #334155 !important; }
+body.grv-ticket-dark .grv-faq-body p { color: #cbd5e1 !important; }
+
+/* Timeline */
+body.grv-ticket-dark .grv-ticket-id-bar { background: #1e293b !important; }
+body.grv-ticket-dark .grv-ticket-id-label { color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-ticket-id-value { color: #93c5fd !important; }
+
+body.grv-ticket-dark .grv-timeline::before { background: #334155 !important; }
+body.grv-ticket-dark .grv-tl-item { background: #1e293b !important; border-color: #334155 !important; }
+body.grv-ticket-dark .grv-tl-item.done { background: #0f2a20 !important; border-color: #065f46 !important; }
+body.grv-ticket-dark .grv-tl-item.current { background: #2a1f0a !important; border-color: #d97706 !important; }
+
+body.grv-ticket-dark .grv-tl-icon { background: #334155 !important; color: #94a3b8 !important; border-color: #1e293b !important; }
+body.grv-ticket-dark .grv-tl-title { color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-tl-item.done .grv-tl-title    { color: #34d399 !important; }
+body.grv-ticket-dark .grv-tl-item.current .grv-tl-title { color: #fbbf24 !important; }
+body.grv-ticket-dark .grv-tl-time { background: #334155 !important; color: #cbd5e1 !important; }
+body.grv-ticket-dark .grv-tl-pill { background: #1e3a8a !important; color: #93c5fd !important; border-color: #1e40af !important; }
+body.grv-ticket-dark .grv-tl-comment { background: #0f172a !important; border-left-color: #60a5fa !important; }
+body.grv-ticket-dark .grv-tl-comment-label { color: #93c5fd !important; }
+body.grv-ticket-dark .grv-tl-comment p { color: #cbd5e1 !important; }
+body.grv-ticket-dark .grv-tl-desc { color: #94a3b8 !important; }
+
+/* Chatbot */
+body.grv-ticket-dark .grv-chat-panel { background: #1e293b !important; border-color: #334155 !important; }
+body.grv-ticket-dark .grv-chat-body { background: #0f172a !important; }
+body.grv-ticket-dark .grv-chat-welcome { color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-msg-bubble { background: #334155 !important; border-color: #475569 !important; color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-msg.user .grv-msg-bubble { background: #4765BA !important; border-color: #4765BA !important; color: #fff !important; }
+body.grv-ticket-dark .grv-chat-modes,
+body.grv-ticket-dark .grv-chat-input { background: #1e293b !important; border-top-color: #334155 !important; }
+body.grv-ticket-dark .grv-mode-chip { background: #334155 !important; color: #94a3b8 !important; }
+body.grv-ticket-dark .grv-mode-chip.active { background: #4765BA !important; color: #fff !important; }
+body.grv-ticket-dark .grv-chat-input input { background: #0f172a !important; border-color: #334155 !important; color: #f1f5f9 !important; }
+body.grv-ticket-dark .grv-chat-attach { background: #334155 !important; color: #94a3b8 !important; }
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .grv-form-grid { grid-template-columns: 1fr; gap: 16px; }
+  .grv-meta-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grv-header-icon { width: 44px; height: 44px; }
+  .grv-header-title { font-size: 18px; }
+  .grv-stepper { padding: 12px; gap: 8px; }
+  .grv-step-line { width: 24px; }
+  .grv-meta-grid { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+  .grv-kb-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .dept-grievance-root { padding: 12px 10px 32px !important; }
+  .grv-card { padding: 16px; border-radius: 12px; }
+  .grv-step { font-size: 11px; gap: 6px; }
+  .grv-step-num { width: 24px; height: 24px; font-size: 11px; }
+  .grv-step-line { width: 16px; }
+  .grv-input, .grv-select, .grv-textarea { padding: 10px 12px; font-size: 13px; }
+  .grv-btn { padding: 11px 18px; font-size: 13px; width: 100%; }
+}
