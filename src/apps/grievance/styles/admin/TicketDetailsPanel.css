@@ -1,0 +1,421 @@
+/* ============================================
+   TICKET DETAILS PANEL (right-side)
+   ============================================ */
+
+.detail-panel {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 20px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.detail-panel.loading {
+  text-align: center;
+  padding: 60px;
+  color: #6b7280;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+}
+
+.detail-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-title span {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-title strong {
+  font-size: 16px;
+  color: #4765BA;
+}
+
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.detail-row-value {
+  font-size: 13px;
+  color: #1f2937;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #4765BA;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 13px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef2fb;
+  color: #4765BA;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-chip:hover { background: #dbe3f8; }
+
+
+
+
+/* ============================================================
+   DARK MODE — Ticket Details Panel
+   ============================================================ */
+
+body.grv-admin-dark .detail-panel,
+.grv-admin-dark .detail-panel {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.25) !important;
+  color: #e8ecf2 !important;
+}
+
+/* Header */
+body.grv-admin-dark .detail-header,
+.grv-admin-dark .detail-header {
+  border-bottom-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .detail-title span,
+.grv-admin-dark .detail-title span {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .detail-title strong,
+.grv-admin-dark .detail-title strong {
+  color: #a5b4fc !important;
+}
+
+/* Rows */
+body.grv-admin-dark .detail-row,
+.grv-admin-dark .detail-row {
+  border-bottom-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .detail-row-label,
+.grv-admin-dark .detail-row-label {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .detail-row-value,
+.grv-admin-dark .detail-row-value {
+  color: #e8ecf2 !important;
+}
+
+/* Icon buttons (X close, etc.) */
+body.grv-admin-dark .icon-btn,
+.grv-admin-dark .icon-btn {
+  background: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .icon-btn:hover,
+.grv-admin-dark .icon-btn:hover {
+  background: #2d3748 !important;
+  color: #e8ecf2 !important;
+}
+
+/* Link button (download attachment) */
+body.grv-admin-dark .link-btn,
+.grv-admin-dark .link-btn {
+  color: #a5b4fc !important;
+}
+
+/* Action chips */
+body.grv-admin-dark .action-chip,
+.grv-admin-dark .action-chip {
+  background: #1e2a44 !important;
+  color: #a5b4fc !important;
+  border-color: #2d3d5a !important;
+}
+
+body.grv-admin-dark .action-chip:hover,
+.grv-admin-dark .action-chip:hover {
+  background: #2d3d5a !important;
+  color: #c7d2fe !important;
+}
+
+/* Status / priority pills inside panel */
+body.grv-admin-dark .priority-pill.high,
+.grv-admin-dark .priority-pill.high   { background: #2a0f18 !important; color: #f472b6 !important; }
+
+body.grv-admin-dark .priority-pill.medium,
+.grv-admin-dark .priority-pill.medium { background: #2a1f0a !important; color: #fbbf24 !important; }
+
+body.grv-admin-dark .priority-pill.low,
+.grv-admin-dark .priority-pill.low    { background: #0f2a20 !important; color: #34d399 !important; }
+
+body.grv-admin-dark .status-pill.open,
+.grv-admin-dark .status-pill.open       { background: #0f2a20 !important; color: #34d399 !important; }
+
+body.grv-admin-dark .status-pill.inprogress,
+.grv-admin-dark .status-pill.inprogress { background: #2a1a0a !important; color: #fb923c !important; }
+
+body.grv-admin-dark .status-pill.pending,
+.grv-admin-dark .status-pill.pending    { background: #2a1f0a !important; color: #fbbf24 !important; }
+
+body.grv-admin-dark .status-pill.resolved,
+.grv-admin-dark .status-pill.resolved   { background: #0a1a2a !important; color: #60a5fa !important; }
+
+body.grv-admin-dark .status-pill.closed,
+.grv-admin-dark .status-pill.closed     { background: #2a2d35 !important; color: #8b95a8 !important; }
+
+/* Agent cell inside panel */
+body.grv-admin-dark .agent-avatar,
+.grv-admin-dark .agent-avatar {
+  background: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .agent-cell span,
+.grv-admin-dark .agent-cell span {
+  color: #e8ecf2 !important;
+}
+
+/* ---------- Update Ticket Form (inside panel) ---------- */
+body.grv-admin-dark .update-form,
+.grv-admin-dark .update-form {
+  border-top-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .update-header h3,
+.grv-admin-dark .update-header h3 {
+  color: #a5b4fc !important;
+}
+
+body.grv-admin-dark .field label,
+.grv-admin-dark .field label {
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .field select,
+body.grv-admin-dark .field textarea,
+body.grv-admin-dark .field input,
+.grv-admin-dark .field select,
+.grv-admin-dark .field textarea,
+.grv-admin-dark .field input {
+  background: #0a0f1e !important;
+  color: #e8ecf2 !important;
+  border-color: #1f2937 !important;
+}
+
+body.grv-admin-dark .field select:focus,
+body.grv-admin-dark .field textarea:focus,
+body.grv-admin-dark .field input:focus,
+.grv-admin-dark .field select:focus,
+.grv-admin-dark .field textarea:focus,
+.grv-admin-dark .field input:focus {
+  border-color: #8b82ff !important;
+  box-shadow: 0 0 0 3px rgba(139, 130, 255, 0.18) !important;
+}
+
+body.grv-admin-dark .field textarea::placeholder,
+.grv-admin-dark .field textarea::placeholder {
+  color: #55607a !important;
+}
+
+/* Primary button */
+body.grv-admin-dark .btn-primary,
+.grv-admin-dark .btn-primary {
+  background: linear-gradient(135deg, #635bff, #4f46e5) !important;
+  color: #fff !important;
+}
+
+/* Ghost button */
+body.grv-admin-dark .btn-ghost,
+.grv-admin-dark .btn-ghost {
+  background: #131a2a !important;
+  border-color: #1f2937 !important;
+  color: #8b95a8 !important;
+}
+
+body.grv-admin-dark .btn-ghost:hover,
+.grv-admin-dark .btn-ghost:hover {
+  background: #1f2937 !important;
+  color: #e8ecf2 !important;
+}
+
+/* Loading state */
+body.grv-admin-dark .detail-panel.loading,
+.grv-admin-dark .detail-panel.loading {
+  color: #8b95a8 !important;
+}
+
+
+
+/* ============================================================
+   DARK MODE — TicketDetails Panel: Update Form (deep fix)
+   ============================================================ */
+
+/* The whole update form wrapper */
+body.grv-admin-dark .update-form,
+.grv-admin-dark .update-form {
+  background: transparent !important;
+  border-top-color: #1f2937 !important;
+}
+
+/* The form container (both boxed and unboxed) */
+body.grv-admin-dark .update-form .update-grid,
+.grv-admin-dark .update-form .update-grid {
+  background: transparent !important;
+}
+
+/* Every field wrapper — remove white background */
+body.grv-admin-dark .update-form .field,
+.grv-admin-dark .update-form .field,
+body.grv-admin-dark .field,
+.grv-admin-dark .field {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Labels */
+body.grv-admin-dark .update-form .field > label,
+.grv-admin-dark .update-form .field > label,
+body.grv-admin-dark .field label,
+.grv-admin-dark .field label {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  font-weight: 600 !important;
+}
+
+/* Inputs — dark theme */
+body.grv-admin-dark .update-form .field input,
+body.grv-admin-dark .update-form .field select,
+body.grv-admin-dark .update-form .field textarea,
+.grv-admin-dark .update-form .field input,
+.grv-admin-dark .update-form .field select,
+.grv-admin-dark .update-form .field textarea {
+  background: #0a0f1e !important;
+  color: #e8ecf2 !important;
+  border-color: #1f2937 !important;
+  box-shadow: none !important;
+}
+
+body.grv-admin-dark .update-form .field input:focus,
+body.grv-admin-dark .update-form .field select:focus,
+body.grv-admin-dark .update-form .field textarea:focus,
+.grv-admin-dark .update-form .field input:focus,
+.grv-admin-dark .update-form .field select:focus,
+.grv-admin-dark .update-form .field textarea:focus {
+  border-color: #8b82ff !important;
+  box-shadow: 0 0 0 3px rgba(139, 130, 255, 0.18) !important;
+}
+
+body.grv-admin-dark .update-form .field textarea::placeholder,
+.grv-admin-dark .update-form .field textarea::placeholder {
+  color: #55607a !important;
+}
+
+/* Select dropdown options */
+body.grv-admin-dark .update-form .field select option,
+.grv-admin-dark .update-form .field select option {
+  background: #0a0f1e !important;
+  color: #e8ecf2 !important;
+}
+
+/* Update header */
+body.grv-admin-dark .update-form .update-header h3,
+.grv-admin-dark .update-form .update-header h3 {
+  color: #a5b4fc !important;
+  background: transparent !important;
+}
+
+body.grv-admin-dark .update-form .update-header,
+.grv-admin-dark .update-form .update-header {
+  background: transparent !important;
+}
+
+/* ---------- The big white box around the Comments field ---------- */
+/* This is likely a parent container with default background */
+
+body.grv-admin-dark .detail-panel > div,
+body.grv-admin-dark .detail-panel > section,
+body.grv-admin-dark .detail-panel .update-form > div:not(.update-grid):not(.update-actions),
+.grv-admin-dark .detail-panel > div,
+.grv-admin-dark .detail-panel > section,
+.grv-admin-dark .detail-panel .update-form > div:not(.update-grid):not(.update-actions) {
+  background: transparent !important;
+}
+
+/* ---------- Any remaining white backgrounds inside the detail panel ---------- */
+body.grv-admin-dark .detail-panel [style*="background: #fff"],
+body.grv-admin-dark .detail-panel [style*="background: white"],
+body.grv-admin-dark .detail-panel [style*="background-color: #fff"],
+body.grv-admin-dark .detail-panel [style*="background-color: white"],
+.grv-admin-dark .detail-panel [style*="background: #fff"],
+.grv-admin-dark .detail-panel [style*="background: white"] {
+  background: transparent !important;
+}
+
+/* ---------- Ensure the whole panel is dark ---------- */
+body.grv-admin-dark .detail-panel,
+.grv-admin-dark .detail-panel {
+  background: #131a2a !important;
+}
+
+body.grv-admin-dark .detail-panel * {
+  border-color: inherit;
+}

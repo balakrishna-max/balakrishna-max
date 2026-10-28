@@ -1,0 +1,775 @@
+/* ============================================================
+   USER DASHBOARD — Fully Responsive
+   ============================================================ */
+
+.user-dashboard {
+  padding: 24px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  background: #f5f7fb;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+}
+
+.user-dashboard * {
+  box-sizing: border-box;
+}
+
+/* ---------- Hero ---------- */
+.user-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  border-radius: 18px;
+  background: #4765BA;
+  box-shadow: 0 8px 24px rgba(71, 101, 186, 0.22);
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.user-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.user-hero-text {
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.user-hero-text h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.user-hero-text p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+}
+
+.user-hero-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hero-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.hero-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.hero-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.hero-action-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ---------- Main grid ---------- */
+.user-main-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.user-main-grid.full-width {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---------- Dark mode ---------- */
+.grv-dark.user-dashboard {
+  background: #0f172a;
+}
+
+.grv-dark .user-hero {
+  background: #1e293b;
+}
+
+.grv-dark .stat-card,
+.grv-dark .create-card,
+.grv-dark .tickets-list-card {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.grv-dark .stat-label,
+.grv-dark .tickets-list-title p {
+  color: #94a3b8;
+}
+
+.grv-dark .stat-value,
+.grv-dark .cf-field > label,
+.grv-dark .tickets-list-title h2,
+.grv-dark .ticket-item-desc {
+  color: #f1f5f9;
+}
+
+.grv-dark .cf-field input,
+.grv-dark .cf-field select,
+.grv-dark .cf-field textarea,
+.grv-dark .tl-search {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+
+/* --- 1400px and below: keep 2 columns, tighten padding --- */
+@media (max-width: 1400px) {
+  .user-dashboard {
+    padding: 20px;
+  }
+}
+
+/* --- 1200px and below: narrower form column --- */
+@media (max-width: 1200px) {
+  .user-main-grid {
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* --- 1000px and below: stack to single column --- */
+@media (max-width: 1000px) {
+  .user-dashboard {
+    padding: 16px;
+  }
+  .user-main-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .user-hero {
+    padding: 18px 20px;
+    border-radius: 16px;
+  }
+  .user-hero-text h1 {
+    font-size: 20px;
+  }
+  .user-hero-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .hero-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* --- 768px and below: tablet --- */
+@media (max-width: 768px) {
+  .user-dashboard {
+    padding: 14px;
+  }
+  .user-hero {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .user-hero-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .user-hero-text h1 {
+    font-size: 18px;
+  }
+  .user-hero-text p {
+    font-size: 12px;
+  }
+  .hero-action-btn {
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+}
+
+/* --- 640px and below: mobile --- */
+@media (max-width: 640px) {
+  .user-dashboard {
+    padding: 12px;
+  }
+  .user-hero {
+    padding: 14px;
+    border-radius: 12px;
+    gap: 10px;
+  }
+  .user-hero-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  .user-hero-text {
+    flex: 1 1 100%;
+  }
+  .user-hero-text h1 {
+    font-size: 16px;
+  }
+  .user-hero-text p {
+    font-size: 11px;
+  }
+  .user-hero-actions {
+    width: 100%;
+    gap: 8px;
+  }
+  .hero-icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .hero-action-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+}
+
+/* --- 480px and below: small mobile --- */
+@media (max-width: 480px) {
+  .user-dashboard {
+    padding: 10px;
+  }
+  .user-hero {
+    padding: 12px;
+  }
+  .user-hero-text h1 {
+    font-size: 15px;
+  }
+  .user-hero-text p {
+    font-size: 11px;
+  }
+}
+
+
+
+
+/* ============================================================
+   DARK MODE — User modals (History, Comments)
+   Applies when body.grv-dark is set
+   ============================================================ */
+
+/* ---- Modal container ---- */
+body.grv-dark .grv-modal-box {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+/* ---- Modal header ---- */
+body.grv-dark .history-modal-header,
+body.grv-dark .comments-modal-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-bottom-color: #334155 !important;
+}
+
+body.grv-dark .history-modal-title h2,
+body.grv-dark .comments-modal-title h2 {
+  color: #f1f5f9 !important;
+}
+
+body.grv-dark .history-modal-title p,
+body.grv-dark .comments-modal-title p {
+  color: #94a3b8 !important;
+}
+
+/* ---- Modal body ---- */
+body.grv-dark .history-modal-body,
+body.grv-dark .comments-modal-body {
+  background: #0f172a !important;
+}
+
+/* ---- Modal footer ---- */
+body.grv-dark .history-modal-footer,
+body.grv-dark .comments-modal-footer {
+  background: #1e293b !important;
+  border-top-color: #334155 !important;
+}
+
+/* ============================================================
+   DARK MODE — History Timeline
+   ============================================================ */
+
+body.grv-dark .history-timeline-node.pending {
+  background: #334155 !important;
+  color: #64748b !important;
+  box-shadow: 0 0 0 2px #334155 !important;
+}
+
+body.grv-dark .history-timeline-connector {
+  background: #334155 !important;
+}
+
+body.grv-dark .history-timeline-connector.done {
+  background: linear-gradient(180deg, #10b981 0%, #065f46 100%) !important;
+}
+
+body.grv-dark .history-timeline-content {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+body.grv-dark .history-timeline-item.done .history-timeline-content {
+  background: #0f2a20 !important;
+  border-color: #065f46 !important;
+}
+
+body.grv-dark .history-timeline-item.current .history-timeline-content {
+  background: #2a1f0a !important;
+  border-color: #d97706 !important;
+}
+
+body.grv-dark .history-timeline-item.pending .history-timeline-content {
+  background: #1e293b !important;
+  opacity: 0.7 !important;
+}
+
+body.grv-dark .history-timeline-title {
+  color: #f1f5f9 !important;
+}
+
+body.grv-dark .history-timeline-item.done .history-timeline-title {
+  color: #34d399 !important;
+}
+
+body.grv-dark .history-timeline-item.current .history-timeline-title {
+  color: #fbbf24 !important;
+}
+
+body.grv-dark .history-timeline-item.pending .history-timeline-title {
+  color: #64748b !important;
+}
+
+body.grv-dark .history-timeline-time {
+  background: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+body.grv-dark .history-timeline-pill {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+  border-color: #1e40af !important;
+}
+
+body.grv-dark .history-timeline-remarks {
+  background: #0f172a !important;
+  border-left-color: #60a5fa !important;
+}
+
+body.grv-dark .history-timeline-remarks-header {
+  color: #93c5fd !important;
+}
+
+body.grv-dark .history-timeline-remarks p {
+  color: #cbd5e1 !important;
+}
+
+/* ============================================================
+   DARK MODE — Comments Modal
+   ============================================================ */
+
+body.grv-dark .comment-bubble {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  border-left-color: #60a5fa !important;
+}
+
+body.grv-dark .comment-bubble:hover {
+  border-color: #475569 !important;
+  border-left-color: #93c5fd !important;
+}
+
+body.grv-dark .comment-bubble-author {
+  color: #93c5fd !important;
+}
+
+body.grv-dark .comment-bubble-time {
+  background: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+body.grv-dark .comment-bubble-text {
+  color: #e2e8f0 !important;
+}
+
+body.grv-dark .comments-loading {
+  color: #94a3b8 !important;
+}
+
+/* ============================================================
+   DARK MODE — Supplier dashboard
+   ============================================================ */
+
+.grv-dark.user-dashboard {
+  background: #0f172a !important;
+}
+
+.grv-dark .user-hero {
+  background: #1e293b !important;
+}
+
+/* ---------- Stat cards ---------- */
+.grv-dark .stat-card {
+  background: #1e293b !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+  border-color: #334155 !important;
+}
+
+.grv-dark .stat-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55) !important;
+}
+
+.grv-dark .stat-card.active {
+  border-color: #4765BA !important;
+  box-shadow: 0 6px 20px rgba(71, 101, 186, 0.4) !important;
+}
+
+.grv-dark .stat-value {
+  color: #f1f5f9 !important;
+}
+
+.grv-dark .stat-label {
+  color: #94a3b8 !important;
+}
+
+.grv-dark .stat-icon.color-indigo {
+  background: linear-gradient(135deg, #1e1b4b, #312e81) !important;
+  color: #a5b4fc !important;
+}
+.grv-dark .stat-icon.color-emerald {
+  background: linear-gradient(135deg, #064e3b, #065f46) !important;
+  color: #6ee7b7 !important;
+}
+.grv-dark .stat-icon.color-amber {
+  background: linear-gradient(135deg, #78350f, #92400e) !important;
+  color: #fcd34d !important;
+}
+.grv-dark .stat-icon.color-orange {
+  background: linear-gradient(135deg, #7c2d12, #9a3412) !important;
+  color: #fdba74 !important;
+}
+.grv-dark .stat-icon.color-teal {
+  background: linear-gradient(135deg, #134e4a, #115e59) !important;
+  color: #5eead4 !important;
+}
+.grv-dark .stat-icon.color-rose {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+  color: #fda4af !important;
+}
+
+/* ---------- Create Ticket card ---------- */
+.grv-dark .create-card {
+  background: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.grv-dark .create-card-header {
+  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+  border-bottom-color: #334155 !important;
+}
+
+.grv-dark .create-card-header h2 {
+  color: #f1f5f9 !important;
+}
+
+.grv-dark .create-card-header p {
+  color: #94a3b8 !important;
+}
+
+.grv-dark .create-card-icon {
+  background: linear-gradient(135deg, #4765BA, #6b83d6) !important;
+  color: #fff !important;
+}
+
+.grv-dark .cf-field > label {
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .cf-field input,
+.grv-dark .cf-field select,
+.grv-dark .cf-field textarea {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+.grv-dark .cf-field input:focus,
+.grv-dark .cf-field select:focus,
+.grv-dark .cf-field textarea:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
+}
+
+.grv-dark .cf-field input.readonly {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+.grv-dark .cf-field textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Priority chips */
+.grv-dark .priority-chip {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .priority-chip:hover {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+/* Upload zone */
+.grv-dark .cf-upload {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #93c5fd !important;
+}
+
+.grv-dark .cf-upload:hover {
+  background: #1e293b !important;
+  border-color: #60a5fa !important;
+}
+
+.grv-dark .cf-upload-text {
+  color: #e2e8f0 !important;
+}
+
+.grv-dark .cf-upload-hint {
+  color: #64748b !important;
+}
+
+.grv-dark .cf-counter {
+  color: #94a3b8 !important;
+}
+
+/* ---------- Tickets list card ---------- */
+.grv-dark .tickets-list-card {
+  background: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.grv-dark .tickets-list-header {
+  border-bottom-color: #334155 !important;
+}
+
+.grv-dark .tickets-list-title h2 {
+  color: #f1f5f9 !important;
+}
+
+.grv-dark .tickets-list-title p {
+  color: #94a3b8 !important;
+}
+
+/* Search bar */
+.grv-dark .tl-search {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.grv-dark .tl-search:focus-within {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
+}
+
+.grv-dark .tl-search input {
+  color: #f1f5f9 !important;
+}
+
+.grv-dark .tl-search input::placeholder {
+  color: #64748b !important;
+}
+
+.grv-dark .tl-search svg {
+  color: #64748b !important;
+}
+
+.grv-dark .tl-mic {
+  color: #94a3b8 !important;
+}
+
+.grv-dark .tl-mic:hover {
+  background: #334155 !important;
+  color: #93c5fd !important;
+}
+
+/* Filters button */
+.grv-dark .tl-filter-btn {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .tl-filter-btn:hover {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+.grv-dark .tl-filter-btn.active {
+  background: #1e3a8a !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+/* ---------- Ticket items ---------- */
+.grv-dark .ticket-item {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.grv-dark .ticket-item:hover {
+  border-color: #60a5fa !important;
+  box-shadow: 0 6px 18px rgba(96, 165, 250, 0.15) !important;
+}
+
+.grv-dark .tii-label {
+  color: #94a3b8 !important;
+}
+
+.grv-dark .tii-number {
+  color: #93c5fd !important;
+}
+
+.grv-dark .ticket-item-desc {
+  color: #e2e8f0 !important;   /* ← THIS FIXES THE INVISIBLE TEXT */
+}
+
+.grv-dark .ticket-item-meta {
+  color: #94a3b8 !important;
+}
+
+.grv-dark .tim-item strong {
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .ticket-item-comment {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-left-color: #60a5fa !important;
+}
+
+.grv-dark .ticket-item-comment svg {
+  color: #60a5fa !important;
+}
+
+/* Icon buttons in ticket cards */
+.grv-dark .ticket-icon-btn {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .ticket-icon-btn:hover {
+  background: #334155 !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+/* ---------- Pagination ---------- */
+.grv-dark .tickets-pagination {
+  border-top-color: #334155 !important;
+}
+
+.grv-dark .tickets-page-info {
+  color: #94a3b8 !important;
+}
+
+.grv-dark .tickets-page-info strong {
+  color: #f1f5f9 !important;
+}
+
+.grv-dark .page-pill {
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .tickets-page-controls button {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .tickets-page-controls button:hover:not(:disabled) {
+  background: #334155 !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+/* ---------- Empty & loading states ---------- */
+.grv-dark .tickets-empty {
+  color: #64748b !important;
+}
+
+.grv-dark .tickets-empty svg {
+  color: #475569 !important;
+}
+
+.grv-dark .tickets-empty h3 {
+  color: #cbd5e1 !important;
+}
+
+.grv-dark .tickets-loading {
+  color: #94a3b8 !important;
+}
+
+/* ---------- Keyboard hint ---------- */
+.grv-dark .grv-kbd-hint {
+  color: #64748b !important;
+}
+
+.grv-dark .grv-kbd-hint kbd {
+  background: #334155 !important;
+  color: #e2e8f0 !important;
+  border-color: #475569 !important;
+}

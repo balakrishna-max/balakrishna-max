@@ -1,0 +1,836 @@
+/* ============================================================
+   GRIEVANCE TICKET FORM — Full width + responsive
+   ============================================================ */
+
+/* Page wrapper — full width, no max-width cap */
+.grv-grievance-page.grv-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 24px 28px 60px !important;
+  box-sizing: border-box !important;
+}
+
+/* The main card — full width inside the wrapper */
+.grv-grievance-page .grv-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Header */
+.grv-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.grv-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4765BA, #7CBC73);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(71, 101, 186, 0.35);
+  flex-shrink: 0;
+}
+
+.grv-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.grv-header-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Stepper */
+.grv-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.grv-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.grv-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef1f8;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.grv-step.active .grv-step-num {
+  background: linear-gradient(135deg, #4765BA, #6b83d6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(71, 101, 186, 0.4);
+  transform: scale(1.1);
+}
+
+.grv-step.active {
+  color: #4765BA;
+  font-weight: 600;
+}
+
+.grv-step.done .grv-step-num {
+  background: #10b981;
+  color: #fff;
+}
+
+.grv-step.done {
+  color: #10b981;
+}
+
+.grv-step-line {
+  width: 40px;
+  height: 2px;
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+
+.grv-step-line.done {
+  background: #10b981;
+}
+
+/* Card */
+.grv-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 28px;
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  box-sizing: border-box;
+}
+
+/* Meta grid — full width, responsive */
+.grv-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9ff, #eef2fb);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.grv-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.grv-meta-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4765BA;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.grv-meta-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.grv-meta-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Form grid — 2 columns full width */
+.grv-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.grv-form-group {
+  margin-bottom: 20px;
+  min-width: 0;
+}
+
+.grv-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.grv-label-req {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.grv-input,
+.grv-select,
+.grv-textarea {
+  width: 100% !important;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.grv-input:focus,
+.grv-select:focus,
+.grv-textarea:focus {
+  border-color: #4765BA;
+  box-shadow: 0 0 0 4px rgba(71, 101, 186, 0.1);
+}
+
+.grv-input.error,
+.grv-select.error,
+.grv-textarea.error {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+.grv-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.grv-error-msg {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* File upload */
+.grv-upload {
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafbff;
+}
+
+.grv-upload:hover {
+  border-color: #4765BA;
+  background: #eef2f8;
+}
+
+.grv-upload.dragover {
+  border-color: #4765BA;
+  background: #e8edf8;
+  transform: scale(1.01);
+}
+
+.grv-upload-icon {
+  color: #4765BA;
+  margin-bottom: 8px;
+}
+
+.grv-upload-text {
+  font-size: 13px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.grv-upload-hint {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.grv-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef2f8;
+  color: #4765BA;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+/* Buttons */
+.grv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.grv-btn-primary {
+  background: linear-gradient(135deg, #4765BA, #5a7dd6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(71, 101, 186, 0.3);
+}
+
+.grv-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(71, 101, 186, 0.4);
+}
+
+.grv-btn-block {
+  width: 100%;
+}
+
+.grv-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* 1400px and below */
+@media (max-width: 1400px) {
+  .grv-grievance-page.grv-wrapper {
+    padding: 22px 24px 50px !important;
+  }
+}
+
+/* 1000px — form goes single column */
+@media (max-width: 1000px) {
+  .grv-form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .grv-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 768px — tablet */
+@media (max-width: 768px) {
+  .grv-grievance-page.grv-wrapper {
+    padding: 16px 14px 40px !important;
+  }
+  .grv-card {
+    padding: 20px;
+    border-radius: 14px;
+  }
+  .grv-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .grv-header-title {
+    font-size: 18px;
+  }
+  .grv-header-subtitle {
+    font-size: 12px;
+  }
+  .grv-stepper {
+    padding: 12px;
+    gap: 8px;
+  }
+  .grv-step-line {
+    width: 24px;
+  }
+  .grv-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  .grv-textarea {
+    min-height: 90px;
+  }
+}
+
+/* 640px — mobile */
+@media (max-width: 640px) {
+  .grv-grievance-page.grv-wrapper {
+    padding: 12px 10px 32px !important;
+  }
+  .grv-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .grv-header {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .grv-header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+  .grv-header-title {
+    font-size: 16px;
+  }
+  .grv-header-subtitle {
+    font-size: 11px;
+  }
+
+  /* Stepper compresses */
+  .grv-stepper {
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .grv-step {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .grv-step-num {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .grv-step-line {
+    width: 16px;
+  }
+  /* Hide step labels — keep only numbers on very small screens */
+  .grv-step > span:not(.grv-step-num) {
+    display: none;
+  }
+
+  .grv-form-group {
+    margin-bottom: 16px;
+  }
+  .grv-input,
+  .grv-select,
+  .grv-textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .grv-upload {
+    padding: 18px;
+  }
+  .grv-btn {
+    padding: 11px 18px;
+    font-size: 13px;
+    width: 100%;
+  }
+}
+
+/* 400px — small phone */
+@media (max-width: 400px) {
+  .grv-grievance-page.grv-wrapper {
+    padding: 10px 8px 30px !important;
+  }
+  .grv-card {
+    padding: 14px;
+  }
+  .grv-header-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .grv-header-title {
+    font-size: 15px;
+  }
+}
+
+
+
+
+/* ============================================================
+   DARK MODE — Ticket Raise page
+   ============================================================ */
+
+/* Apply to both wrapper class and body class (modal-safe) */
+.grv-ticket-dark.grv-wrapper,
+.grv-ticket-dark .grv-wrapper,
+body.grv-ticket-dark .grv-wrapper,
+body.grv-ticket-dark.grv-wrapper {
+  background: #0f172a !important;
+}
+
+/* ---------- Page background ---------- */
+body.grv-ticket-dark,
+.grv-ticket-dark {
+  background: #0f172a !important;
+}
+
+/* ---------- Header ---------- */
+.grv-ticket-dark .grv-header-title,
+body.grv-ticket-dark .grv-header-title {
+  color: #f1f5f9 !important;
+}
+
+.grv-ticket-dark .grv-header-subtitle,
+body.grv-ticket-dark .grv-header-subtitle {
+  color: #94a3b8 !important;
+}
+
+.grv-ticket-dark .grv-header-icon,
+body.grv-ticket-dark .grv-header-icon {
+  background: linear-gradient(135deg, #4765BA, #7CBC73) !important;
+  box-shadow: 0 8px 20px rgba(71, 101, 186, 0.4) !important;
+}
+
+/* Theme toggle button */
+.grv-theme-toggle {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #eef2fb;
+  border: 1.5px solid #dbe3f8;
+  color: #4765BA;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.grv-theme-toggle:hover {
+  background: #dbe3f8;
+  transform: rotate(15deg) scale(1.05);
+}
+
+.grv-ticket-dark .grv-theme-toggle,
+body.grv-ticket-dark .grv-theme-toggle {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #fbbf24 !important;
+}
+
+.grv-ticket-dark .grv-theme-toggle:hover,
+body.grv-ticket-dark .grv-theme-toggle:hover {
+  background: #334155 !important;
+}
+
+/* ---------- Stepper ---------- */
+.grv-ticket-dark .grv-stepper,
+body.grv-ticket-dark .grv-stepper {
+  background: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.grv-ticket-dark .grv-step,
+body.grv-ticket-dark .grv-step {
+  color: #94a3b8 !important;
+}
+
+.grv-ticket-dark .grv-step-num,
+body.grv-ticket-dark .grv-step-num {
+  background: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+.grv-ticket-dark .grv-step.active,
+body.grv-ticket-dark .grv-step.active {
+  color: #93c5fd !important;
+}
+
+.grv-ticket-dark .grv-step.active .grv-step-num,
+body.grv-ticket-dark .grv-step.active .grv-step-num {
+  background: linear-gradient(135deg, #4765BA, #6b83d6) !important;
+  color: #fff !important;
+}
+
+.grv-ticket-dark .grv-step-line,
+body.grv-ticket-dark .grv-step-line {
+  background: #334155 !important;
+}
+
+/* ---------- Card ---------- */
+.grv-ticket-dark .grv-card,
+body.grv-ticket-dark .grv-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ---------- Meta grid ---------- */
+.grv-ticket-dark .grv-meta-grid,
+body.grv-ticket-dark .grv-meta-grid {
+  background: linear-gradient(135deg, #0f172a, #1e293b) !important;
+}
+
+.grv-ticket-dark .grv-meta-icon,
+body.grv-ticket-dark .grv-meta-icon {
+  background: #334155 !important;
+  color: #93c5fd !important;
+}
+
+.grv-ticket-dark .grv-meta-label,
+body.grv-ticket-dark .grv-meta-label {
+  color: #94a3b8 !important;
+}
+
+.grv-ticket-dark .grv-meta-value,
+body.grv-ticket-dark .grv-meta-value {
+  color: #e2e8f0 !important;
+}
+
+/* ---------- Form fields ---------- */
+.grv-ticket-dark .grv-label,
+body.grv-ticket-dark .grv-label {
+  color: #cbd5e1 !important;
+}
+
+.grv-ticket-dark .grv-input,
+.grv-ticket-dark .grv-select,
+.grv-ticket-dark .grv-textarea,
+body.grv-ticket-dark .grv-input,
+body.grv-ticket-dark .grv-select,
+body.grv-ticket-dark .grv-textarea {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+.grv-ticket-dark .grv-input:focus,
+.grv-ticket-dark .grv-select:focus,
+.grv-ticket-dark .grv-textarea:focus,
+body.grv-ticket-dark .grv-input:focus,
+body.grv-ticket-dark .grv-select:focus,
+body.grv-ticket-dark .grv-textarea:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2) !important;
+}
+
+.grv-ticket-dark .grv-textarea::placeholder,
+body.grv-ticket-dark .grv-textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* ---------- File upload ---------- */
+.grv-ticket-dark .grv-upload,
+body.grv-ticket-dark .grv-upload {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.grv-ticket-dark .grv-upload:hover,
+body.grv-ticket-dark .grv-upload:hover {
+  background: #1e293b !important;
+  border-color: #60a5fa !important;
+}
+
+.grv-ticket-dark .grv-upload-icon,
+body.grv-ticket-dark .grv-upload-icon {
+  color: #93c5fd !important;
+}
+
+.grv-ticket-dark .grv-upload-text,
+body.grv-ticket-dark .grv-upload-text {
+  color: #e2e8f0 !important;
+}
+
+.grv-ticket-dark .grv-upload-hint,
+body.grv-ticket-dark .grv-upload-hint {
+  color: #64748b !important;
+}
+
+.grv-ticket-dark .grv-file-chip,
+body.grv-ticket-dark .grv-file-chip {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+/* ---------- Buttons ---------- */
+.grv-ticket-dark .grv-btn-primary,
+body.grv-ticket-dark .grv-btn-primary {
+  background: linear-gradient(135deg, #4765BA, #5a7dd6) !important;
+  color: #fff !important;
+}
+
+.grv-ticket-dark .grv-btn-secondary,
+body.grv-ticket-dark .grv-btn-secondary {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.grv-ticket-dark .grv-btn-secondary:hover,
+body.grv-ticket-dark .grv-btn-secondary:hover {
+  background: #334155 !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+/* ============================================================
+   DARK MODE — Ticket Tracking / Timeline
+   ============================================================ */
+
+/* ---- Timeline container ---- */
+body.grv-ticket-dark .grv-timeline,
+.grv-ticket-dark .grv-timeline {
+  position: relative;
+}
+
+body.grv-ticket-dark .grv-timeline::before,
+.grv-ticket-dark .grv-timeline::before {
+  background: #334155 !important;
+}
+
+/* ---- Timeline items (cards) ---- */
+body.grv-ticket-dark .grv-tl-item,
+.grv-ticket-dark .grv-tl-item {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.grv-ticket-dark .grv-tl-item.done,
+.grv-ticket-dark .grv-tl-item.done {
+  background: #0f2a20 !important;
+  border-color: #065f46 !important;
+}
+
+body.grv-ticket-dark .grv-tl-item.current,
+.grv-ticket-dark .grv-tl-item.current {
+  background: #2a1f0a !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25) !important;
+}
+
+/* ---- Timeline icons (nodes) ---- */
+body.grv-ticket-dark .grv-tl-icon,
+.grv-ticket-dark .grv-tl-icon {
+  background: #334155 !important;
+  color: #94a3b8 !important;
+  border-color: #0f172a !important;
+}
+
+body.grv-ticket-dark .grv-tl-item.done .grv-tl-icon,
+.grv-ticket-dark .grv-tl-item.done .grv-tl-icon {
+  background: #10b981 !important;
+  color: #fff !important;
+}
+
+body.grv-ticket-dark .grv-tl-item.current .grv-tl-icon,
+.grv-ticket-dark .grv-tl-item.current .grv-tl-icon {
+  background: #f59e0b !important;
+  color: #fff !important;
+}
+
+/* ---- Timeline titles ---- */
+body.grv-ticket-dark .grv-tl-title,
+.grv-ticket-dark .grv-tl-title {
+  color: #f1f5f9 !important;
+}
+
+body.grv-ticket-dark .grv-tl-item.done .grv-tl-title,
+.grv-ticket-dark .grv-tl-item.done .grv-tl-title {
+  color: #34d399 !important;
+}
+
+body.grv-ticket-dark .grv-tl-item.current .grv-tl-title,
+.grv-ticket-dark .grv-tl-item.current .grv-tl-title {
+  color: #fbbf24 !important;
+}
+
+/* ---- Timeline time chip ---- */
+body.grv-ticket-dark .grv-tl-time,
+.grv-ticket-dark .grv-tl-time {
+  background: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+/* ---- Timeline description ---- */
+body.grv-ticket-dark .grv-tl-desc,
+.grv-ticket-dark .grv-tl-desc {
+  color: #cbd5e1 !important;
+}
+
+/* ---- Ticket ID / header inside tracking page ---- */
+body.grv-ticket-dark .grv-tracking-title,
+body.grv-ticket-dark .grv-tracking-id,
+.grv-ticket-dark .grv-tracking-title,
+.grv-ticket-dark .grv-tracking-id {
+  color: #f1f5f9 !important;
+}
+
+/* ============================================================
+   DARK MODE — Ticket Confirmation page
+   ============================================================ */
+
+body.grv-ticket-dark .grv-success-title,
+.grv-ticket-dark .grv-success-title {
+  color: #f1f5f9 !important;
+}
+
+body.grv-ticket-dark .grv-success-msg,
+.grv-ticket-dark .grv-success-msg {
+  color: #94a3b8 !important;
+}
+
+body.grv-ticket-dark .grv-ticket-id,
+.grv-ticket-dark .grv-ticket-id {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+body.grv-ticket-dark .grv-success-icon,
+.grv-ticket-dark .grv-success-icon {
+  background: linear-gradient(135deg, #064e3b, #065f46) !important;
+  color: #6ee7b7 !important;
+}

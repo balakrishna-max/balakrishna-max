@@ -1,0 +1,58 @@
+/* Ensure React root and page containers fill the full width */
+#grievance-react-root {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+/* ============================================
+   GLOBAL — Variables, resets, base typography
+   ============================================ */
+
+:root {
+  --a2z-primary: #4765BA;
+  --a2z-primary-dark: #35509a;
+  --a2z-primary-light: #e8edf8;
+  --a2z-accent: #7CBC73;
+  --a2z-success: #10b981;
+  --a2z-warning: #f59e0b;
+  --a2z-danger: #ef4444;
+  --a2z-text: #1f2937;
+  --a2z-text-muted: #6b7280;
+  --a2z-border: #e5e7eb;
+  --a2z-bg: #f8f9fb;
+  --a2z-card-bg: #ffffff;
+  --a2z-radius: 16px;
+  --a2z-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --a2z-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --a2z-shadow-lg: 0 12px 32px rgba(71, 101, 186, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+  background: var(--a2z-bg);
+  color: var(--a2z-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared utilities */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

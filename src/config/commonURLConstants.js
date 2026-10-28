@@ -1,13 +1,15 @@
 
 const commonURLConstants = {
 
-  APP_BASE_URL: 'https://qa.a2zprocure.com',
+  // APP_BASE_URL: 'https://qa.a2zprocure.com',
+
+ APP_BASE_URL: 'http://localhost:8085/a2zproduct',
 
   // REPORTS_API_URL: 'https://connector.a2zprocure.com/iconnector',
 
-  REPORTS_API_URL: 'http://192.168.1.117:8080',
+  // REPORTS_API_URL: 'http://192.168.1.117:8080',
 
-  // REPORTS_API_URL: 'http://192.168.1.235:9595',
+  REPORTS_API_URL: 'http://192.168.1.235:9595',
 
   WEBSERVICE_URL: '',
 
